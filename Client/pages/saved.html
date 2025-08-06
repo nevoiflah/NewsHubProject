@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saved Articles - NewsHub</title>
+    <link rel="icon" href="../assets/favicon.ico" type="image/x-icon">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="../css/styles.css" rel="stylesheet" />
+
+    <!-- Firebase Configuration -->
+    <script type="module">
+        import('../js/firebase-config.js').then(module => {
+            console.log('🔥 Firebase loaded');
+        }).catch(error => {
+            console.error('🔥 Firebase load error:', error);
+        });
+    </script>
+</head>
+<body>
+    <div id="navbar-container"></div>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-lg-3">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Search Saved Articles</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <input type="text" class="form-control" id="searchSaved" placeholder="Search articles...">
+                        </div>
+                        <div class="mb-3">
+                            <label for="sortBy" class="form-label">Sort By</label>
+                            <select class="form-select" id="sortBy">
+                                <option value="saved_date">Date Saved</option>
+                                <option value="published_date">Published Date</option>
+                                <option value="title">Title</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="filterCategory" class="form-label">Category</label>
+                            <select class="form-select" id="filterCategory">
+                                <option value="">All Categories</option>
+                                <option value="business">Business</option>
+                                <option value="technology">Technology</option>
+                                <option value="health">Health</option>
+                                <option value="sports">Sports</option>
+                                <option value="entertainment">Entertainment</option>
+                                <option value="general">General</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-primary w-100" id="searchBtn">
+                            <i class="fas fa-search me-2"></i>Search
+                        </button>
+                        
+                        <hr>
+                        
+                        <!-- Bulk Actions -->
+                        <div class="mt-4">
+                            <h6>Bulk Actions</h6>
+                            <button class="btn btn-outline-danger btn-sm w-100 mb-2" onclick="SavedNewsManager.clearAllSavedArticles()">
+                                <i class="fas fa-trash me-1"></i>Clear All Saved
+                            </button>
+                            <button class="btn btn-outline-primary btn-sm w-100" onclick="SavedNewsManager.exportSavedArticles()">
+                                <i class="fas fa-download me-1"></i>Export Data
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-9">
+                <!-- Header with title, controls, and article count -->
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4">
+                    <h2 class="mb-2 mb-md-0">My Saved Articles</h2>
+                    
+                    <div class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center gap-2">
+                        <!-- View Toggle Buttons -->
+                        <div class="btn-group me-sm-3" role="group" aria-label="View toggle">
+                            <button type="button" class="btn btn-primary active" id="gridView" title="Grid View">
+                                <i class="fas fa-th"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-primary" id="listView" title="List View">
+                                <i class="fas fa-list"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Article Count -->
+                        <span id="articleCount" class="badge bg-primary fs-6">0 articles</span>
+                    </div>
+                </div>
+
+                <!-- Articles Container -->
+                <div id="savedArticles" class="row">
+                    <!-- Saved articles will be loaded here -->
+                </div>
+
+                <!-- No Articles Message -->
+                <div id="noArticles" class="text-center py-5" style="display: none;">
+                    <i class="fas fa-bookmark fa-3x text-muted mb-3"></i>
+                    <h4>No Saved Articles</h4>
+                    <p class="text-muted">Start saving articles from the news page to see them here.</p>
+                    <a href="../pages/news.html" class="btn btn-primary">Browse News</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="../ajaxCalls.js"></script>
+    <script src="../js/common.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/savedNews.js"></script>
+</body>
+</html>

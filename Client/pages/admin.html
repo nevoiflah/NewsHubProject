@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - NewsHub</title>
+    <link rel="icon" href="../assets/favicon.ico" type="image/x-icon">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../css/styles.css">
+
+    <!-- Firebase Configuration -->
+    <script type="module">
+        import('../js/firebase-config.js').then(module => {
+            console.log('🔥 Firebase loaded');
+        }).catch(error => {
+            console.error('🔥 Firebase load error:', error);
+        });
+    </script>
+</head>
+<body>
+    <div id="navbar-container"></div>
+
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <div class="col-lg-3">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Admin Menu</h5>
+                    </div>
+                    <div class="list-group list-group-flush">
+                        <a href="#dashboard" class="list-group-item list-group-item-action active" data-section="dashboard">
+                            <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                        </a>
+                        <a href="#users" class="list-group-item list-group-item-action" data-section="users">
+                            <i class="fas fa-users me-2"></i>User Management
+                        </a>
+                        <a href="#reports" class="list-group-item list-group-item-action" data-section="reports">
+                            <i class="fas fa-flag me-2"></i>Reports
+                        </a>
+                        <a href="#analytics" class="list-group-item list-group-item-action" data-section="analytics">
+                            <i class="fas fa-chart-bar me-2"></i>Analytics
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-9">
+                <!-- Dashboard Section -->
+                <div id="dashboard" class="admin-section">
+                    <h2>Admin Dashboard</h2>
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <div class="card bg-primary text-white">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h6>Total Users</h6>
+                                            <h4 id="totalUsers">0</h4>
+                                        </div>
+                                        <i class="fas fa-users fa-2x"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card bg-success text-white">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h6>Daily Logins</h6>
+                                            <h4 id="dailyLogins">0</h4>
+                                        </div>
+                                        <i class="fas fa-sign-in-alt fa-2x"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card bg-info text-white">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h6>News Fetched</h6>
+                                            <h4 id="newsFetched">0</h4>
+                                        </div>
+                                        <i class="fas fa-newspaper fa-2x"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card bg-warning text-white">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h6>Articles Saved</h6>
+                                            <h4 id="articlesSaved">0</h4>
+                                        </div>
+                                        <i class="fas fa-bookmark fa-2x"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Users Section with Bulk Operations -->
+                <div id="users" class="admin-section" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2>User Management</h2>
+                        <div>
+                            <button class="btn btn-primary" onclick="AdminManager.loadUsersData()">
+                                <i class="fas fa-refresh me-1"></i>Refresh Users
+                            </button>
+                            <button class="btn btn-secondary" onclick="AdminManager.generateReport()">
+                                <i class="fas fa-download me-1"></i>Export Report
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Bulk Operations Panel -->
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <div id="bulkOperations" class="alert alert-info" style="display: none;">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <i class="fas fa-users me-2"></i>
+                                        <strong><span id="selectedCount">0</span> users selected</strong>
+                                    </div>
+                                    <div class="btn-group" role="group">
+                                        <button id="bulkLockBtn" class="btn btn-warning btn-sm" onclick="AdminManager.bulkLockUsers()">
+                                            <i class="fas fa-lock me-1"></i>Lock
+                                        </button>
+                                        <button id="bulkUnlockBtn" class="btn btn-success btn-sm" onclick="AdminManager.bulkUnlockUsers()">
+                                            <i class="fas fa-unlock me-1"></i>Unlock
+                                        </button>
+                                        <button id="bulkDeleteBtn" class="btn btn-danger btn-sm" onclick="AdminManager.bulkDeleteUsers()">
+                                            <i class="fas fa-trash me-1"></i>Delete
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th style="width: 50px;">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="selectAllUsers" onchange="AdminManager.selectAllUsers()">
+                                            <label class="form-check-label" for="selectAllUsers" title="Select All Users"></label>
+                                        </div>
+                                    </th>
+                                    <th>Username</th>
+                                    <th>Email</th>
+                                    <th>Registration Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTable">
+                                <!-- Users will be loaded here by JavaScript -->
+                                <tr>
+                                    <td colspan="6" class="text-center py-4">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Loading users...</span>
+                                        </div>
+                                        <p class="mt-2 mb-0 text-muted">Loading users...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Additional Info -->
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <div class="text-muted small">
+                                <i class="fas fa-info-circle me-1"></i>
+                                <strong>Tip:</strong> Select multiple users using checkboxes for bulk operations
+                            </div>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <div class="text-muted small">
+                                <i class="fas fa-users me-1"></i>
+                                User management with bulk operations
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reports Section -->
+                <div id="reports" class="admin-section" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2>Content Reports</h2>
+                        <button class="btn btn-outline-primary" onclick="AdminManager.loadReportsData()">
+                            <i class="fas fa-refresh me-1"></i>Refresh Reports
+                        </button>
+                    </div>
+                    <div id="reportsContainer">
+                        <!-- Reports will be loaded here -->
+                        <div class="text-center py-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading reports...</span>
+                            </div>
+                            <p class="mt-2 mb-0 text-muted">Loading reports...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analytics Section -->
+                <div id="analytics" class="admin-section" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2>Site Analytics</h2>
+                        <button class="btn btn-outline-primary" onclick="AdminManager.loadAnalyticsData()">
+                            <i class="fas fa-refresh me-1"></i>Refresh Analytics
+                        </button>
+                    </div>
+                    
+                    <div class="alert alert-info mb-4">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Analytics charts require Chart.js library and will show sample data since detailed analytics endpoints are not yet implemented.
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0">Login Activity</h6>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="loginChart" style="height: 300px;"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0">User Activity Distribution</h6>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="activityChart" style="height: 300px;"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0">Backend Endpoints Needed for Full Analytics</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h6>Current Available:</h6>
+                                            <ul class="small">
+                                                <li><code>GET /Admin/stats</code> - Basic system stats</li>
+                                                <li><code>GET /Admin/users</code> - User list</li>
+                                                <li><code>GET /Reports</code> - Content reports</li>
+                                            </ul>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6>Needed for Analytics:</h6>
+                                            <ul class="small">
+                                                <li><code>GET /Admin/analytics/logins</code> - Login trends</li>
+                                                <li><code>GET /Admin/analytics/activity</code> - User activity</li>
+                                                <li><code>GET /Admin/analytics/content</code> - Content stats</li>
+                                                <li><code>GET /Admin/analytics/performance</code> - System metrics</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="../ajaxCalls.js"></script>
+    <script src="../js/common.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/admin.js"></script>
+</body>
+</html>

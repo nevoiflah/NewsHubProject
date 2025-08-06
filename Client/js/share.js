@@ -1,0 +1,1266 @@
+// share.js - Full Community Features Implementation with Inline Comments
+const ShareManager = {
+    sharedContent: [],
+    filteredContent: [],
+    blockedUsers: [],
+    followingUsers: [],
+    currentPage: 1,
+    itemsPerPage: 10,
+    baseUrl: 'http://localhost:5121/api',
+
+    // Initialize the shared content page
+    init: function() {
+        this.setupEventListeners();
+        this.loadSharedContent();
+        this.loadBlockedUsers();
+        this.loadFollowingUsers();
+        this.loadFollowingStats();
+    },
+
+    // Setup event listeners
+    setupEventListeners: function() {
+        // Share form submission
+        $('#shareForm').on('submit', this.handleShareSubmission.bind(this));
+        $('#submitShare').on('click', this.handleShareSubmission.bind(this));
+        
+        // URL metadata fetching
+        $('#fetchMetadata').on('click', this.fetchArticleMetadata.bind(this));
+        $('#articleUrl').on('input', this.debounce(this.handleUrlInput.bind(this), 1000));
+        
+        // Filter controls
+        $('#userFilter').on('input', this.debounce(this.applyFilters.bind(this), 300));
+        $('#sortShared').on('change', this.applyFilters.bind(this));
+        $('#followingOnlyFilter').on('change', this.applyFilters.bind(this));
+        $('#applyFilters').on('click', this.applyFilters.bind(this));
+        
+        // Clear filters button
+        $('#clearFilters').on('click', this.clearAllFilters.bind(this));
+        
+        // Pagination
+        $(document).on('click', '.pagination-btn', this.handlePagination.bind(this));
+        
+        // Article interactions
+        $(document).on('click', '.like-btn', this.handleLikeArticle.bind(this));
+        $(document).on('click', '.comment-btn', this.handleShowComments.bind(this));
+        $(document).on('click', '.save-article-btn', this.handleSaveArticle.bind(this));
+        $(document).on('click', '.report-content-btn', this.handleReportContent.bind(this));
+        $(document).on('click', '.follow-user-btn', this.handleFollowUser.bind(this));
+        $(document).on('click', '.unfollow-user-btn', this.handleUnfollowUser.bind(this));
+        $(document).on('click', '.block-user-btn', this.handleBlockUser.bind(this));
+        $(document).on('click', '.delete-shared-btn', this.handleDeleteShared.bind(this));
+        
+        // Comment interactions - INLINE VERSION
+        $(document).on('click', '.submit-comment-inline-btn', this.handleSubmitCommentInline.bind(this));
+        $(document).on('click', '.delete-comment-inline-btn', this.handleDeleteCommentInline.bind(this));
+        $(document).on('click', '.toggle-comments-btn', function() {
+            const $btn = $(this);
+            const $commentsList = $btn.closest('.comments-section').find('.comments-list, .add-comment-form');
+            $commentsList.slideToggle();
+            const isVisible = $commentsList.is(':visible');
+            $btn.html(isVisible ? '<i class="fas fa-chevron-up"></i> Hide' : '<i class="fas fa-chevron-down"></i> Show');
+        });
+    },
+
+    // Debounce utility function
+    debounce: function(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    },
+
+    // Fetch article metadata
+    fetchArticleMetadata: function() {
+        const url = $('#articleUrl').val().trim();
+        if (!url || !this.isValidUrl(url)) {
+            showAlert('warning', 'Please enter a valid URL');
+            return;
+        }
+
+        const $btn = $('#fetchMetadata');
+        const originalText = $btn.html();
+        $btn.html('<i class="fas fa-spinner fa-spin me-1"></i>Fetching...').prop('disabled', true);
+
+        // For demo purposes, extract basic info from URL
+        try {
+            const urlObj = new URL(url);
+            const domain = urlObj.hostname.replace('www.', '');
+            
+            // Auto-fill basic information
+            $('#articleSource').val(domain);
+            $('#articleTitle').val('Article from ' + domain);
+            
+            // Show preview
+            this.showMetadataPreview({
+                title: 'Article from ' + domain,
+                description: 'Click to read the full article',
+                source: domain,
+                image: null
+            });
+            
+            showAlert('info', 'Metadata fetched! Please review and edit as needed.');
+        } catch (error) {
+            showAlert('warning', 'Could not fetch metadata. Please fill in the details manually.');
+        } finally {
+            $btn.html(originalText).prop('disabled', false);
+        }
+    },
+
+    // Handle URL input changes
+    handleUrlInput: function() {
+        const url = $('#articleUrl').val().trim();
+        if (url && this.isValidUrl(url)) {
+            this.fetchArticleMetadata();
+        }
+    },
+
+    // Show metadata preview
+    showMetadataPreview: function(metadata) {
+        const $preview = $('#metadataPreview');
+        
+        $preview.removeClass('d-none').html(`
+            <hr>
+            <h6>Preview:</h6>
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title" id="previewTitle">${this.sanitizeHtml(metadata.title || 'No title')}</h6>
+                    <p class="card-text" id="previewDescription">${this.sanitizeHtml(metadata.description || 'No description')}</p>
+                    <small class="text-muted" id="previewSource">${this.sanitizeHtml(metadata.source || 'Unknown source')}</small>
+                </div>
+            </div>
+        `);
+    },
+
+    // Handle share form submission
+    handleShareSubmission: function(e) {
+        if (e) e.preventDefault();
+
+        const url = $('#articleUrl').val().trim();
+        const comment = $('#shareComment').val().trim();
+        const tags = $('#shareTags').val().trim();
+        const userId = localStorage.getItem('userId');
+
+        if (!url || !this.isValidUrl(url)) {
+            showAlert('warning', 'Please enter a valid article URL');
+            return;
+        }
+
+        if (!comment) {
+            showAlert('warning', 'Please add a comment about why you\'re sharing this article');
+            return;
+        }
+
+        const $btn = $('#submitShare');
+        const originalText = $btn.html();
+        $btn.html('<i class="fas fa-spinner fa-spin me-2"></i>Sharing...').prop('disabled', true);
+
+        const shareData = {
+            url: url,
+            comment: comment,
+            tags: tags ? tags.split(',').map(tag => tag.trim()).filter(tag => tag) : [],
+            articleTitle: $('#articleTitle').val().trim() || null,
+            articleDescription: $('#articleDescription').val().trim() || null,
+            articleSource: $('#articleSource').val().trim() || null,
+            articleImageUrl: $('#articleImage').val().trim() || null
+        };
+
+        $.ajax({
+            type: 'POST',
+            url: `${this.baseUrl}/shared?userId=${userId}`,
+            data: JSON.stringify(shareData),
+            contentType: "application/json",
+            dataType: "json",
+            success: function(response) {
+                if (response && response.success) {
+                    showAlert('success', 'Article shared successfully!');
+                    $('#shareForm')[0].reset();
+                    $('#metadataPreview').addClass('d-none');
+                    bootstrap.Modal.getInstance($('#shareModal')[0]).hide();
+                    setTimeout(() => ShareManager.loadSharedContent(), 1000);
+                } else {
+                    showAlert('danger', response.message || 'Failed to share article');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('❌ Share submission error:', error);
+                showAlert('danger', 'Failed to share article. Please try again.');
+            },
+            complete: function() {
+                $btn.html(originalText).prop('disabled', false);
+            }
+        });
+    },
+
+    // Load shared content
+    loadSharedContent: function() {
+        console.log('📰 Loading shared content...');
+
+        $.ajax({
+            type: 'GET',
+            url: `${this.baseUrl}/shared`,
+            cache: false,
+            dataType: "json",
+            success: function(response) {
+                if (response && response.success) {
+                    ShareManager.sharedContent = response.articles || [];
+                    ShareManager.filteredContent = [...ShareManager.sharedContent];
+                    ShareManager.applyFilters();
+                    ShareManager.updateFilterIndicators();
+                } else {
+                    ShareManager.showErrorMessage('Failed to load shared content');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('❌ Error loading shared content:', error);
+                ShareManager.showErrorMessage('Failed to load shared content');
+            }
+        });
+    },
+
+    // Load blocked users
+    loadBlockedUsers: function() {
+        const userId = localStorage.getItem('userId');
+        if (!userId) return;
+
+        $.ajax({
+            type: 'GET',
+            url: `${this.baseUrl}/users/blocked?userId=${userId}`,
+            cache: false,
+            dataType: "json",
+            success: function(response) {
+                if (response && response.success) {
+                    ShareManager.blockedUsers = response.blockedUsers || [];
+                    ShareManager.displayBlockedUsers();
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('❌ Error loading blocked users:', error);
+            }
+        });
+    },
+
+    // Load following users
+    loadFollowingUsers: function() {
+        const userId = localStorage.getItem('userId');
+        if (!userId) return;
+
+        $.ajax({
+            type: 'GET',
+            url: `${this.baseUrl}/users/following?userId=${userId}`,
+            cache: false,
+            dataType: "json",
+            success: function(response) {
+                if (response && response.success) {
+                    ShareManager.followingUsers = response.following || [];
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('❌ Error loading following users:', error);
+            }
+        });
+    },
+
+    // Load following stats
+    loadFollowingStats: function() {
+        const userId = localStorage.getItem('userId');
+        if (!userId) return;
+
+        $.ajax({
+            type: 'GET',
+            url: `${this.baseUrl}/users/following-stats?userId=${userId}`,
+            cache: false,
+            dataType: "json",
+            success: function(response) {
+                if (response && response.success) {
+                    ShareManager.displayFollowingStats(response.stats);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('❌ Error loading following stats:', error);
+            }
+        });
+    },
+
+    // FIXED: Like/unlike article with better error handling
+    handleLikeArticle: function(e) {
+        const $btn = $(e.currentTarget);
+        const articleId = $btn.data('article-id');
+        const isLiked = $btn.hasClass('liked');
+        const userId = localStorage.getItem('userId');
+
+        if (!userId) {
+            showAlert('warning', 'Please log in to like articles');
+            return;
+        }
+
+        // Prevent double-clicking
+        if ($btn.prop('disabled')) return;
+        $btn.prop('disabled', true);
+
+        const method = isLiked ? 'DELETE' : 'POST';
+        const url = `${this.baseUrl}/shared/${articleId}/like?userId=${userId}`;
+
+        $.ajax({
+            type: method,
+            url: url,
+            cache: false,
+            dataType: "json",
+            success: function(response) {
+                if (response && response.success) {
+                    // Update button state
+                    if (isLiked) {
+                        $btn.removeClass('liked btn-danger').addClass('btn-outline-danger');
+                        $btn.find('i').removeClass('fas').addClass('far');
+                    } else {
+                        $btn.addClass('liked btn-danger').removeClass('btn-outline-danger');
+                        $btn.find('i').removeClass('far').addClass('fas');
+                    }
+                    
+                    // Update like count safely
+                    const $likeCount = $btn.find('.like-count');
+                    if ($likeCount.length > 0) {
+                        let currentCount = parseInt($likeCount.text()) || 0;
+                        const newCount = isLiked ? Math.max(0, currentCount - 1) : currentCount + 1;
+                        $likeCount.text(newCount);
+                    }
+                    
+                    // Success message (shorter duration)
+                    showAlert('success', isLiked ? 'Article unliked' : 'Article liked', 2000);
+                } else {
+                    showAlert('danger', response.message || 'Failed to update like');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('❌ Error updating like:', error);
+                showAlert('danger', 'Error updating like');
+            },
+            complete: function() {
+                // Re-enable button
+                $btn.prop('disabled', false);
+            }
+        });
+    },
+
+    // UPDATED: Show comments - now inline instead of modal
+    handleShowComments: function(e) {
+        const $btn = $(e.currentTarget);
+        const articleId = $btn.data('article-id');
+        const $card = $btn.closest('.card');
+        
+        // Check if comments are already shown
+        const $existingComments = $card.find('.comments-section');
+        if ($existingComments.length > 0) {
+            // Toggle visibility
+            $existingComments.slideToggle();
+            return;
+        }
+        
+        // Load and show comments inline
+        this.loadAndShowCommentsInline(articleId, $card);
+    },
+
+    // NEW: Load and show comments inline under the card
+    loadAndShowCommentsInline: function(articleId, $card) {
+        const userId = localStorage.getItem('userId');
+        
+        // Show loading
+        const $loadingHtml = $(`
+            <div class="comments-section border-top pt-3 mt-3">
+                <div class="text-center">
+                    <div class="spinner-border spinner-border-sm text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <span class="ms-2 text-muted">Loading comments...</span>
+                </div>
+            </div>
+        `);
+        $card.find('.card-body').append($loadingHtml);
+        
+        $.ajax({
+            type: 'GET',
+            url: `${this.baseUrl}/shared/${articleId}/comments?userId=${userId}`,
+            cache: false,
+            dataType: "json",
+            success: function(response) {
+                if (response && response.success) {
+                    ShareManager.showCommentsInline(articleId, response.comments || [], $card);
+                } else {
+                    $loadingHtml.html('<div class="alert alert-warning">Failed to load comments</div>');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('❌ Error loading comments:', error);
+                $loadingHtml.html('<div class="alert alert-danger">Error loading comments</div>');
+            }
+        });
+    },
+
+    // NEW: Show comments inline under the article card
+    showCommentsInline: function(articleId, comments, $card) {
+        const userId = localStorage.getItem('userId');
+        
+        // Remove loading indicator
+        $card.find('.comments-section').remove();
+        
+        // Build comments HTML
+        const commentsHtml = comments.map(comment => `
+            <div class="comment-item d-flex mb-3 p-2 bg-light rounded">
+                <div class="flex-shrink-0 me-3">
+                    <div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center" 
+                         style="width: 32px; height: 32px; font-size: 0.8rem;">
+                        <i class="fas fa-user"></i>
+                    </div>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-start mb-1">
+                        <div>
+                            <strong class="small">${this.sanitizeHtml(comment.username || 'Anonymous')}</strong>
+                            <small class="text-muted ms-2">${this.formatDate(comment.createdAt)}</small>
+                        </div>
+                        ${comment.canDelete ? `
+                            <button class="btn btn-sm btn-outline-danger delete-comment-inline-btn" 
+                                    data-comment-id="${comment.id}" data-article-id="${articleId}"
+                                    title="Delete comment">
+                                <i class="fas fa-trash" style="font-size: 0.7rem;"></i>
+                            </button>
+                        ` : ''}
+                    </div>
+                    <p class="mb-0 small">${this.sanitizeHtml(comment.content)}</p>
+                </div>
+            </div>
+        `).join('');
+
+        // Build the complete comments section
+        const commentsSection = `
+            <div class="comments-section border-top pt-3 mt-3">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="mb-0">
+                        <i class="fas fa-comments me-2"></i>Comments (${comments.length})
+                    </h6>
+                    <button class="btn btn-sm btn-outline-secondary toggle-comments-btn">
+                        <i class="fas fa-chevron-up"></i> Hide
+                    </button>
+                </div>
+                
+                <div class="comments-list" style="max-height: 400px; overflow-y: auto;">
+                    ${commentsHtml || '<p class="text-muted text-center py-3">No comments yet. Be the first to comment!</p>'}
+                </div>
+                
+                ${userId ? `
+                    <div class="add-comment-form mt-3 pt-3 border-top">
+                        <div class="d-flex gap-2">
+                            <textarea class="form-control form-control-sm new-comment-text" rows="2" 
+                                      placeholder="Write a comment..." data-article-id="${articleId}"></textarea>
+                            <button class="btn btn-primary btn-sm submit-comment-inline-btn" 
+                                    data-article-id="${articleId}">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                ` : '<div class="alert alert-info mt-3 mb-0 py-2 small">Please log in to comment.</div>'}
+            </div>
+        `;
+
+        // Add to card and show with animation
+        $card.find('.card-body').append(commentsSection);
+        $card.find('.comments-section').hide().slideDown();
+    },
+
+    // NEW: Handle submit comment inline
+    handleSubmitCommentInline: function(e) {
+        const $btn = $(e.currentTarget);
+        const articleId = $btn.data('article-id');
+        const $textarea = $btn.siblings('.new-comment-text');
+        const content = $textarea.val().trim();
+        const userId = localStorage.getItem('userId');
+
+        if (!content) {
+            showAlert('warning', 'Please enter a comment');
+            $textarea.focus();
+            return;
+        }
+
+        const originalText = $btn.html();
+        $btn.html('<i class="fas fa-spinner fa-spin"></i>').prop('disabled', true);
+        $textarea.prop('disabled', true);
+
+        $.ajax({
+            type: 'POST',
+            url: `${this.baseUrl}/shared/${articleId}/comments?userId=${userId}`,
+            data: JSON.stringify({ content: content }),
+            contentType: "application/json",
+            dataType: "json",
+            success: function(response) {
+                if (response && response.success) {
+                    showAlert('success', 'Comment added successfully', 2000);
+                    $textarea.val('');
+                    
+                    // Reload comments in the same card
+                    const $card = $btn.closest('.card');
+                    $card.find('.comments-section').remove();
+                    ShareManager.loadAndShowCommentsInline(articleId, $card);
+                    
+                    // Update comment count in button
+                    const $commentBtn = $card.find('.comment-btn');
+                    const currentCount = parseInt($commentBtn.text().match(/\d+/)?.[0] || '0');
+                    $commentBtn.html(`<i class="far fa-comment me-1"></i>${currentCount + 1}`);
+                    
+                } else {
+                    showAlert('danger', response.message || 'Failed to add comment');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('❌ Error adding comment:', error);
+                showAlert('danger', 'Error adding comment');
+            },
+            complete: function() {
+                $btn.html(originalText).prop('disabled', false);
+                $textarea.prop('disabled', false);
+            }
+        });
+    },
+
+    // NEW: Handle delete comment inline
+    handleDeleteCommentInline: function(e) {
+        const $btn = $(e.currentTarget);
+        const commentId = $btn.data('comment-id');
+        const articleId = $btn.data('article-id');
+        const userId = localStorage.getItem('userId');
+
+        if (!confirm('Are you sure you want to delete this comment?')) return;
+
+        $btn.prop('disabled', true);
+
+        $.ajax({
+            type: 'DELETE',
+            url: `${this.baseUrl}/shared/${articleId}/comments/${commentId}?userId=${userId}`,
+            cache: false,
+            dataType: "json",
+            success: function(response) {
+                if (response && response.success) {
+                    showAlert('success', 'Comment deleted successfully', 2000);
+                    
+                    // Remove the comment with animation
+                    $btn.closest('.comment-item').fadeOut(300, function() {
+                        $(this).remove();
+                        
+                        // Update comments count
+                        const $card = $btn.closest('.card');
+                        const $commentsSection = $card.find('.comments-section');
+                        const remainingComments = $commentsSection.find('.comment-item').length;
+                        $commentsSection.find('h6').html(`<i class="fas fa-comments me-2"></i>Comments (${remainingComments})`);
+                        
+                        // Update comment count in main button
+                        const $commentBtn = $card.find('.comment-btn');
+                        const currentCount = parseInt($commentBtn.text().match(/\d+/)?.[0] || '0');
+                        $commentBtn.html(`<i class="far fa-comment me-1"></i>${Math.max(0, currentCount - 1)}`);
+                    });
+                    
+                } else {
+                    showAlert('danger', response.message || 'Failed to delete comment');
+                    $btn.prop('disabled', false);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('❌ Error deleting comment:', error);
+                showAlert('danger', 'Error deleting comment');
+                $btn.prop('disabled', false);
+            }
+        });
+    },
+
+    // Handle follow user
+    handleFollowUser: function(e) {
+        const targetUserId = $(e.currentTarget).data('user-id');
+        const username = $(e.currentTarget).data('username');
+        const userId = localStorage.getItem('userId');
+
+        $.ajax({
+            type: 'POST',
+            url: `${this.baseUrl}/users/${targetUserId}/follow?userId=${userId}`,
+            cache: false,
+            dataType: "json",
+            success: function(response) {
+                if (response && response.success) {
+                    showAlert('success', `You are now following ${username}`);
+                    ShareManager.loadFollowingUsers();
+                    ShareManager.loadFollowingStats();
+                    ShareManager.loadSharedContent(); // Refresh to update UI
+                } else {
+                    showAlert('danger', response.message || 'Failed to follow user');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('❌ Error following user:', error);
+                showAlert('danger', 'Error following user');
+            }
+        });
+    },
+
+    // Handle unfollow user
+    handleUnfollowUser: function(e) {
+        const targetUserId = $(e.currentTarget).data('user-id');
+        const username = $(e.currentTarget).data('username');
+        const userId = localStorage.getItem('userId');
+
+        if (!confirm(`Are you sure you want to unfollow ${username}?`)) return;
+
+        $.ajax({
+            type: 'DELETE',
+            url: `${this.baseUrl}/users/${targetUserId}/unfollow?userId=${userId}`,
+            cache: false,
+            dataType: "json",
+            success: function(response) {
+                if (response && response.success) {
+                    showAlert('success', `You have unfollowed ${username}`);
+                    ShareManager.loadFollowingUsers();
+                    ShareManager.loadFollowingStats();
+                    ShareManager.loadSharedContent(); // Refresh to update UI
+                } else {
+                    showAlert('danger', response.message || 'Failed to unfollow user');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('❌ Error unfollowing user:', error);
+                showAlert('danger', 'Error unfollowing user');
+            }
+        });
+    },
+
+    // Handle block user
+    handleBlockUser: function(e) {
+        const targetUserId = $(e.currentTarget).data('user-id');
+        const username = $(e.currentTarget).data('username');
+        const userId = localStorage.getItem('userId');
+
+        const reason = prompt(`Why are you blocking ${username}? (Optional)`);
+        if (reason === null) return; // User cancelled
+
+        $.ajax({
+            type: 'POST',
+            url: `${this.baseUrl}/users/${targetUserId}/block?userId=${userId}`,
+            data: JSON.stringify({ reason: reason || null }),
+            contentType: "application/json",
+            dataType: "json",
+            success: function(response) {
+                if (response && response.success) {
+                    showAlert('success', `${username} has been blocked`);
+                    ShareManager.loadBlockedUsers();
+                    ShareManager.loadSharedContent(); // Refresh to hide blocked user content
+                } else {
+                    showAlert('danger', response.message || 'Failed to block user');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('❌ Error blocking user:', error);
+                showAlert('danger', 'Error blocking user');
+            }
+        });
+    },
+
+    // Handle report content
+    handleReportContent: function(e) {
+        const shareId = $(e.currentTarget).data('share-id');
+        
+        const reasons = [
+            'Offensive or inappropriate content',
+            'False information or misinformation',
+            'Spam or promotional content',
+            'Copyright infringement',
+            'Other'
+        ];
+
+        let reasonsHtml = reasons.map((reason, index) => 
+            `<option value="${reason}">${reason}</option>`
+        ).join('');
+
+        const modalHtml = `
+            <div class="modal fade" id="reportModal" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Report Content</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label for="reportReason" class="form-label">Reason for reporting *</label>
+                                <select class="form-select" id="reportReason" required>
+                                    <option value="">Select a reason...</option>
+                                    ${reasonsHtml}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="reportDescription" class="form-label">Additional details (optional)</label>
+                                <textarea class="form-control" id="reportDescription" rows="3" 
+                                          placeholder="Please provide any additional details..."></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-danger" id="submitReport" data-share-id="${shareId}">
+                                <i class="fas fa-flag me-1"></i>Submit Report
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Remove existing modal
+        $('#reportModal').remove();
+        
+        // Add new modal
+        $('body').append(modalHtml);
+        
+        // Show modal
+        const modal = new bootstrap.Modal(document.getElementById('reportModal'));
+        modal.show();
+
+        // Handle submit report
+        $('#submitReport').on('click', function() {
+            const reason = $('#reportReason').val();
+            const description = $('#reportDescription').val().trim();
+            
+            if (!reason) {
+                showAlert('warning', 'Please select a reason for reporting');
+                return;
+            }
+
+            const fullReason = description ? `${reason}: ${description}` : reason;
+            ShareManager.submitReport('shared_article', shareId, fullReason);
+            modal.hide();
+        });
+        
+        // Remove modal when hidden
+        $('#reportModal').on('hidden.bs.modal', function() {
+            $(this).remove();
+        });
+    },
+
+    // Submit report
+    submitReport: function(contentType, contentId, reason) {
+        const userId = localStorage.getItem('userId');
+
+        $.ajax({
+            type: 'POST',
+            url: `${this.baseUrl}/reports?userId=${userId}`,
+            data: JSON.stringify({
+                contentType: contentType,
+                contentId: contentId,
+                reason: reason
+            }),
+            contentType: "application/json",
+            dataType: "json",
+            success: function(response) {
+                if (response && response.success) {
+                    showAlert('success', 'Report submitted successfully. Thank you for helping keep our community safe.');
+                } else {
+                    showAlert('danger', response.message || 'Failed to submit report');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('❌ Error submitting report:', error);
+                showAlert('danger', 'Error submitting report');
+            }
+        });
+    },
+
+    // Handle delete shared article
+    handleDeleteShared: function(e) {
+        const shareId = $(e.currentTarget).data('share-id');
+        const userId = localStorage.getItem('userId');
+
+        if (!confirm('Are you sure you want to delete this shared article?')) return;
+
+        $.ajax({
+            type: 'DELETE',
+            url: `${this.baseUrl}/shared/${shareId}?userId=${userId}`,
+            cache: false,
+            dataType: "json",
+            success: function(response) {
+                if (response && response.success) {
+                    showAlert('success', 'Article deleted successfully');
+                    $(`[data-share-id="${shareId}"]`).fadeOut();
+                    setTimeout(() => ShareManager.loadSharedContent(), 1000);
+                } else {
+                    showAlert('danger', response.message || 'Failed to delete article');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('❌ Error deleting shared article:', error);
+                showAlert('danger', 'Error deleting article');
+            }
+        });
+    },
+
+    // Handle save article
+    handleSaveArticle: function(e) {
+        const articleData = JSON.parse($(e.currentTarget).attr('data-article').replace(/&apos;/g, "'"));
+        const userId = localStorage.getItem('userId');
+
+        $.ajax({
+            type: 'POST',
+            url: `${this.baseUrl}/news/save?userId=${userId}`,
+            data: JSON.stringify({
+                title: articleData.articleTitle || 'Shared Article',
+                content: articleData.articleDescription || articleData.comment,
+                url: articleData.url,
+                urlToImage: articleData.articleImageUrl,
+                publishedAt: new Date().toISOString(),
+                source: articleData.articleSource || 'Shared Content',
+                category: 'general'
+            }),
+            contentType: "application/json",
+            dataType: "json",
+            success: function(response) {
+                if (response && response.newsId) {
+                    showAlert('success', 'Article saved successfully!');
+                } else {
+                    showAlert('warning', 'Article may already be saved');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('❌ Error saving article:', error);
+                showAlert('danger', 'Failed to save article');
+            }
+        });
+    },
+
+    // Apply filters to shared content
+    applyFilters: function() {
+        let filtered = this.sharedContent.slice();
+        
+        // Filter by user
+        const userFilter = $('#userFilter').val().trim().toLowerCase();
+        if (userFilter) {
+            filtered = filtered.filter(item => 
+                item.username && item.username.toLowerCase().includes(userFilter)
+            );
+        }
+        
+        // Filter by following only
+        const followingOnly = $('#followingOnlyFilter').is(':checked');
+        if (followingOnly && this.followingUsers.length > 0) {
+            const followingIds = this.followingUsers.map(f => f.followedUserId);
+            filtered = filtered.filter(item => followingIds.includes(item.userId));
+        }
+        
+        // Filter out blocked users
+        const blockedUserIds = this.blockedUsers.map(u => u.blockedUserId);
+        filtered = filtered.filter(item => !blockedUserIds.includes(item.userId));
+        
+        // Sort
+        const sortBy = $('#sortShared').val() || 'newest';
+        switch (sortBy) {
+            case 'oldest':
+                filtered.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+                break;
+            case 'most_comments':
+                filtered.sort((a, b) => (b.commentsCount || 0) - (a.commentsCount || 0));
+                break;
+            case 'most_liked':
+                filtered.sort((a, b) => (b.likes || 0) - (a.likes || 0));
+                break;
+            default: // newest
+                filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        }
+        
+        this.filteredContent = filtered;
+        this.currentPage = 1;
+        this.displaySharedContent();
+        this.updateFilterIndicators();
+    },
+
+    // Clear all filters
+    clearAllFilters: function() {
+        $('#userFilter').val('');
+        $('#sortShared').val('newest');
+        $('#followingOnlyFilter').prop('checked', false);
+        
+        this.applyFilters();
+        showAlert('info', 'All filters cleared');
+    },
+
+    // Display shared content
+    displaySharedContent: function() {
+        const $container = $('#sharedContent');
+        const userId = localStorage.getItem('userId');
+        
+        if (!this.filteredContent || this.filteredContent.length === 0) {
+            $container.html(`
+                <div class="text-center py-5">
+                    <i class="fas fa-share-alt fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No shared articles found</h5>
+                    <p class="text-muted">Be the first to share interesting articles with the community!</p>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#shareModal">
+                        <i class="fas fa-plus me-2"></i>Share an Article
+                    </button>
+                </div>
+            `);
+            return;
+        }
+        
+        // Pagination
+        const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+        const endIndex = startIndex + this.itemsPerPage;
+        const pageItems = this.filteredContent.slice(startIndex, endIndex);
+        
+        const html = pageItems.map(item => {
+            const imageUrl = item.articleImageUrl || '/assets/default-news.jpg';
+            const isCurrentUser = userId && parseInt(userId) === item.userId;
+            const isFollowing = this.followingUsers.some(f => f.followedUserId === item.userId);
+            
+            return `
+                <div class="card mb-4" data-share-id="${item.id}">
+                    <div class="card-body">
+                        <div class="d-flex align-items-start mb-3">
+                            <div class="flex-shrink-0">
+                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" 
+                                     style="width: 40px; height: 40px;">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1">
+                                            ${this.sanitizeHtml(item.username || 'Anonymous')}
+                                            ${item.tags ? item.tags.split(',').map(tag => 
+                                                `<span class="badge bg-secondary ms-1">${this.sanitizeHtml(tag.trim())}</span>`
+                                            ).join('') : ''}
+                                        </h6>
+                                        <small class="text-muted">${this.formatDate(item.createdAt)}</small>
+                                    </div>
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" 
+                                                data-bs-toggle="dropdown">
+                                            <i class="fas fa-ellipsis-h"></i>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li>
+                                                <button class="dropdown-item save-article-btn" 
+                                                        data-article='${JSON.stringify(item).replace(/'/g, '&apos;')}'>
+                                                    <i class="fas fa-bookmark me-2"></i>Save Article
+                                                </button>
+                                            </li>
+                                            ${!isCurrentUser ? `
+                                                <li><hr class="dropdown-divider"></li>
+                                                ${!isFollowing ? `
+                                                    <li>
+                                                        <button class="dropdown-item follow-user-btn" 
+                                                                data-user-id="${item.userId}" data-username="${item.username}">
+                                                            <i class="fas fa-user-plus me-2"></i>Follow ${item.username}
+                                                        </button>
+                                                    </li>
+                                                ` : `
+                                                    <li>
+                                                        <button class="dropdown-item unfollow-user-btn" 
+                                                                data-user-id="${item.userId}" data-username="${item.username}">
+                                                            <i class="fas fa-user-minus me-2"></i>Unfollow ${item.username}
+                                                        </button>
+                                                    </li>
+                                                `}
+                                                <li>
+                                                    <button class="dropdown-item text-warning report-content-btn" 
+                                                            data-share-id="${item.id}">
+                                                        <i class="fas fa-flag me-2"></i>Report Content
+                                                    </button>
+                                                </li>
+                                                <li>
+                                                    <button class="dropdown-item text-danger block-user-btn" 
+                                                            data-user-id="${item.userId}" data-username="${item.username}">
+                                                        <i class="fas fa-ban me-2"></i>Block User
+                                                    </button>
+                                                </li>
+                                            ` : ''}
+                                            ${isCurrentUser ? `
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li>
+                                                    <button class="dropdown-item text-danger delete-shared-btn" 
+                                                            data-share-id="${item.id}">
+                                                        <i class="fas fa-trash me-2"></i>Delete
+                                                    </button>
+                                                </li>
+                                            ` : ''}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        ${item.comment ? `
+                            <p class="mb-3">${this.sanitizeHtml(item.comment)}</p>
+                        ` : ''}
+                        
+                        <div class="row">
+                            <div class="col-md-4">
+                                <img src="${imageUrl}" class="img-fluid rounded" 
+                                     style="width: 100%; height: 200px; object-fit: cover;" alt="Article Image"
+                                     onerror="this.src='/assets/default-news.jpg'">
+                            </div>
+                            <div class="col-md-8">
+                                <h6 class="card-title">
+                                    <a href="${item.url}" target="_blank" class="text-decoration-none">
+                                        ${this.sanitizeHtml(item.articleTitle || 'Article')}
+                                        <i class="fas fa-external-link-alt ms-1 small"></i>
+                                    </a>
+                                </h6>
+                                <p class="card-text text-muted small">
+                                    ${this.truncateText(item.articleDescription || 'No description available', 150)}
+                                </p>
+                                <small class="text-muted">
+                                    <i class="fas fa-globe me-1"></i>
+                                    ${this.sanitizeHtml(item.articleSource || 'Unknown Source')}
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm ${item.isLikedByCurrentUser ? 'btn-danger liked' : 'btn-outline-danger'} like-btn" 
+                                        data-article-id="${item.id}">
+                                    <i class="${item.isLikedByCurrentUser ? 'fas' : 'far'} fa-heart me-1"></i>
+                                    <span class="like-count">${item.likes || 0}</span>
+                                </button>
+                                <button class="btn btn-sm btn-outline-primary comment-btn" 
+                                        data-article-id="${item.id}">
+                                    <i class="far fa-comment me-1"></i>${item.commentsCount || 0}
+                                </button>
+                            </div>
+                            <small class="text-muted">
+                                <i class="fas fa-clock me-1"></i>${this.formatDate(item.createdAt)}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        $container.html(html);
+        this.updatePagination();
+    },
+
+    // Display blocked users
+    displayBlockedUsers: function() {
+        const $container = $('#blockedUsers');
+        
+        if (!this.blockedUsers || this.blockedUsers.length === 0) {
+            $container.html('<p class="text-muted small">No blocked users</p>');
+            return;
+        }
+        
+        const html = this.blockedUsers.map(user => `
+            <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                <div>
+                    <strong>${this.sanitizeHtml(user.blockedUsername || 'Unknown')}</strong>
+                    <br>
+                    <small class="text-muted">Blocked ${this.formatDate(user.blockedAt)}</small>
+                </div>
+                <button class="btn btn-outline-success btn-sm" 
+                        onclick="ShareManager.unblockUser(${user.blockedUserId}, '${user.blockedUsername}')">
+                    <i class="fas fa-unlock me-1"></i>Unblock
+                </button>
+            </div>
+        `).join('');
+        
+        $container.html(html);
+    },
+
+    // Display following stats
+    displayFollowingStats: function(stats) {
+        const $container = $('#followingStats');
+        
+        if (stats) {
+            $container.html(`
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="border rounded p-2">
+                            <h6 class="mb-1">${stats.following || 0}</h6>
+                            <small class="text-muted">Following</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="border rounded p-2">
+                            <h6 class="mb-1">${stats.followers || 0}</h6>
+                            <small class="text-muted">Followers</small>
+                        </div>
+                    </div>
+                </div>
+            `);
+            
+            // Enable following filter if user is following someone
+            if (stats.following > 0) {
+                $('#followingOnlyFilter').prop('disabled', false);
+                $('.badge.bg-warning').text('Active');
+            }
+        }
+    },
+
+    // Unblock user
+    unblockUser: function(targetUserId, username) {
+        const userId = localStorage.getItem('userId');
+
+        if (!confirm(`Are you sure you want to unblock ${username}?`)) return;
+
+        $.ajax({
+            type: 'DELETE',
+            url: `${this.baseUrl}/users/${targetUserId}/block?userId=${userId}`,
+            cache: false,
+            dataType: "json",
+            success: function(response) {
+                if (response && response.success) {
+                    showAlert('success', `${username} has been unblocked`);
+                    ShareManager.loadBlockedUsers();
+                    ShareManager.loadSharedContent();
+                } else {
+                    showAlert('danger', response.message || 'Failed to unblock user');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('❌ Error unblocking user:', error);
+                showAlert('danger', 'Error unblocking user');
+            }
+        });
+    },
+
+    // Update filter indicators
+    updateFilterIndicators: function() {
+        // This can be enhanced to show active filters
+        const totalCount = this.sharedContent.length;
+        const filteredCount = this.filteredContent.length;
+        
+        if (filteredCount < totalCount) {
+            $('#sharedContent').prepend(`
+                <div class="alert alert-info alert-dismissible">
+                    <i class="fas fa-filter me-2"></i>
+                    Showing ${filteredCount} of ${totalCount} articles (filtered)
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `);
+        }
+    },
+
+    // Update pagination
+    updatePagination: function() {
+        const totalPages = Math.ceil(this.filteredContent.length / this.itemsPerPage);
+        const $pagination = $('#sharedPagination');
+        
+        if (totalPages <= 1) {
+            $pagination.empty();
+            return;
+        }
+        
+        let paginationHtml = `
+            <nav aria-label="Shared articles pagination">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item ${this.currentPage === 1 ? 'disabled' : ''}">
+                        <button class="page-link pagination-btn" data-page="${this.currentPage - 1}">
+                            <i class="fas fa-chevron-left"></i> Previous
+                        </button>
+                    </li>
+        `;
+        
+        // Show page numbers
+        for (let i = 1; i <= totalPages; i++) {
+            if (i === this.currentPage) {
+                paginationHtml += `<li class="page-item active"><span class="page-link">${i}</span></li>`;
+            } else {
+                paginationHtml += `<li class="page-item"><button class="page-link pagination-btn" data-page="${i}">${i}</button></li>`;
+            }
+        }
+        
+        paginationHtml += `
+                    <li class="page-item ${this.currentPage === totalPages ? 'disabled' : ''}">
+                        <button class="page-link pagination-btn" data-page="${this.currentPage + 1}">
+                            Next <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </li>
+                </ul>
+            </nav>
+        `;
+        
+        $pagination.html(paginationHtml);
+    },
+
+    // Handle pagination
+    handlePagination: function(e) {
+        const page = parseInt($(e.target).data('page'));
+        if (page && page !== this.currentPage) {
+            this.currentPage = page;
+            this.displaySharedContent();
+            
+            // Scroll to top of content
+            document.getElementById('sharedContent').scrollIntoView({ behavior: 'smooth' });
+        }
+    },
+
+    // Show error message
+    showErrorMessage: function(message) {
+        $('#sharedContent').html(`
+            <div class="alert alert-danger text-center">
+                <h6><i class="fas fa-exclamation-triangle me-2"></i>Error</h6>
+                <p>${message}</p>
+                <button class="btn btn-outline-danger btn-sm" onclick="ShareManager.loadSharedContent()">
+                    <i class="fas fa-refresh me-1"></i>Try Again
+                </button>
+            </div>
+        `);
+    },
+
+    // Utility functions
+    isValidUrl: function(string) {
+        try {
+            new URL(string);
+            return true;
+        } catch (_) {
+            return false;
+        }
+    },
+
+    sanitizeHtml: function(text) {
+        if (!text) return '';
+        return $('<div>').text(text).html();
+    },
+
+    truncateText: function(text, maxLength) {
+        if (!text || text.length <= maxLength) return text;
+        return text.substring(0, maxLength) + '...';
+    },
+
+    formatDate: function(dateString) {
+        if (!dateString) return 'Unknown';
+        
+        try {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+
+            if (diffMins < 1) return 'Just now';
+            if (diffMins < 60) return `${diffMins}m ago`;
+            if (diffHours < 24) return `${diffHours}h ago`;
+            if (diffDays < 7) return `${diffDays}d ago`;
+            return date.toLocaleDateString();
+        } catch (error) {
+            return 'Invalid date';
+        }
+    }
+};
+
+// Initialize when page loads
+$(document).ready(function() {
+    if (window.location.pathname.indexOf('shared.html') !== -1 || 
+        window.location.href.indexOf('shared.html') !== -1) {
+        ShareManager.init();
+    }
+});

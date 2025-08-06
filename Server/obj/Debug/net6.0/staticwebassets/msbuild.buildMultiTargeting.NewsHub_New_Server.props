@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="../build/NewsHub_New_Server.props" />
+</Project>

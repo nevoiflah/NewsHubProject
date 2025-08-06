@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NewsHub - Your Personal News Portal</title>
+    <link rel="icon" href="../assets/favicon.ico" type="image/x-icon">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../css/styles.css">
+    <!-- Firebase Configuration -->
+    <script type="module">
+        import('../js/firebase-config.js').then(module => {
+            console.log('🔥 Firebase loaded');
+        }).catch(error => {
+            console.error('🔥 Firebase load error:', error);
+        });
+    </script>
+</head>
+<body>
+    <!-- Navigation -->
+    <div id="navbar-container"></div>
+
+    <!-- Hero Section -->
+    <div class="hero-section bg-light py-5">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <h1 class="display-4 fw-bold">Stay Informed, Stay Ahead</h1>
+                    <p class="lead">Your personalized news portal that brings you the latest updates from trusted sources worldwide.</p>
+                    <div class="d-flex gap-2">
+                        <a href="../pages/register.html" class="btn btn-primary btn-lg">Get Started</a>
+                        <a href="../pages/news.html" class="btn btn-outline-primary btn-lg">Browse News</a>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <img src="../assets/logo.png" alt="NewsHub Logo" class="img-fluid">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="container py-5">
+        <div class="row">
+            <div class="col-lg-4 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="fas fa-newspaper fa-3x text-primary mb-3"></i>
+                        <h5>Latest News</h5>
+                        <p>Get real-time news from multiple reliable sources worldwide</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="fas fa-bookmark fa-3x text-primary mb-3"></i>
+                        <h5>Save Articles</h5>
+                        <p>Save interesting articles and access them anytime, anywhere</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="fas fa-share-alt fa-3x text-primary mb-3"></i>
+                        <h5>Share & Discuss</h5>
+                        <p>Share articles with the community and engage in meaningful discussions</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick News Preview -->
+    <div class="bg-light py-5">
+        <div class="container">
+            <h2 class="text-center mb-4">Latest Headlines</h2>
+            <div id="previewNews" class="row">
+                <!-- News preview will be loaded here -->
+                <div class="col-12 text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading news...</span>
+                    </div>
+                    <p class="mt-2 text-muted">Loading latest headlines...</p>
+                </div>
+            </div>
+            <div class="text-center mt-4">
+                <a href="../pages/news.html" class="btn btn-primary">View All News</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-light py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>NewsHub</h5>
+                    <p>Your trusted source for personalized news and community discussions.</p>
+                </div>
+                <div class="col-md-6">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="../pages/news.html" class="text-light">Browse News</a></li>
+                        <li><a href="../pages/features.html" class="text-light">Advanced Features</a></li>
+                        <li><a href="../pages/shared.html" class="text-light">Community</a></li>
+                    </ul>
+                </div>
+            </div>
+            <hr>
+            <div class="text-center">
+                <p>&copy; 2025 NewsHub. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="../ajaxCalls.js"></script>
+    <script src="../js/common.js"></script>
+    <script src="../js/auth.js"></script>
+    
+    <!-- Load Preview News on Page Load -->
+    <script>
+        $(document).ready(function() {
+            console.log('🏠 Index page loading...');
+            
+            // Wait a bit for common.js to fully initialize
+            setTimeout(function() {
+                if (window.loadPreviewNews && typeof window.loadPreviewNews === 'function') {
+                    console.log('📰 Loading preview news from common.js...');
+                    window.loadPreviewNews();
+                } else {
+                    console.warn('⚠️ loadPreviewNews function not available, trying fallback...');
+                    loadNewsPreviewFallback();
+                }
+            }, 500);
+        });
+
+        // Fallback function in case common.js doesn't load properly
+        function loadNewsPreviewFallback() {
+            console.log('🔄 Using fallback preview loader...');
+            
+            $.ajax({
+                type: 'GET',
+                url: 'https://localhost:7248/api/News/latest',
+                cache: false,
+                dataType: "json",
+                timeout: 10000,
+                success: function(response) {
+                    console.log('✅ Fallback preview loaded:', response);
+                    
+                    if (response && Array.isArray(response) && response.length > 0) {
+                        const $container = $('#previewNews');
+                        if ($container.length) {
+                            const articles = response.slice(0, 3).map(article => `
+                                <div class="col-md-4 mb-3">
+                                    <div class="card h-100">
+                                        <img src="${article.urlToImage || '../assets/default-news.jpg'}" 
+                                             class="card-img-top" alt="News Image" 
+                                             style="height: 200px; object-fit: cover;"
+                                             onerror="this.src='../assets/default-news.jpg'">
+                                        <div class="card-body d-flex flex-column">
+                                            <h6 class="card-title">${$('<div>').text(article.title || 'No title').html()}</h6>
+                                            <p class="card-text flex-grow-1">${$('<div>').text((article.description || article.content || 'No description available').substring(0, 100) + '...').html()}</p>
+                                            <small class="text-muted">
+                                                <i class="fas fa-calendar me-1"></i>
+                                                ${article.publishedAt ? new Date(article.publishedAt).toLocaleDateString() : 'Unknown date'}
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('');
+                            
+                            $container.html(articles);
+                        }
+                    } else {
+                        $('#previewNews').html(`
+                            <div class="col-12 text-center">
+                                <div class="alert alert-info">
+                                    <h6>No News Available</h6>
+                                    <p>No articles are currently available in the database.</p>
+                                </div>
+                            </div>
+                        `);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('❌ Failed to load preview news:', {
+                        status: xhr.status,
+                        statusText: xhr.statusText,
+                        error: error
+                    });
+                    
+                    $('#previewNews').html(`
+                        <div class="col-12">
+                            <div class="alert alert-warning text-center">
+                                <h6><i class="fas fa-exclamation-triangle me-2"></i>Connection Issue</h6>
+                                <p>Unable to connect to the news server.</p>
+                                <p><strong>Server should be running at:</strong> <code>https://localhost:7248</code></p>
+                                <p><strong>Make sure:</strong></p>
+                                <ul class="list-unstyled">
+                                    <li>• Your .NET server is running (<code>dotnet run</code>)</li>
+                                    <li>• The server is targeting .NET 6.0</li>
+                                    <li>• HTTPS is configured properly</li>
+                                    <li>• CORS is enabled for localhost</li>
+                                </ul>
+                                <button class="btn btn-primary mt-2" onclick="location.reload()">
+                                    <i class="fas fa-sync-alt me-1"></i>Try Again
+                                </button>
+                            </div>
+                        </div>
+                    `);
+                }
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global News Map - NewsHub</title>
+    <link rel="icon" href="../assets/favicon.ico" type="image/x-icon">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- FontAwesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../css/styles.css">
+    
+    <style>
+        #map {
+            height: 600px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            border: 2px solid var(--border-primary);
+        }
+        
+        .map-controls {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            height: fit-content;
+        }
+        
+        .custom-marker {
+            border: none !important;
+            background: transparent !important;
+        }
+        
+        .custom-popup .leaflet-popup-content-wrapper {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border-radius: 8px;
+            border: 1px solid var(--border-primary);
+        }
+        
+        .custom-popup .leaflet-popup-tip {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+        }
+        
+        .cluster-marker {
+            background: var(--primary-color);
+            border: 3px solid white;
+            border-radius: 50%;
+            color: white;
+            font-weight: bold;
+            text-align: center;
+            font-size: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        
+        .legend {
+            background: var(--bg-secondary);
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            margin-right: 8px;
+            border: 2px solid white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+        
+        .stats-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+        }
+        
+        .stats-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        .stats-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        /* Auto-active cluster button */
+        .btn-outline-primary.active {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-outline-primary.active:hover {
+            background-color: var(--primary-hover);
+            border-color: var(--primary-hover);
+        }
+        
+        /* Loading indicators for sources and categories */
+        .sources-loading, .categories-loading {
+            display: none;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-left: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div id="navbar-container"></div>
+
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <!-- Controls Sidebar -->
+            <div class="col-lg-3">
+                <div class="map-controls">
+                    <h5><i class="fas fa-filter me-2"></i>Map Filters</h5>
+                    
+                    <div class="mb-3">
+                        <label for="categoryFilter" class="form-label">
+                            Category
+                            <span class="categories-loading" id="categoriesLoading">
+                                <i class="fas fa-spinner fa-spin"></i> Loading...
+                            </span>
+                        </label>
+                        <select class="form-select" id="categoryFilter">
+                            <option value="">Loading categories...</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="sourceFilter" class="form-label">
+                            Source
+                            <span class="sources-loading" id="sourcesLoading">
+                                <i class="fas fa-spinner fa-spin"></i> Loading...
+                            </span>
+                        </label>
+                        <select class="form-select" id="sourceFilter">
+                            <option value="">Loading sources...</option>
+                        </select>
+                    </div>
+                    
+                    <button class="btn btn-primary w-100 mb-3" id="applyFilters">
+                        <i class="fas fa-search me-2"></i>Apply Filters
+                    </button>
+                    
+                    <button class="btn btn-outline-secondary w-100 mb-3" id="resetMapView">
+                        <i class="fas fa-undo me-2"></i>Reset View
+                    </button>
+                    
+                    <div class="alert alert-info small">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Geographic coordinates are automatically assigned to articles based on location detection from content.
+                    </div>
+                </div>
+                
+                <!-- Statistics -->
+                <div class="row">
+                    <div class="col-12 mb-3">
+                        <div class="stats-card">
+                            <div class="stats-number" id="totalArticles">0</div>
+                            <div class="stats-label">Articles on Map</div>
+                        </div>
+                    </div>
+                    <div class="col-12 mb-3">
+                        <div class="stats-card">
+                            <div class="stats-number" id="totalCountries">0</div>
+                            <div class="stats-label">Countries Covered</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Map Container -->
+            <div class="col-lg-9">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2><i class="fas fa-globe-americas me-2"></i>Global News Map</h2>
+                    <div class="btn-group" role="group">
+                        <input type="checkbox" class="btn-check" id="showClusters" autocomplete="off" checked>
+                        <label class="btn btn-outline-primary active" for="showClusters" id="clusterToggle">
+                            <i class="fas fa-layer-group me-1"></i>Cluster
+                        </label>
+                    </div>
+                </div>
+                
+                <div id="map"></div>
+                
+                <!-- Map Legend -->
+                <div class="mt-3">
+                    <div class="legend">
+                        <h6>News Categories</h6>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #ff0000;"></div>
+                            <span>Breaking News 🚨</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #10b981;"></div>
+                            <span>Business 💼</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #8b5cf6;"></div>
+                            <span>Technology 💻</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #f59e0b;"></div>
+                            <span>Sports ⚽</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #ec4899;"></div>
+                            <span>Entertainment 🎬</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #ef4444;"></div>
+                            <span>Health 🏥</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #3b82f6;"></div>
+                            <span>General 📰</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #dc2626;"></div>
+                            <span>Politics 🏛️</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #0ea5e9;"></div>
+                            <span>Science 🔬</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Technical Info -->
+                <div class="mt-3">
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="mb-0">How Geographic Mapping Works</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <p class="small mb-2">
+                                        Articles are automatically analyzed for geographic references (cities, countries, regions) 
+                                        mentioned in the title and content. When locations are detected, articles are placed on 
+                                        the corresponding map coordinates.
+                                    </p>
+                                    <p class="small mb-0">
+                                        <strong>Note:</strong> If an article doesn't contain clear geographic references, 
+                                        it will be assigned to a random major city for demonstration purposes.
+                                    </p>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="small">
+                                        <strong>Map Features:</strong><br>
+                                        • Interactive clustering<br>
+                                        • Category-based filtering<br>
+                                        • Source filtering<br>
+                                        • Heatmap visualization<br>
+                                        • Real-time news data
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+    <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+    <script src="../ajaxCalls.js"></script>
+    <script src="../js/common.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/maps.js"></script>
+</body>
+</html>

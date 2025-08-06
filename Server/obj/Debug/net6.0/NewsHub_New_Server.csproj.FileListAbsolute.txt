@@ -1,0 +1,113 @@
+C:/Users/Liel/Desktop/צד שרת/NewsHub_new/NewsHub_New_Server/NewsHub_New_Server/bin/Debug/net6.0/appsettings.Development.json
+C:/Users/Liel/Desktop/צד שרת/NewsHub_new/NewsHub_New_Server/NewsHub_New_Server/bin/Debug/net6.0/appsettings.json
+C:/Users/Liel/Desktop/צד שרת/NewsHub_new/NewsHub_New_Server/NewsHub_New_Server/bin/Debug/net6.0/NewsHub_New_Server.staticwebassets.endpoints.json
+C:/Users/Liel/Desktop/צד שרת/NewsHub_new/NewsHub_New_Server/NewsHub_New_Server/bin/Debug/net6.0/NewsHub_New_Server.exe
+C:/Users/Liel/Desktop/צד שרת/NewsHub_new/NewsHub_New_Server/NewsHub_New_Server/bin/Debug/net6.0/NewsHub_New_Server.deps.json
+C:/Users/Liel/Desktop/צד שרת/NewsHub_new/NewsHub_New_Server/NewsHub_New_Server/bin/Debug/net6.0/NewsHub_New_Server.runtimeconfig.json
+C:/Users/Liel/Desktop/צד שרת/NewsHub_new/NewsHub_New_Server/NewsHub_New_Server/bin/Debug/net6.0/NewsHub_New_Server.dll
+C:/Users/Liel/Desktop/צד שרת/NewsHub_new/NewsHub_New_Server/NewsHub_New_Server/bin/Debug/net6.0/NewsHub_New_Server.pdb
+C:/Users/Liel/Desktop/צד שרת/NewsHub_new/NewsHub_New_Server/NewsHub_New_Server/bin/Debug/net6.0/Konscious.Security.Cryptography.Argon2.dll
+C:/Users/Liel/Desktop/צד שרת/NewsHub_new/NewsHub_New_Server/NewsHub_New_Server/bin/Debug/net6.0/Konscious.Security.Cryptography.Blake2.dll
+C:/Users/Liel/Desktop/צד שרת/NewsHub_new/NewsHub_New_Server/NewsHub_New_Server/bin/Debug/net6.0/Microsoft.OpenApi.dll
+C:/Users/Liel/Desktop/צד שרת/NewsHub_new/NewsHub_New_Server/NewsHub_New_Server/bin/Debug/net6.0/Swashbuckle.AspNetCore.Swagger.dll
+C:/Users/Liel/Desktop/צד שרת/NewsHub_new/NewsHub_New_Server/NewsHub_New_Server/bin/Debug/net6.0/Swashbuckle.AspNetCore.SwaggerGen.dll
+C:/Users/Liel/Desktop/צד שרת/NewsHub_new/NewsHub_New_Server/NewsHub_New_Server/bin/Debug/net6.0/Swashbuckle.AspNetCore.SwaggerUI.dll
+C:/Users/Liel/Desktop/צד שרת/NewsHub_new/NewsHub_New_Server/NewsHub_New_Server/bin/Debug/net6.0/System.Data.SqlClient.dll
+C:/Users/Liel/Desktop/צד שרת/NewsHub_new/NewsHub_New_Server/NewsHub_New_Server/bin/Debug/net6.0/runtimes/win-arm64/native/sni.dll
+C:/Users/Liel/Desktop/צד שרת/NewsHub_new/NewsHub_New_Server/NewsHub_New_Server/bin/Debug/net6.0/runtimes/win-x64/native/sni.dll
+C:/Users/Liel/Desktop/צד שרת/NewsHub_new/NewsHub_New_Server/NewsHub_New_Server/bin/Debug/net6.0/runtimes/win-x86/native/sni.dll
+C:/Users/Liel/Desktop/צד שרת/NewsHub_new/NewsHub_New_Server/NewsHub_New_Server/bin/Debug/net6.0/runtimes/unix/lib/net6.0/System.Data.SqlClient.dll
+C:/Users/Liel/Desktop/צד שרת/NewsHub_new/NewsHub_New_Server/NewsHub_New_Server/bin/Debug/net6.0/runtimes/win/lib/net6.0/System.Data.SqlClient.dll
+C:/Users/Liel/Desktop/צד שרת/NewsHub_new/NewsHub_New_Server/NewsHub_New_Server/obj/Debug/net6.0/NewsHub_New_Server.csproj.AssemblyReference.cache
+C:/Users/Liel/Desktop/צד שרת/NewsHub_new/NewsHub_New_Server/NewsHub_New_Server/obj/Debug/net6.0/rpswa.dswa.cache.json
+C:/Users/Liel/Desktop/צד שרת/NewsHub_new/NewsHub_New_Server/NewsHub_New_Server/obj/Debug/net6.0/NewsHub_New_Server.GeneratedMSBuildEditorConfig.editorconfig
+C:/Users/Liel/Desktop/צד שרת/NewsHub_new/NewsHub_New_Server/NewsHub_New_Server/obj/Debug/net6.0/NewsHub_New_Server.AssemblyInfoInputs.cache
+C:/Users/Liel/Desktop/צד שרת/NewsHub_new/NewsHub_New_Server/NewsHub_New_Server/obj/Debug/net6.0/NewsHub_New_Server.AssemblyInfo.cs
+C:/Users/Liel/Desktop/צד שרת/NewsHub_new/NewsHub_New_Server/NewsHub_New_Server/obj/Debug/net6.0/NewsHub_New_Server.csproj.CoreCompileInputs.cache
+C:/Users/Liel/Desktop/צד שרת/NewsHub_new/NewsHub_New_Server/NewsHub_New_Server/obj/Debug/net6.0/NewsHub_New_Server.MvcApplicationPartsAssemblyInfo.cs
+C:/Users/Liel/Desktop/צד שרת/NewsHub_new/NewsHub_New_Server/NewsHub_New_Server/obj/Debug/net6.0/NewsHub_New_Server.MvcApplicationPartsAssemblyInfo.cache
+C:/Users/Liel/Desktop/צד שרת/NewsHub_new/NewsHub_New_Server/NewsHub_New_Server/obj/Debug/net6.0/rjimswa.dswa.cache.json
+C:/Users/Liel/Desktop/צד שרת/NewsHub_new/NewsHub_New_Server/NewsHub_New_Server/obj/Debug/net6.0/rjsmrazor.dswa.cache.json
+C:/Users/Liel/Desktop/צד שרת/NewsHub_new/NewsHub_New_Server/NewsHub_New_Server/obj/Debug/net6.0/rjsmcshtml.dswa.cache.json
+C:/Users/Liel/Desktop/צד שרת/NewsHub_new/NewsHub_New_Server/NewsHub_New_Server/obj/Debug/net6.0/scopedcss/bundle/NewsHub_New_Server.styles.css
+C:/Users/Liel/Desktop/צד שרת/NewsHub_new/NewsHub_New_Server/NewsHub_New_Server/obj/Debug/net6.0/staticwebassets.build.json
+C:/Users/Liel/Desktop/צד שרת/NewsHub_new/NewsHub_New_Server/NewsHub_New_Server/obj/Debug/net6.0/staticwebassets.build.json.cache
+C:/Users/Liel/Desktop/צד שרת/NewsHub_new/NewsHub_New_Server/NewsHub_New_Server/obj/Debug/net6.0/staticwebassets.development.json
+C:/Users/Liel/Desktop/צד שרת/NewsHub_new/NewsHub_New_Server/NewsHub_New_Server/obj/Debug/net6.0/staticwebassets.build.endpoints.json
+C:/Users/Liel/Desktop/צד שרת/NewsHub_new/NewsHub_New_Server/NewsHub_New_Server/obj/Debug/net6.0/staticwebassets.upToDateCheck.txt
+C:/Users/Liel/Desktop/צד שרת/NewsHub_new/NewsHub_New_Server/NewsHub_New_Server/obj/Debug/net6.0/NewsHub_.E72158C0.Up2Date
+C:/Users/Liel/Desktop/צד שרת/NewsHub_new/NewsHub_New_Server/NewsHub_New_Server/obj/Debug/net6.0/NewsHub_New_Server.dll
+C:/Users/Liel/Desktop/צד שרת/NewsHub_new/NewsHub_New_Server/NewsHub_New_Server/obj/Debug/net6.0/refint/NewsHub_New_Server.dll
+C:/Users/Liel/Desktop/צד שרת/NewsHub_new/NewsHub_New_Server/NewsHub_New_Server/obj/Debug/net6.0/NewsHub_New_Server.pdb
+C:/Users/Liel/Desktop/צד שרת/NewsHub_new/NewsHub_New_Server/NewsHub_New_Server/obj/Debug/net6.0/NewsHub_New_Server.genruntimeconfig.cache
+C:/Users/Liel/Desktop/צד שרת/NewsHub_new/NewsHub_New_Server/NewsHub_New_Server/obj/Debug/net6.0/ref/NewsHub_New_Server.dll
+C:/Users/Liel/Desktop/צד שרת/NewsHub_new/NewsHub_New_Server/NewsHub_New_Server/bin/Debug/net6.0/firebase/firebase-admin-sdk.json
+C:/Users/Liel/Desktop/צד שרת/NewsHub_new/NewsHub_New_Server/NewsHub_New_Server/bin/Debug/net6.0/FirebaseAdmin.dll
+C:/Users/Liel/Desktop/צד שרת/NewsHub_new/NewsHub_New_Server/NewsHub_New_Server/bin/Debug/net6.0/Google.Api.Gax.dll
+C:/Users/Liel/Desktop/צד שרת/NewsHub_new/NewsHub_New_Server/NewsHub_New_Server/bin/Debug/net6.0/Google.Api.Gax.Rest.dll
+C:/Users/Liel/Desktop/צד שרת/NewsHub_new/NewsHub_New_Server/NewsHub_New_Server/bin/Debug/net6.0/Google.Apis.dll
+C:/Users/Liel/Desktop/צד שרת/NewsHub_new/NewsHub_New_Server/NewsHub_New_Server/bin/Debug/net6.0/Google.Apis.Auth.dll
+C:/Users/Liel/Desktop/צד שרת/NewsHub_new/NewsHub_New_Server/NewsHub_New_Server/bin/Debug/net6.0/Google.Apis.Core.dll
+C:/Users/Liel/Desktop/צד שרת/NewsHub_new/NewsHub_New_Server/NewsHub_New_Server/bin/Debug/net6.0/Microsoft.Bcl.AsyncInterfaces.dll
+C:/Users/Liel/Desktop/צד שרת/NewsHub_new/NewsHub_New_Server/NewsHub_New_Server/bin/Debug/net6.0/Newtonsoft.Json.dll
+C:/Users/Liel/Desktop/צד שרת/NewsHub_new/NewsHub_New_Server/NewsHub_New_Server/bin/Debug/net6.0/System.CodeDom.dll
+C:/Users/Liel/Desktop/צד שרת/NewsHub_new/NewsHub_New_Server/NewsHub_New_Server/bin/Debug/net6.0/System.Collections.Immutable.dll
+C:/Users/Liel/Desktop/צד שרת/NewsHub_new/NewsHub_New_Server/NewsHub_New_Server/bin/Debug/net6.0/System.Management.dll
+C:/Users/Liel/Desktop/צד שרת/NewsHub_new/NewsHub_New_Server/NewsHub_New_Server/bin/Debug/net6.0/runtimes/win/lib/net6.0/System.Management.dll
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/bin/Debug/net6.0/appsettings.Development.json
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/bin/Debug/net6.0/appsettings.json
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/bin/Debug/net6.0/firebase/firebase-admin-sdk.json
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/bin/Debug/net6.0/NewsHub_New_Server.staticwebassets.endpoints.json
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/bin/Debug/net6.0/NewsHub_New_Server
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/bin/Debug/net6.0/NewsHub_New_Server.deps.json
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/bin/Debug/net6.0/NewsHub_New_Server.runtimeconfig.json
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/bin/Debug/net6.0/NewsHub_New_Server.dll
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/bin/Debug/net6.0/NewsHub_New_Server.pdb
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/bin/Debug/net6.0/FirebaseAdmin.dll
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/bin/Debug/net6.0/Google.Api.Gax.dll
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/bin/Debug/net6.0/Google.Api.Gax.Rest.dll
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/bin/Debug/net6.0/Google.Apis.dll
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/bin/Debug/net6.0/Google.Apis.Auth.dll
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/bin/Debug/net6.0/Google.Apis.Core.dll
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/bin/Debug/net6.0/Konscious.Security.Cryptography.Argon2.dll
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/bin/Debug/net6.0/Konscious.Security.Cryptography.Blake2.dll
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/bin/Debug/net6.0/Microsoft.Bcl.AsyncInterfaces.dll
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/bin/Debug/net6.0/Microsoft.OpenApi.dll
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/bin/Debug/net6.0/Newtonsoft.Json.dll
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/bin/Debug/net6.0/Swashbuckle.AspNetCore.Swagger.dll
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/bin/Debug/net6.0/Swashbuckle.AspNetCore.SwaggerGen.dll
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/bin/Debug/net6.0/Swashbuckle.AspNetCore.SwaggerUI.dll
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/bin/Debug/net6.0/System.CodeDom.dll
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/bin/Debug/net6.0/System.Collections.Immutable.dll
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/bin/Debug/net6.0/System.Data.SqlClient.dll
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/bin/Debug/net6.0/System.Management.dll
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/bin/Debug/net6.0/runtimes/win-arm64/native/sni.dll
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/bin/Debug/net6.0/runtimes/win-x64/native/sni.dll
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/bin/Debug/net6.0/runtimes/win-x86/native/sni.dll
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/bin/Debug/net6.0/runtimes/unix/lib/net6.0/System.Data.SqlClient.dll
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/bin/Debug/net6.0/runtimes/win/lib/net6.0/System.Data.SqlClient.dll
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/bin/Debug/net6.0/runtimes/win/lib/net6.0/System.Management.dll
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/obj/Debug/net6.0/NewsHub_New_Server.csproj.AssemblyReference.cache
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/obj/Debug/net6.0/NewsHub_New_Server.GeneratedMSBuildEditorConfig.editorconfig
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/obj/Debug/net6.0/NewsHub_New_Server.AssemblyInfoInputs.cache
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/obj/Debug/net6.0/NewsHub_New_Server.AssemblyInfo.cs
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/obj/Debug/net6.0/NewsHub_New_Server.csproj.CoreCompileInputs.cache
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/obj/Debug/net6.0/NewsHub_New_Server.MvcApplicationPartsAssemblyInfo.cs
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/obj/Debug/net6.0/NewsHub_New_Server.MvcApplicationPartsAssemblyInfo.cache
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/obj/Debug/net6.0/NewsHub_New_Server.sourcelink.json
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/obj/Debug/net6.0/scopedcss/bundle/NewsHub_New_Server.styles.css
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/obj/Debug/net6.0/staticwebassets.build.json
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/obj/Debug/net6.0/staticwebassets.development.json
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/obj/Debug/net6.0/staticwebassets.build.endpoints.json
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/obj/Debug/net6.0/staticwebassets/msbuild.NewsHub_New_Server.Microsoft.AspNetCore.StaticWebAssets.props
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/obj/Debug/net6.0/staticwebassets/msbuild.NewsHub_New_Server.Microsoft.AspNetCore.StaticWebAssetEndpoints.props
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/obj/Debug/net6.0/staticwebassets/msbuild.build.NewsHub_New_Server.props
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/obj/Debug/net6.0/staticwebassets/msbuild.buildMultiTargeting.NewsHub_New_Server.props
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/obj/Debug/net6.0/staticwebassets/msbuild.buildTransitive.NewsHub_New_Server.props
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/obj/Debug/net6.0/staticwebassets.pack.json
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/obj/Debug/net6.0/NewsHub_.E72158C0.Up2Date
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/obj/Debug/net6.0/NewsHub_New_Server.dll
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/obj/Debug/net6.0/refint/NewsHub_New_Server.dll
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/obj/Debug/net6.0/NewsHub_New_Server.pdb
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/obj/Debug/net6.0/NewsHub_New_Server.genruntimeconfig.cache
+/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/obj/Debug/net6.0/ref/NewsHub_New_Server.dll
