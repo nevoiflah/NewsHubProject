@@ -116,58 +116,39 @@ const Auth = {
     },
 
     // Register user 
-    register: async (username, email, password) => {
-        return new Promise((resolve) => {
-            console.log('🌐 Frontend: Starting registration request...');
-            
-            $.ajax({
-                type: 'POST',
-                url: `${baseUrl}/Users/register`,
-                data: JSON.stringify({ 
-                    Username: username,      // ✅ FIXED: Pascal case
-                    Email: email,           // ✅ FIXED: Pascal case
-                    PasswordHash: password, // ✅ FIXED: Pascal case
-                    FirstName: "",          // ✅ ADDED: Required field
-                    LastName: ""            // ✅ ADDED: Required field
-                }),
-                cache: false,
-                contentType: "application/json",
-                dataType: "json",
-                timeout: 30000,
-                success: function(response) {
-                    console.log('📥 Frontend: Registration response:', response);
+    register: (username, email, password, onSuccess, onError) => {
+    const firstName = $('#firstName').val().trim();
+    const lastName = $('#lastName').val().trim();
 
-                    // Registration returns just a success message, not user data
-                    if (response === "User registered successfully." || 
-                        (response && response.success)) {
-                        console.log('✅ Frontend: Registration successful');
-                        resolve({ success: true, message: 'Registration successful' });
-                    } else {
-                        console.log('❌ Frontend: Registration failed - invalid response');
-                        resolve({ success: false, error: 'Registration failed' });
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.error('❌ Frontend: Registration failed:', {
-                        status: xhr.status,
-                        statusText: xhr.statusText,
-                        responseText: xhr.responseText,
-                        error: error
-                    });
+    const userPayload = JSON.stringify({
+        Username: username,
+        Email: email,
+        PasswordHash: password,
+        FirstName: firstName,
+        LastName: lastName
+    });
 
-                    let errorMessage = 'Registration failed';
-                    try {
-                        const errorResponse = JSON.parse(xhr.responseText);
-                        errorMessage = errorResponse.message || errorResponse.error || errorMessage;
-                    } catch (e) {
-                        // Use default error message
-                    }
+    ajaxCall(
+        'POST',
+        `${baseUrl}/Users/register`,
+        userPayload,
+        function (response) {
+            const isSuccess =
+                response === "User registered successfully." ||
+                (response && response.success);
 
-                    resolve({ success: false, error: errorMessage });
-                }
-            });
-        });
-    },
+            if (isSuccess) {
+                onSuccess("Registration successful");
+            } else {
+                onError("Registration failed");
+            }
+        },
+        function () {
+            onError("Registration failed");
+        }
+    );
+}
+,
 
     // Update profile 
     updateProfile: async (profileData) => {

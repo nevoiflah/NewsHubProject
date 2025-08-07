@@ -71,7 +71,7 @@ namespace Server.BL
 
         // --- Static Business Logic Methods ---
 
-        public static int Register(Users user)
+         public static int Register(Users user)
         {
             if (!IsValidEmail(user.Email))
                 throw new ArgumentException("Invalid email address format.");
@@ -90,12 +90,11 @@ namespace Server.BL
             user.NotifyOnLikes = true;
             user.NotifyOnComments = true;
             user.NotifyOnFollow = true;
-            user.NotifyOnShare = true;
+            user.NotifyOnShare = true;  
 
             UsersDBservices dbs = new UsersDBservices();
             return dbs.InsertUser(user);
         }
-
         public static Users? Login(string username, string password)
         {
             UsersDBservices dbs = new UsersDBservices();
