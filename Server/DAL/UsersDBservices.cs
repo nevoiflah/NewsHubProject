@@ -40,22 +40,22 @@ namespace Server.DAL
 
         public int InsertUser(Users user)
         {
-            SqlConnection con = null;
+                SqlConnection con = null;
 
-            try
+                try
+                {
+                    con = connect("myProjDB");
+                    Dictionary<string, object> paramDic = new Dictionary<string, object>
             {
-                con = connect("myProjDB");
-                Dictionary<string, object> paramDic = new Dictionary<string, object>
-        {
-            { "@Username", user.Username },
-            { "@Email", user.Email },
-            { "@FirstName", user.FirstName },
-            { "@LastName", user.LastName },
-            { "@PasswordHash", user.PasswordHash },
-            { "@AvatarUrl", user.AvatarUrl },
-            { "@RegistrationDate", user.RegistrationDate },
-            { "@IsAdmin", user.IsAdmin }
-        };
+                { "@Username", user.Username },
+                { "@Email", user.Email },
+                { "@FirstName", user.FirstName },
+                { "@LastName", user.LastName },
+                { "@PasswordHash", user.PasswordHash },
+                { "@AvatarUrl", user.AvatarUrl },
+                { "@RegistrationDate", user.RegistrationDate },
+                { "@IsAdmin", user.IsAdmin }
+            };
 
                 SqlCommand cmd = CreateCommandWithStoredProcedureGeneral("NLM_NewsHub_InsertUser", con, paramDic);
                 object result = cmd.ExecuteScalar();

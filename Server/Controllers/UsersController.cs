@@ -7,24 +7,24 @@ namespace Server.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
-        [HttpPost("Register")]
+       [HttpPost("Register")]
         public IActionResult Post([FromBody] Users user)
         {
             try
             {
                 int result = Users.Register(user);
-                if (result == 1)
-                    return Ok("User registered successfully.");
+                if (result > 0)
+                    return Ok(new { success = true, message = "User registered successfully.", userId = result });
                 else if (result == -1)
-                    return Conflict("Username already exists.");
+                    return Conflict(new { success = false, message = "Username already exists." });
                 else if (result == -2)
-                    return Conflict("Email already exists.");
+                    return Conflict(new { success = false, message = "Email already exists." });
                 else
-                    return BadRequest("Failed to register user.");
+                    return BadRequest(new { success = false, message = "Failed to register user." });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "Error: " + ex.Message);
+                return StatusCode(500, new { success = false, message = "Error: " + ex.Message });
             }
         }
 
