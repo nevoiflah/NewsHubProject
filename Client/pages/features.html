@@ -36,30 +36,16 @@
                     </div>
                     <div class="card-body">
                         <div class="row text-center">
-                            <div class="col-md-3 mb-3">
-                                <div class="border rounded p-3">
-                                    <div id="serverStatus" class="h4 text-warning">
-                                        <i class="fas fa-spinner fa-spin"></i>
-                                    </div>
-                                    <div class="small text-muted">Server Status</div>
-                                </div>
-                            </div>
-                            <div class="col-md-3 mb-3">
+                            <div class="col-md-6 mb-3">
                                 <div class="border rounded p-3">
                                     <div id="totalUsers" class="h4 text-primary">--</div>
                                     <div class="small text-muted">Total Users</div>
                                 </div>
                             </div>
-                            <div class="col-md-3 mb-3">
+                            <div class="col-md-6 mb-3">
                                 <div class="border rounded p-3">
-                                    <div id="totalNews" class="h4 text-info">--</div>
-                                    <div class="small text-muted">News Articles</div>
-                                </div>
-                            </div>
-                            <div class="col-md-3 mb-3">
-                                <div class="border rounded p-3">
-                                    <div id="userStatus" class="h4 text-success">--</div>
-                                    <div class="small text-muted">Your Status</div>
+                                    <div id="totalArticles" class="h4 text-info">--</div>
+                                    <div class="small text-muted">Number of Articles</div>
                                 </div>
                             </div>
                         </div>
@@ -87,19 +73,21 @@
                         <p>Set your interests to get a personalized news experience tailored to your preferences.</p>
                         
                         <div class="mt-3 mb-3">
-                            <button class="btn btn-outline-light btn-sm" onclick="FeaturesDemo.testNews()">
-                                <i class="fas fa-play me-1"></i>Test News Feed
-                            </button>
-                            <button class="btn btn-outline-light btn-sm ms-2" onclick="FeaturesDemo.checkCategories()">
+                            <button class="btn btn-outline-light btn-sm" onclick="FeaturesDemo.toggleCategories()">
                                 <i class="fas fa-list me-1"></i>View Categories
                             </button>
                         </div>
                         
-                        <div class="mt-3">
-                            <span class="badge bg-success">Active</span>
-                            <span class="badge bg-primary">Real-Time</span>
-                            <span class="badge bg-info">API Integration</span>
+                        <div id="categoriesDisplay" class="mt-3" style="display: none;">
+                            <div class="border rounded p-3 bg-dark">
+                                <h6 class="text-light mb-3">Category</h6>
+                                <div id="categoriesList" class="text-light">
+                                    <div class="text-muted">Loading categories...</div>
+                                </div>
+                            </div>
                         </div>
+                        
+
                     </div>
                 </div>
             </div>
@@ -112,22 +100,13 @@
                     </div>
                     <div class="card-body">
                         <h6>Real-Time Alerts</h6>
-                        <p>Receive instant notifications for breaking news, user interactions, and community updates.</p>
+                        <p>Receive instant notifications for user interactions and community updates.</p>
                         
                         <h6>Cross-Platform Support</h6>
                         <p>Firebase-powered notifications work on desktop and mobile browsers, even when the app is closed.</p>
                         
                         <h6>Smart Delivery</h6>
                         <p>Notifications are intelligently filtered based on your interests and activity patterns.</p>
-                        
-                        <div class="mt-3 mb-3">
-                            <button class="btn btn-outline-light btn-sm" onclick="FeaturesDemo.testNotification()">
-                                <i class="fas fa-bell me-1"></i>Test Notification
-                            </button>
-                            <button class="btn btn-outline-light btn-sm ms-2" onclick="FeaturesDemo.checkPermission()">
-                                <i class="fas fa-shield-alt me-1"></i>Check Permission
-                            </button>
-                        </div>
                         
                         <div class="mt-3">
                             <span class="badge bg-success">Active</span>
@@ -155,10 +134,7 @@
                         <p>Report inappropriate content and block users to maintain a healthy community environment.</p>
                         
                         <div class="mt-3 mb-3" id="communityActions">
-                            <button class="btn btn-outline-light btn-sm" onclick="FeaturesDemo.testCommunity()">
-                                <i class="fas fa-share me-1"></i>Test Community
-                            </button>
-                            <a href="../pages/shared.html" class="btn btn-outline-light btn-sm ms-2">
+                            <a href="../pages/shared.html" class="btn btn-outline-light btn-sm">
                                 <i class="fas fa-arrow-right me-1"></i>View Community
                             </a>
                         </div>
@@ -223,9 +199,6 @@
                                     <a href="../pages/maps.html" class="btn btn-outline-light btn-sm">
                                         <i class="fas fa-map me-1"></i>Open News Map
                                     </a>
-                                    <button class="btn btn-outline-light btn-sm ms-2" onclick="FeaturesDemo.testMapping()">
-                                        <i class="fas fa-search-location me-1"></i>Test Location Detection
-                                    </button>
                                 </div>
                             </div>
                             <div class="col-md-4">
@@ -269,10 +242,7 @@
                         <p>AI-powered content analysis helps surface the most relevant and engaging articles for users.</p>
                         
                         <div class="mt-3 mb-3">
-                            <button class="btn btn-outline-light btn-sm" onclick="FeaturesDemo.testAI()">
-                                <i class="fas fa-brain me-1"></i>Test AI Analysis
-                            </button>
-                            <button class="btn btn-outline-light btn-sm ms-2" onclick="FeaturesDemo.showSentiment()">
+                            <button class="btn btn-outline-light btn-sm" onclick="FeaturesDemo.showSentiment()">
                                 <i class="fas fa-smile me-1"></i>Show Sentiment
                             </button>
                         </div>
@@ -346,60 +316,13 @@
                             </div>
                         </div>
                         
-                        <div class="mt-3">
-                            <button class="btn btn-primary btn-sm" onclick="FeaturesDemo.testBackend()">
-                                <i class="fas fa-play me-1"></i>Test Backend
-                            </button>
-                            <button class="btn btn-info btn-sm ms-2" onclick="FeaturesDemo.checkDatabase()">
-                                <i class="fas fa-database me-1"></i>Check Database
-                            </button>
-                            <button class="btn btn-success btn-sm ms-2" onclick="FeaturesDemo.testFirebase()">
-                                <i class="fab fa-google me-1"></i>Test Firebase
-                            </button>
-                        </div>
+
                     </div>
                 </div>
             </div>
         </div>
         
-        <!-- Coming Soon Features -->
-        <div class="row mt-5">
-            <div class="col-12">
-                <h3 class="text-center mb-4 text-white">Future Enhancements</h3>
-                <div class="row">
-                    <div class="col-lg-4 mb-3">
-                        <div class="card glass h-100 border-warning">
-                            <div class="card-body text-center">
-                                <i class="fas fa-microphone fa-3x text-warning mb-3"></i>
-                                <h6>Voice Commands</h6>
-                                <p>Navigate NewsHub using voice commands and listen to article summaries.</p>
-                                <span class="badge bg-warning">Q2 2025</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-4 mb-3">
-                        <div class="card glass h-100 border-info">
-                            <div class="card-body text-center">
-                                <i class="fas fa-language fa-3x text-info mb-3"></i>
-                                <h6>Multi-Language</h6>
-                                <p>Read news in your preferred language with AI-powered translation.</p>
-                                <span class="badge bg-info">Q3 2025</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-4 mb-3">
-                        <div class="card glass h-100 border-primary">
-                            <div class="card-body text-center">
-                                <i class="fas fa-mobile-alt fa-3x text-primary mb-3"></i>
-                                <h6>Mobile App</h6>
-                                <p>Native mobile applications for iOS and Android with offline support.</p>
-                                <span class="badge bg-primary">Q4 2025</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>

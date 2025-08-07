@@ -307,49 +307,59 @@ const ShareManager = {
         });
     },
 
-    // Handle like article
+    // FIXED: Simple like/unlike toggle using single endpoint
     handleLikeArticle: function(e) {
-        e.preventDefault();
         const $btn = $(e.currentTarget);
-        const shareId = $btn.closest('.card').data('share-id');
-        const userId = window.Auth.getCurrentUser()?.id;
-        
+        const articleId = $btn.data('article-id');
+        const userId = localStorage.getItem('userId');
+
         if (!userId) {
-            showAlert('error', 'Please log in to like articles');
+            showAlert('warning', 'Please log in to like articles');
             return;
         }
 
-        // Show immediate feedback
+        // Prevent multiple clicks
+        if ($btn.prop('disabled')) return;
         $btn.prop('disabled', true);
-        $btn.html('<i class="fas fa-spinner fa-spin"></i>');
+
+        // Always use POST - the backend procedure will handle the toggle logic
+        const url = `${this.baseUrl}/shared/${articleId}/like?userId=${userId}`;
 
         $.ajax({
             type: 'POST',
-            url: `${this.baseUrl}/shared/${shareId}/like?userId=${userId}`,
+            url: url,
             cache: false,
             dataType: "json",
-            success: (response) => {
+            success: function(response) {
                 if (response && response.success) {
-                    // Show notification
-                    if (window.SimpleNotificationService) {
-                        window.SimpleNotificationService.showInAppNotification('Like', 'Article liked successfully!', 'success');
+                    // Track activity for liking
+                    const userId = localStorage.getItem('userId');
+                    if (userId) {
+                        $.ajax({
+                            type: 'POST',
+                            url: `http://localhost:5121/api/users/activity/${userId}`,
+                            cache: false,
+                            dataType: "json",
+                            success: function() {
+                                // Trigger avatar update after activity change
+                                if (window.triggerAvatarUpdate) {
+                                    window.triggerAvatarUpdate();
+                                }
+                            }
+                        });
                     }
-                    
-                    // Update activity level
-                    this.updateUserActivity(userId);
-                    
-                    // Refresh page to show updated like state
+                    // Refresh the page after successful like/unlike
                     location.reload();
                 } else {
-                    showAlert('error', response?.message || 'Failed to like article');
+                    // If failed, re-enable button and show error
+                    $btn.prop('disabled', false);
+                    showAlert('danger', response?.message || 'Failed to update like');
                 }
             },
-            error: (xhr, status, error) => {
+            error: function(xhr, status, error) {
                 console.error('❌ Error updating like:', error);
-                showAlert('error', 'Failed to like article');
-            },
-            complete: () => {
                 $btn.prop('disabled', false);
+                showAlert('danger', 'Error updating like');
             }
         });
     },
@@ -883,24 +893,29 @@ const ShareManager = {
             const isCurrentUser = userId && parseInt(userId) === item.userId;
             const isFollowing = this.followingUsers.some(f => f.followedUserId === item.userId);
             
-            // Get user avatar based on activity level - use the article owner's activity level
+            // Get user avatar based on activity level
             let avatarSrc = '../assets/default-avatar.png';
-            if (item.activityLevel !== undefined) {
-                if (item.activityLevel >= 50) {
-                    avatarSrc = '../assets/avatar-legend.png';
-                } else if (item.activityLevel >= 30) {
-                    avatarSrc = '../assets/avatar-master.png';
-                } else if (item.activityLevel >= 20) {
-                    avatarSrc = '../assets/avatar-expert.png';
-                } else if (item.activityLevel >= 10) {
-                    avatarSrc = '../assets/avatar-active.png';
-                } else {
-                    avatarSrc = '../assets/avatar-reader.png';
+            if (window.getAvatarSource) {
+                avatarSrc = window.getAvatarSource(item.activityLevel);
+            } else {
+                // Fallback to local implementation
+                if (item.activityLevel !== undefined) {
+                    if (item.activityLevel >= 50) {
+                        avatarSrc = '../assets/avatar-legend.png';
+                    } else if (item.activityLevel >= 30) {
+                        avatarSrc = '../assets/avatar-master.png';
+                    } else if (item.activityLevel >= 20) {
+                        avatarSrc = '../assets/avatar-expert.png';
+                    } else if (item.activityLevel >= 10) {
+                        avatarSrc = '../assets/avatar-active.png';
+                    } else {
+                        avatarSrc = '../assets/avatar-reader.png';
+                    }
                 }
             }
             
             return `
-                <div class="card mb-4" data-share-id="${item.id}" data-user-id="${item.userId}">
+                <div class="card mb-4" data-share-id="${item.id}">
                     <div class="card-body">
                         <div class="d-flex align-items-start mb-3">
                             <div class="flex-shrink-0">

@@ -1,4 +1,3 @@
-// Firebase Messaging Service Worker
 importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js');
 
@@ -16,8 +15,6 @@ firebase.initializeApp(firebaseConfig);
 const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
-    console.log('📱 Received background message:', payload);
-    
     const notificationTitle = payload.notification?.title || 'NewsHub Notification';
     const notificationOptions = {
         body: payload.notification?.body || 'You have a new notification',
@@ -43,7 +40,6 @@ messaging.onBackgroundMessage((payload) => {
 });
 
 self.addEventListener('notificationclick', (event) => {
-    console.log('🔔 Notification clicked:', event);
     event.notification.close();
     
     const action = event.action;
@@ -78,19 +74,15 @@ self.addEventListener('notificationclick', (event) => {
 });
 
 self.addEventListener('push', (event) => {
-    console.log('📱 Push event received:', event);
     if (event.data) {
         const data = event.data.json();
-        console.log('📱 Push data:', data);
     }
 });
 
 self.addEventListener('install', (event) => {
-    console.log('🔧 Service Worker installing...');
     self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
-    console.log('🔧 Service Worker activating...');
-    event.waitUntil(clients.claim());
+    event.waitUntil(self.clients.claim());
 });

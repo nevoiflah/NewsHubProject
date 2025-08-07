@@ -4,66 +4,60 @@ var FeaturesDemo = {
     init: function() {
         this.checkSystemStatus();
         this.updateUserInterface();
+        this.startRealTimeUpdates(); // Start real-time updates
     },
 
     // SYSTEM STATUS METHODS
     // ---------------------
     checkSystemStatus: function() {
         try {
-            // Test server connectivity using direct $.ajax
-            $.ajax({
-                type: 'GET',
-                url: 'http://localhost:5121/api/News/latest',
-                cache: false,
-                dataType: "json",
-                success: function(newsResponse) {
-                    document.getElementById('serverStatus').innerHTML = '<i class="fas fa-check-circle text-success"></i>';
-                    document.getElementById('totalNews').textContent = newsResponse && newsResponse.length ? newsResponse.length.toString() : '0';
-                    
-                    FeaturesDemo.updateUserStats();
-                    FeaturesDemo.updateUserStatusIndicator();
-                },
-                error: function(xhr, status, error) {
-                    console.error('System status check failed:', error);
-                    document.getElementById('serverStatus').innerHTML = '<i class="fas fa-exclamation-triangle text-danger"></i>';
-                    document.getElementById('totalNews').textContent = 'Error';
-                    document.getElementById('userStatus').innerHTML = '<i class="fas fa-exclamation-triangle text-danger"></i>';
-                }
-            });
+            FeaturesDemo.updateUserStats();
         } catch (error) {
             console.error('System status check failed:', error);
-            document.getElementById('serverStatus').innerHTML = '<i class="fas fa-exclamation-triangle text-danger"></i>';
-            document.getElementById('totalNews').textContent = 'Error';
-            document.getElementById('userStatus').innerHTML = '<i class="fas fa-exclamation-triangle text-danger"></i>';
         }
     },
 
     updateUserStats: function() {
-        if (Auth.isAdmin()) {
-            $.ajax({
-                type: 'GET',
-                url: 'http://localhost:5121/api/Admin/stats',
-                cache: false,
-                dataType: "json",
-                success: function(statsResponse) {
-                    document.getElementById('totalUsers').textContent = statsResponse && statsResponse.totalUsers ? statsResponse.totalUsers.toString() : '0';
-                },
-                error: function() {
-                    document.getElementById('totalUsers').textContent = 'N/A';
-                }
-            });
-        } else {
-            document.getElementById('totalUsers').textContent = 'N/A';
-        }
+        // Get user count
+        $.ajax({
+            type: 'GET',
+            url: 'http://localhost:5121/api/Users/GetAllUsers',
+            cache: false,
+            dataType: "json",
+            success: function(usersResponse) {
+                document.getElementById('totalUsers').textContent = usersResponse && usersResponse.length ? usersResponse.length.toString() : '0';
+            },
+            error: function() {
+                document.getElementById('totalUsers').textContent = 'N/A';
+            }
+        });
+        
+        // Get article count with real-time updates
+        $.ajax({
+            type: 'GET',
+            url: 'http://localhost:5121/api/News/latest',
+            cache: false,
+            dataType: "json",
+            success: function(articlesResponse) {
+                var articleCount = articlesResponse && articlesResponse.length ? articlesResponse.length.toString() : '0';
+                document.getElementById('totalArticles').textContent = articleCount;
+                console.log('📊 Real-time article count updated:', articleCount);
+            },
+            error: function(xhr, status, error) {
+                document.getElementById('totalArticles').textContent = 'N/A';
+                console.error('❌ Failed to get article count:', error);
+            }
+        });
     },
 
-    updateUserStatusIndicator: function() {
-        if (Auth.isLoggedIn()) {
-            document.getElementById('userStatus').innerHTML = '<i class="fas fa-user-check text-success"></i>';
-        } else {
-            document.getElementById('userStatus').innerHTML = '<i class="fas fa-user-times text-warning"></i>';
-        }
+    // Real-time updates every 30 seconds
+    startRealTimeUpdates: function() {
+        setInterval(function() {
+            FeaturesDemo.updateUserStats();
+        }, 30000); // Update every 30 seconds
     },
+
+
 
     // UI UPDATE METHODS
     // ----------------
@@ -136,34 +130,45 @@ var FeaturesDemo = {
 
     // NEWS & CATEGORY METHODS
     // ----------------------
-    testNews: function() {
-        showAlert('info', 'Testing news feed...', 2000);
-        $.ajax({
-            type: 'GET',
-            url: 'http://localhost:5121/api/News/latest',
-            cache: false,
-            dataType: "json",
-            success: function(response) {
-                if (response && response.length > 0) {
-                    showAlert('success', '✅ News feed working! Found ' + response.length + ' articles');
-                } else {
-                    showAlert('warning', 'News feed connected but no articles found');
-                }
-            },
-            error: function() {
-                showAlert('danger', 'Failed to connect to news feed');
-            }
-        });
+    toggleCategories: function() {
+        var categoriesDisplay = document.getElementById('categoriesDisplay');
+        var button = event.target.closest('button');
+        
+        if (categoriesDisplay.style.display === 'none') {
+            // Show categories
+            categoriesDisplay.style.display = 'block';
+            button.innerHTML = '<i class="fas fa-eye-slash me-1"></i>Hide Categories';
+            button.classList.remove('btn-outline-light');
+            button.classList.add('btn-light', 'text-dark');
+            
+            // Load categories
+            this.loadCategories();
+        } else {
+            // Hide categories
+            categoriesDisplay.style.display = 'none';
+            button.innerHTML = '<i class="fas fa-list me-1"></i>View Categories';
+            button.classList.remove('btn-light', 'text-dark');
+            button.classList.add('btn-outline-light');
+        }
     },
 
-    checkCategories: function() {
+    loadCategories: function() {
+        var categoriesList = document.getElementById('categoriesList');
+        categoriesList.innerHTML = '<div class="text-muted">Loading categories...</div>';
+        
+        console.log('🔍 Attempting to load categories from API...');
+        
         $.ajax({
             type: 'GET',
             url: 'http://localhost:5121/api/News/latest',
             cache: false,
             dataType: "json",
             success: function(response) {
+                console.log('✅ API Response received:', response);
+                
                 if (response && response.length > 0) {
+                    console.log('📊 Found', response.length, 'articles');
+                    
                     var categories = [];
                     var categorySet = {};
                     
@@ -176,11 +181,44 @@ var FeaturesDemo = {
                         }
                     }
                     
-                    showAlert('info', 'Available categories: ' + categories.join(', '), 5000);
+                    console.log('🏷️ Unique categories found:', categories);
+                    
+                    // Count articles per category
+                    var categoryCounts = {};
+                    response.forEach(function(article) {
+                        var category = article.category || 'general';
+                        categoryCounts[category] = (categoryCounts[category] || 0) + 1;
+                    });
+                    
+                    console.log('📈 Category counts:', categoryCounts);
+                    
+                    // Display categories as list with counts
+                    var categoriesHtml = '';
+                    categories.forEach(function(category) {
+                        var count = categoryCounts[category] || 0;
+                        categoriesHtml += '<div class="mb-1">' + category + ' (' + count + ')</div>';
+                    });
+                    
+                    categoriesList.innerHTML = categoriesHtml || '<div class="text-muted">No categories found</div>';
+                } else {
+                    console.log('⚠️ No articles found in response');
+                    categoriesList.innerHTML = '<div class="text-muted">No categories found</div>';
                 }
             },
-            error: function() {
-                showAlert('danger', 'Failed to load categories');
+            error: function(xhr, status, error) {
+                console.error('❌ API Error:', xhr.status, status, error);
+                console.error('❌ Response Text:', xhr.responseText);
+                
+                var errorMessage = 'Failed to load categories';
+                if (xhr.status === 0) {
+                    errorMessage = 'Server not running. Please start your C# server.';
+                } else if (xhr.status === 404) {
+                    errorMessage = 'API endpoint not found. Check server configuration.';
+                } else if (xhr.status === 500) {
+                    errorMessage = 'Server error. Check server logs.';
+                }
+                
+                categoriesList.innerHTML = '<div class="text-danger">' + errorMessage + '</div>';
             }
         });
     },

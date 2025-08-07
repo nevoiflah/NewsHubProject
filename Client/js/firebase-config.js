@@ -21,25 +21,31 @@ class NotificationService {
 
     async initializeFirebase() {
         try {
-            // Import Firebase modules
-            const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
-            const { getMessaging, getToken, onMessage } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js');
+            const firebaseApp = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
+            const firebaseMessaging = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js');
+            const firebaseFirestore = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
 
-            this.app = initializeApp(firebaseConfig);
-            this.messaging = getMessaging(this.app);
-            
-            // Store modules for later use
             this.firebaseModules = {
-                getToken,
-                onMessage
+                app: firebaseApp,
+                messaging: firebaseMessaging,
+                firestore: firebaseFirestore
+            };
+
+            this.app = firebaseApp.initializeApp(firebaseConfig);
+            this.messaging = firebaseMessaging.getMessaging(this.app);
+            this.db = firebaseFirestore.getFirestore(this.app);
+            
+            window.firebase = {
+                app: this.app,
+                messaging: this.messaging,
+                db: this.db,
+                modules: this.firebaseModules
             };
             
             this.isInitialized = true;
-            console.log('✅ Firebase initialized successfully');
             return true;
             
         } catch (error) {
-            console.error('❌ Firebase initialization failed:', error);
             return false;
         }
     }
@@ -56,7 +62,6 @@ class NotificationService {
     
         try {
             if (!('Notification' in window)) {
-                console.warn('❌ Notifications not supported in this browser');
                 return false;
             }
         
@@ -70,114 +75,131 @@ class NotificationService {
             if (permission === 'granted') {
                 return await this.setupNotifications(userId, userInterests);
             } else {
-                console.warn('❌ Notification permission denied');
                 return false;
             }
         
         } catch (error) {
-            console.error('❌ Error initializing notifications:', error);
             return false;
         }
     }
 
     showNotificationPrompt(userId, userInterests) {
+        const existingPrompt = document.getElementById('notificationPrompt');
+        if (existingPrompt) {
+            existingPrompt.remove();
+        }
+
         const promptHtml = `
-            <div class="notification-prompt" style="
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                background: white;
-                padding: 30px;
-                border-radius: 10px;
-                box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            <div id="notificationPrompt" style="
+                position: fixed; 
+                top: 80px; 
+                right: 20px; 
                 z-index: 10000;
-                max-width: 400px;
-                text-align: center;
+                background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+                color: white;
+                padding: 20px;
+                border-radius: 12px;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+                max-width: 350px;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto;
+                animation: slideIn 0.3s ease-out;
             ">
-                <h4 style="margin-bottom: 15px; color: #333;">
-                    <i class="fas fa-bell" style="color: #007bff; margin-right: 10px;"></i>
-                    Enable Notifications
-                </h4>
-                <p style="margin-bottom: 20px; color: #666; line-height: 1.5;">
-                    Stay updated with breaking news, user interactions, and community updates. 
-                    We'll only send you notifications for things you care about.
+                <div style="display: flex; align-items: center; margin-bottom: 12px;">
+                    <span style="font-size: 24px; margin-right: 10px;">🔔</span>
+                    <h6 style="margin: 0; font-weight: 600;">Stay Updated!</h6>
+                </div>
+                <p style="margin: 0 0 15px 0; font-size: 14px; line-height: 1.4;">
+                    Get notified when someone likes or comments on your posts
                 </p>
-                <div style="display: flex; gap: 10px; justify-content: center;">
-                    <button onclick="NotificationService.enableNotifications(${userId})" style="
-                        background: #007bff;
-                        color: white;
-                        border: none;
-                        padding: 10px 20px;
-                        border-radius: 5px;
+                <div style="display: flex; gap: 10px;">
+                    <button id="enableNotifications" style="
+                        background: white; 
+                        color: #4F46E5; 
+                        border: none; 
+                        padding: 8px 16px; 
+                        border-radius: 6px; 
+                        font-weight: 600;
                         cursor: pointer;
-                        font-weight: 500;
+                        font-size: 14px;
                     ">Enable Notifications</button>
-                    <button onclick="NotificationService.dismissPrompt()" style="
-                        background: #6c757d;
-                        color: white;
-                        border: none;
-                        padding: 10px 20px;
-                        border-radius: 5px;
+                    <button id="dismissPrompt" style="
+                        background: transparent; 
+                        color: white; 
+                        border: 1px solid rgba(255,255,255,0.3); 
+                        padding: 8px 16px; 
+                        border-radius: 6px; 
                         cursor: pointer;
-                    ">Not Now</button>
+                        font-size: 14px;
+                    ">Maybe Later</button>
                 </div>
             </div>
-        `;
-        
-        document.body.insertAdjacentHTML('beforeend', promptHtml);
-    }
-
-    static async enableNotifications(userId) {
-        try {
-            const permission = await Notification.requestPermission();
-            if (permission === 'granted') {
-                // Remove prompt
-                const prompt = document.querySelector('.notification-prompt');
-                if (prompt) prompt.remove();
-                
-                // Initialize notifications
-                if (window.notificationService) {
-                    await window.notificationService.setupNotifications(userId);
+            <style>
+                @keyframes slideIn {
+                    from { opacity: 0; transform: translateX(100px); }
+                    to { opacity: 1; transform: translateX(0); }
                 }
+            </style>
+        `;
+
+        document.body.insertAdjacentHTML('beforeend', promptHtml);
+
+        document.getElementById('enableNotifications').onclick = async () => {
+            try {
+                const permission = await Notification.requestPermission();
+            
+                if (permission === 'granted') {
+                    await this.setupNotifications(userId, userInterests);
+                    document.getElementById('notificationPrompt').remove();
+                
+                    if (window.showAlert) {
+                        window.showAlert('success', 'Notifications enabled');
+                    }
+                } else {
+                    document.getElementById('notificationPrompt').remove();
+                }
+            } catch (error) {
+                document.getElementById('notificationPrompt').remove();
             }
-        } catch (error) {
-            console.error('Error enabling notifications:', error);
-        }
+        };
+
+        document.getElementById('dismissPrompt').onclick = () => {
+            document.getElementById('notificationPrompt').remove();
+        };
+
+        setTimeout(() => {
+            const prompt = document.getElementById('notificationPrompt');
+            if (prompt) {
+                prompt.remove();
+            }
+        }, 20000);
     }
 
-    static dismissPrompt() {
-        const prompt = document.querySelector('.notification-prompt');
-        if (prompt) prompt.remove();
-    }
-
-    async setupNotifications(userId, userInterests = []) {
+    async setupNotifications(userId, userInterests) {
         try {
             await this.registerServiceWorker();
         
-            const token = await this.firebaseModules.getToken(this.messaging, {
+            const token = await this.firebaseModules.messaging.getToken(this.messaging, {
                 vapidKey: 'BBzIJz2Hrx6LDER7EApmNDqy2gHhKuV3R8oUG3nX7sCAR-VckGJ_rgydYldzXntwwL0NxaTqFKU-HYoomm2_YDI'
             });
         
             if (token) {
-                console.log('✅ FCM Token obtained:', token.substring(0, 20) + '...');
                 localStorage.setItem('fcmToken', token);
             
                 const registered = await this.registerTokenWithBackend(token, userId);
             
                 if (registered) {
-                    this.firebaseModules.onMessage(this.messaging, (payload) => {
+                    await this.setupRealtimeListeners(userInterests);
+                
+                    this.firebaseModules.messaging.onMessage(this.messaging, (payload) => {
                         this.handleForegroundMessage(payload);
                     });
                 
-                    console.log('✅ Notifications setup complete');
                     return true;
                 }
             }
         
             return false;
         } catch (error) {
-            console.error('❌ Error setting up notifications:', error);
             return false;
         }
     }
@@ -186,13 +208,11 @@ class NotificationService {
         try {
             if ('serviceWorker' in navigator) {
                 const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
-                console.log('✅ Service Worker registered:', registration);
                 return registration;
             } else {
                 throw new Error('Service Worker not supported');
             }
         } catch (error) {
-            console.error('❌ Service Worker registration failed:', error);
             throw error;
         }
     }
@@ -201,7 +221,7 @@ class NotificationService {
         try {
             const response = await $.ajax({
                 type: 'POST',
-                url: 'http://localhost:5121/api/notification/register-token',
+                url: 'https://localhost:5121/api/users/notifications/register-token',
                 data: JSON.stringify({
                     token,
                     userId,
@@ -215,20 +235,25 @@ class NotificationService {
             });
 
             if (response && response.success) {
-                console.log('✅ Token registered with backend');
                 return true;
             } else {
-                console.error('❌ Failed to register token with backend');
                 return false;
             }
         } catch (error) {
-            console.error('❌ Error registering token with backend:', error);
             return false;
         }
     }
 
+
+    async setupRealtimeListeners(userInterests) {
+        try {
+            // Future: Add Firestore listeners here
+        } catch (error) {
+            // Silent error handling
+        }
+    }
+
     handleForegroundMessage(payload) {
-        console.log('📱 Received foreground message:', payload);
         const { title, body } = payload.notification || {};
         if (title && body) {
             this.showInAppNotification(title, body, 'info');
@@ -278,13 +303,44 @@ class NotificationService {
                 ">×</button>
             </div>
         `;
-        
+
+        if (!document.getElementById('notification-styles')) {
+            const style = document.createElement('style');
+            style.id = 'notification-styles';
+            style.textContent = `
+                @keyframes slideInFromRight {
+                    from { 
+                        opacity: 0; 
+                        transform: translateX(100px); 
+                    }
+                    to { 
+                        opacity: 1; 
+                        transform: translateX(0); 
+                    }
+                }
+                @keyframes slideOutToRight {
+                    from { 
+                        opacity: 1; 
+                        transform: translateX(0); 
+                    }
+                    to { 
+                        opacity: 0; 
+                        transform: translateX(100px); 
+                    }
+                }
+                .slide-out {
+                    animation: slideOutToRight 0.3s ease-in forwards;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
         document.body.appendChild(notificationEl);
-        
-        // Auto-remove after 5 seconds
+
         setTimeout(() => {
-            if (notificationEl.parentNode) {
-                notificationEl.remove();
+            if (notificationEl.parentElement) {
+                notificationEl.classList.add('slide-out');
+                setTimeout(() => notificationEl.remove(), 300);
             }
         }, 5000);
     }
@@ -297,7 +353,12 @@ class NotificationService {
             });
         }
     }
+
+    cleanup() {
+        this.unsubscribers.forEach(unsub => unsub());
+        this.unsubscribers = [];
+        this.currentUser = null;
+    }
 }
 
-// Initialize notification service
-window.notificationService = new NotificationService();
+window.NotificationService = new NotificationService();
