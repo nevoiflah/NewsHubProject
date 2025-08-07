@@ -1,3 +1,0 @@
-﻿<Project>
-  <Import Project="../buildMultiTargeting/NewsHub_New_Server.props" />
-</Project>
