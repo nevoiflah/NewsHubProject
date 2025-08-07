@@ -40,6 +40,20 @@ namespace Server.Controllers
             }
             catch (Exception ex)
             {
+                // Handle specific SQL errors with appropriate HTTP status codes
+                if (ex.Message.Contains("already reported"))
+                {
+                    return Conflict(new { success = false, message = "You have already reported this content" });
+                }
+                else if (ex.Message.Contains("not found"))
+                {
+                    return NotFound(new { success = false, message = "Content not found" });
+                }
+                else if (ex.Message.Contains("Invalid content type"))
+                {
+                    return BadRequest(new { success = false, message = "Invalid content type" });
+                }
+                
                 return StatusCode(500, new { success = false, message = "Error: " + ex.Message });
             }
         }

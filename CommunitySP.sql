@@ -734,3 +734,87 @@ BEGIN
     SELECT @@ROWCOUNT AS RowsAffected;
 END
 GO
+
+-- Report Content (News or Shared Articles)
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE OR ALTER PROCEDURE [dbo].[NLM_NewsHub_ReportContent]
+    @UserId INT,
+    @ContentType NVARCHAR(50),
+    @ContentId INT,
+    @Reason NVARCHAR(500)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    -- Validate content type
+    IF @ContentType NOT IN ('news', 'shared_article', 'comment')
+    BEGIN
+        RAISERROR('Invalid content type. Must be news, shared_article, or comment.', 16, 1);
+        RETURN;
+    END
+    
+    -- For shared articles, we store the reason with a prefix to distinguish from news reports
+    DECLARE @ProcessedReason NVARCHAR(600);
+    
+    IF @ContentType = 'shared_article'
+    BEGIN
+        SET @ProcessedReason = 'SharedArticle:' + @Reason;
+        
+        -- Verify the shared article exists
+        IF NOT EXISTS (SELECT 1 FROM [dbo].[NLM_NewsHub_SharedArticles] WHERE Id = @ContentId)
+        BEGIN
+            RAISERROR('Shared article not found.', 16, 1);
+            RETURN;
+        END
+    END
+    ELSE IF @ContentType = 'news'
+    BEGIN
+        SET @ProcessedReason = @Reason;
+        
+        -- Verify the news article exists
+        IF NOT EXISTS (SELECT 1 FROM [dbo].[NLM_NewsHub_ArticlesSaved] WHERE Id = @ContentId)
+        BEGIN
+            RAISERROR('News article not found.', 16, 1);
+            RETURN;
+        END
+    END
+    ELSE IF @ContentType = 'comment'
+    BEGIN
+        SET @ProcessedReason = 'Comment:' + @Reason;
+        
+        -- Verify the comment exists
+        IF NOT EXISTS (SELECT 1 FROM [dbo].[NLM_NewsHub_SharedArticleComments] WHERE Id = @ContentId)
+        BEGIN
+            RAISERROR('Comment not found.', 16, 1);
+            RETURN;
+        END
+    END
+    
+    -- Check if user has already reported this content
+    IF EXISTS (
+        SELECT 1 FROM [dbo].[NLM_NewsHub_Reports] 
+        WHERE UserId = @UserId 
+        AND NewsId = @ContentId 
+        AND Reason LIKE CASE 
+            WHEN @ContentType = 'shared_article' THEN 'SharedArticle:%'
+            WHEN @ContentType = 'comment' THEN 'Comment:%'
+            ELSE @Reason
+        END
+    )
+    BEGIN
+        RAISERROR('You have already reported this content.', 16, 1);
+        RETURN;
+    END
+    
+    -- Insert the report
+    INSERT INTO [dbo].[NLM_NewsHub_Reports] (NewsId, UserId, Reason, ReportedAt, IsResolved)
+    VALUES (@ContentId, @UserId, @ProcessedReason, GETDATE(), 0);
+    
+    -- Return success
+    SELECT 1 AS Success;
+END
+GO

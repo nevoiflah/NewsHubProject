@@ -191,12 +191,12 @@ const AdminManager = {
                 sharedArray = shared;
             }
             
-            const reportsArray = Array.isArray(reports) ? reports : [];
+            const reportsArray = Array.isArray(reports) ? reports : (reports.reports || []);
             
             $('#totalUsers').text(usersArray.length || 0);
             $('#activeUsers').text(usersArray.filter(u => !u.isLocked).length || 0);
             $('#sharedArticles').text(sharedArray.length || 0);
-            $('#pendingReports').text(reportsArray.filter(r => !r.isResolved).length || 0);
+            $('#pendingReports').text(reportsArray.filter(r => !(r.isResolved || r.IsResolved)).length || 0);
 
             console.log('✅ Dashboard data loaded successfully');
         } catch (error) {
@@ -663,7 +663,7 @@ const AdminManager = {
         try {
             console.log('🔄 Loading reports data...');
             
-            const reports = await $.ajax({
+            const response = await $.ajax({
                 type: 'GET',
                 url: 'http://localhost:5121/api/Reports',
                 cache: false,
@@ -672,8 +672,11 @@ const AdminManager = {
 
             const $tbody = $('#reportsTable');
             
-            // Ensure reports is an array
-            const reportsArray = Array.isArray(reports) ? reports : [];
+            // Handle both direct array and object response formats
+            const reportsArray = Array.isArray(response) ? response : (response.reports || []);
+            
+            console.log('📋 Reports data received:', reportsArray);
+            console.log('📋 First report structure:', reportsArray[0]);
             
             if (!reportsArray || reportsArray.length === 0) {
                 $tbody.html('<tr><td colspan="7" class="text-center text-muted">No reports found</td></tr>');
@@ -681,29 +684,45 @@ const AdminManager = {
             }
 
             const rows = reportsArray.map(report => {
-                const statusBadge = report.isResolved ? 
+                // Handle both PascalCase and camelCase property names
+                const reportId = report.id || report.Id || 0;
+                const isResolved = report.isResolved || report.IsResolved || false;
+                const reason = report.reason || report.Reason || 'No reason provided';
+                const reporterUsername = report.reporterUsername || report.ReporterUsername || 'Unknown';
+                const contentType = report.contentType || report.ContentType || 'Article';
+                const reportedAt = report.reportedAt || report.ReportedAt || report.createdAt;
+                
+                const statusBadge = isResolved ? 
                     '<span class="badge bg-success">Resolved</span>' : 
                     '<span class="badge bg-warning">Pending</span>';
                 
+                // Clean up the reason by removing prefixes
+                let cleanReason = reason;
+                if (cleanReason.startsWith('SharedArticle:')) {
+                    cleanReason = cleanReason.substring('SharedArticle:'.length);
+                } else if (cleanReason.startsWith('Comment:')) {
+                    cleanReason = cleanReason.substring('Comment:'.length);
+                }
+                
                 return `
-                    <tr data-report-id="${report.id}">
-                        <td>${report.id}</td>
-                        <td>${Utils.sanitizeHtml(report.reporterUsername || 'Unknown')}</td>
-                        <td>${Utils.sanitizeHtml(report.contentType || 'Article')}</td>
-                        <td>${Utils.sanitizeHtml(report.reason || 'No reason provided')}</td>
-                        <td>${Utils.formatDate(report.createdAt)}</td>
+                    <tr data-report-id="${reportId}">
+                        <td>${reportId}</td>
+                        <td>${Utils.sanitizeHtml(reporterUsername)}</td>
+                        <td>${Utils.sanitizeHtml(contentType)}</td>
+                        <td>${Utils.sanitizeHtml(cleanReason)}</td>
+                        <td>${Utils.formatDate(reportedAt)}</td>
                         <td>${statusBadge}</td>
                         <td>
                             <div class="btn-group btn-group-sm">
-                                <button class="btn btn-outline-info" onclick="AdminManager.viewReport(${report.id})" title="View Report">
+                                <button class="btn btn-outline-info" onclick="AdminManager.viewReport(${reportId})" title="View Report">
                                     <i class="fas fa-eye"></i>
                                 </button>
-                                ${!report.isResolved ? `
-                                    <button class="btn btn-outline-success" onclick="AdminManager.resolveReport(${report.id})" title="Resolve Report">
+                                ${!isResolved ? `
+                                    <button class="btn btn-outline-success" onclick="AdminManager.resolveReport(${reportId})" title="Resolve Report">
                                         <i class="fas fa-check"></i>
                                     </button>
                                 ` : ''}
-                                <button class="btn btn-outline-danger" onclick="AdminManager.deleteReport(${report.id})" title="Delete Report">
+                                <button class="btn btn-outline-danger" onclick="AdminManager.deleteReport(${reportId})" title="Delete Report">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>
@@ -724,49 +743,86 @@ const AdminManager = {
     // View report details
     viewReport: async (reportId) => {
         try {
-            const report = await $.ajax({
+            console.log('👁️ Viewing report ID:', reportId);
+            
+            const response = await $.ajax({
                 type: 'GET',
                 url: `http://localhost:5121/api/Reports/${reportId}`,
                 cache: false,
                 dataType: "json"
             });
 
+            console.log('👁️ Report API response:', response);
+            
+            // Handle response format - could be direct object or wrapped
+            const report = response.report || response;
+            
+            // Handle both PascalCase and camelCase property names
+            const reportIdValue = report.id || report.Id || reportId;
+            const reporterUsername = report.reporterUsername || report.ReporterUsername || 'Unknown';
+            const contentType = report.contentType || report.ContentType || 'Article';
+            const reason = report.reason || report.Reason || 'No reason provided';
+            const createdAt = report.createdAt || report.reportedAt || report.ReportedAt || new Date();
+            const isResolved = report.isResolved || report.IsResolved || false;
+            const contentTitle = report.contentTitle || report.ContentTitle || '';
+
+            // Clean up the reason by removing prefixes
+            let cleanReason = reason;
+            if (cleanReason.startsWith('SharedArticle:')) {
+                cleanReason = cleanReason.substring('SharedArticle:'.length);
+            } else if (cleanReason.startsWith('Comment:')) {
+                cleanReason = cleanReason.substring('Comment:'.length);
+            }
+
             const details = `Report Details:
 
-ID: ${report.id}
-Reporter: ${report.reporterUsername || 'Unknown'}
-Content Type: ${report.contentType || 'Article'}
-Reason: ${report.reason || 'No reason provided'}
-Date: ${Utils.formatDate(report.createdAt)}
-Status: ${report.isResolved ? 'Resolved' : 'Pending'}
-${report.description ? `Description: ${report.description}` : ''}`;
+ID: ${reportIdValue}
+Reporter: ${reporterUsername}
+Content Type: ${contentType}
+${contentTitle ? `Content Title: ${contentTitle}` : ''}
+Reason: ${cleanReason}
+Date: ${Utils.formatDate(createdAt)}
+Status: ${isResolved ? 'Resolved' : 'Pending'}`;
 
             alert(details);
         } catch (error) {
             console.error('❌ Error viewing report:', error);
+            console.error('❌ Error details:', error.responseText);
             showAlert('danger', 'Error loading report details');
         }
     },
 
     // Resolve report 
     resolveReport: async (reportId) => {
+        console.log('🔧 Resolving report ID:', reportId, 'Type:', typeof reportId);
+        
         if (!confirm('Mark this report as resolved?')) return;
         
         try {
+            // Get current admin user ID
+            const currentUser = Auth.getCurrentUser();
+            if (!currentUser || !currentUser.id) {
+                showAlert('danger', 'Authentication required to resolve reports');
+                return;
+            }
+
             const response = await $.ajax({
                 type: 'PUT',
-                url: `http://localhost:5121/api/Reports/${reportId}/resolve`,
+                url: `http://localhost:5121/api/Reports/${reportId}/resolve?adminUserId=${currentUser.id}`,
+                data: JSON.stringify({
+                    IsResolved: true
+                }),
                 cache: false,
                 contentType: "application/json",
-                dataType: "text"
+                dataType: "json"
             });
 
-            if (response && response.includes('successfully')) {
-                showAlert('success', 'Report resolved successfully');
+            if (response && response.success) {
+                showAlert('success', response.message || 'Report resolved successfully');
                 AdminManager.loadReportsData();
                 AdminManager.loadDashboardData();
             } else {
-                showAlert('danger', 'Failed to resolve report');
+                showAlert('danger', response.message || 'Failed to resolve report');
             }
         } catch (error) {
             console.error('❌ Error resolving report:', error);
