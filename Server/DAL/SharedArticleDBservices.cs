@@ -117,32 +117,31 @@ namespace Server.DAL
         }
 
         // Like shared article
-        public bool LikeSharedArticle(int articleId, int userId)
+        public bool LikeSharedArticle(int sharedArticleId, int userId)
         {
-            using SqlConnection con = connect("myProjDB");
-            Dictionary<string, object> paramDic = new()
+            try
             {
-                { "@SharedArticleId", articleId },
-                { "@UserId", userId }
-            };
+                using SqlConnection con = connect("myProjDB");
+                Dictionary<string, object> paramDic = new()
+                {
+                    { "@SharedArticleId", sharedArticleId },
+                    { "@UserId", userId }
+                };
 
-            SqlCommand cmd = CreateCommandWithStoredProcedureGeneral("NLM_NewsHub_LikeSharedArticle", con, paramDic);
-            return cmd.ExecuteNonQuery() > 0;
+                SqlCommand cmd = CreateCommandWithStoredProcedureGeneral("NLM_NewsHub_LikeSharedArticle", con, paramDic);
+                object result = cmd.ExecuteScalar();
+                
+                // The procedure returns 1 for like added, 0 for like removed
+                return result != null && Convert.ToInt32(result) == 1;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
         }
 
-        // Unlike shared article
-        public bool UnlikeSharedArticle(int articleId, int userId)
-        {
-            using SqlConnection con = connect("myProjDB");
-            Dictionary<string, object> paramDic = new()
-            {
-                { "@SharedArticleId", articleId },
-                { "@UserId", userId }
-            };
-
-            SqlCommand cmd = CreateCommandWithStoredProcedureGeneral("NLM_NewsHub_UnlikeSharedArticle", con, paramDic);
-            return cmd.ExecuteNonQuery() > 0;
-        }
+        // Unlike shared article - REMOVED: Now handled by single LikeSharedArticle procedure
+        // public bool UnlikeSharedArticle(int articleId, int userId) { ... }
 
         // Check if article is liked by user
         public bool IsLikedByUser(int articleId, int userId)

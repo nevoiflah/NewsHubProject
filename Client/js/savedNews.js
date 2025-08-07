@@ -324,9 +324,7 @@ var SavedNewsManager = {
                         <div class="card saved-article-card" data-article-id="${articleId}">
                             <div class="row g-0">
                                 <div class="col-md-3">
-                                    <img src="${imageUrl}" class="img-fluid rounded-start h-100" 
-                                         style="object-fit: cover; min-height: 150px;" alt="Article Image"
-                                         onerror="this.src='/assets/default-news.jpg'">
+                                    <img src="${imageUrl}" class="img-fluid rounded" style="width: 100%; height: 200px; object-fit: cover;" alt="Article Image" onerror="this.onerror=null;this.src='/assets/default-news.jpg';">
                                 </div>
                                 <div class="col-md-9">
                                     <div class="card-body">
@@ -616,47 +614,19 @@ var SavedNewsManager = {
         if (!confirm('Are you sure you want to remove this article from your saved list?')) {
             return;
         }
-
         const userId = localStorage.getItem('userId');
         if (!userId) {
-            if (typeof showAlert === 'function') {
-                showAlert('warning', 'Please log in to remove articles');
-            }
+            location.reload();
             return;
         }
-
-        console.log('🗑️ Removing article:', articleId, 'for user:', userId);
-
+        // Fire AJAX call in background
         $.ajax({
             type: 'DELETE',
-            url: `http://localhost:5121/api/News/saved/${articleId}?userId=${userId}`, // ✅ Fixed URL case
-            cache: false,
-            success: function (response) {
-                console.log('✅ Article removed:', response);
-
-                if (response && (response.success === true || response.success === undefined)) {
-                    SavedNewsManager.savedArticles = SavedNewsManager.savedArticles.filter(function (article) {
-                        return (article.id || article.Id || article.newsId) !== articleId;
-                    });
-
-                    SavedNewsManager.applyFilters();
-
-                    if (typeof showAlert === 'function') {
-                        showAlert('success', response.message || 'Article removed from saved list');
-                    }
-                } else {
-                    if (typeof showAlert === 'function') {
-                        showAlert('danger', response.message || 'Failed to remove article');
-                    }
-                }
-            },
-            error: function (xhr, status, error) {
-                console.error('❌ Error removing article:', error);
-                if (typeof showAlert === 'function') {
-                    showAlert('danger', 'Error removing article');
-                }
-            }
+            url: `http://localhost:5121/api/News/saved/${articleId}?userId=${userId}`,
+            cache: false
         });
+        // Immediately refresh the page
+        location.reload();
     },
 
     // Share article

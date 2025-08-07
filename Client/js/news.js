@@ -880,9 +880,8 @@ var NewsManager = {
         // API call to save article to user's saved list
         $.ajax({
             type: 'POST',
-            url: 'http://localhost:5121/api/news/save',
+            url: `http://localhost:5121/api/news/save?userId=${userId}`,
             data: JSON.stringify({
-                userId: userId, // ✅ הוספת מזהה המשתמש לגוף הבקשה
                 title: article.title,
                 content: article.description,
                 url: article.url,

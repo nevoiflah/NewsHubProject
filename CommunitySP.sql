@@ -27,12 +27,8 @@ BEGIN
 END
 GO
 
--- Get Shared Articles with Pagination and Sorting
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
-GO
-CREATE PROCEDURE [dbo].[NLM_NewsHub_GetSharedArticles]
+-- Get Shared Articles with dynamic like count
+CREATE OR ALTER PROCEDURE [dbo].[NLM_NewsHub_GetSharedArticles]
     @UserId INT = NULL,
     @SortBy NVARCHAR(50) = 'newest',
     @Page INT = 1,
@@ -44,31 +40,47 @@ BEGIN
     DECLARE @Offset INT = (@Page - 1) * @PageSize;
     
     SELECT 
-        sa.*,
+        sa.Id,
+        sa.UserId,
+        sa.Url,
+        sa.ArticleTitle,
+        sa.ArticleDescription,
+        sa.ArticleSource,
+        sa.ArticleImageUrl,
+        sa.Comment,
+        sa.Tags,
+        sa.CreatedAt,
+        sa.IsFlagged,
+        sa.CommentsCount,
         u.Username,
+        -- Calculate likes dynamically from the likes table
+        (SELECT COUNT(*) FROM [dbo].[NLM_NewsHub_SharedArticleLikes] 
+         WHERE SharedArticleId = sa.Id AND IsDeleted = 0) AS Likes,
+        -- Check if current user liked this article
         CASE 
-            WHEN sal.UserId IS NOT NULL THEN CAST(1 AS BIT)
+            WHEN @UserId IS NOT NULL AND EXISTS (
+                SELECT 1 FROM [dbo].[NLM_NewsHub_SharedArticleLikes] 
+                WHERE SharedArticleId = sa.Id AND UserId = @UserId AND IsDeleted = 0
+            ) THEN CAST(1 AS BIT)
             ELSE CAST(0 AS BIT)
         END AS IsLikedByCurrentUser
     FROM [dbo].[NLM_NewsHub_SharedArticles] sa
     INNER JOIN [dbo].[NLM_NewsHub_Users] u ON sa.UserId = u.Id
-    LEFT JOIN [dbo].[NLM_NewsHub_SharedArticleLikes] sal ON sa.Id = sal.SharedArticleId AND sal.UserId = @UserId
     WHERE sa.IsFlagged = 0
     ORDER BY 
         CASE WHEN @SortBy = 'newest' THEN sa.CreatedAt END DESC,
         CASE WHEN @SortBy = 'oldest' THEN sa.CreatedAt END ASC,
         CASE WHEN @SortBy = 'most_comments' THEN sa.CommentsCount END DESC,
-        CASE WHEN @SortBy = 'most_liked' THEN sa.Likes END DESC
+        CASE WHEN @SortBy = 'most_liked' THEN (
+            SELECT COUNT(*) FROM [dbo].[NLM_NewsHub_SharedArticleLikes] 
+            WHERE SharedArticleId = sa.Id AND IsDeleted = 0
+        ) END DESC
     OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
 END
 GO
 
--- Get Shared Article By ID
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
-GO
-CREATE PROCEDURE [dbo].[NLM_NewsHub_GetSharedArticleById]
+-- Get Shared Article By ID with dynamic like count
+CREATE OR ALTER PROCEDURE [dbo].[NLM_NewsHub_GetSharedArticleById]
     @Id INT,
     @CurrentUserId INT = NULL
 AS
@@ -76,15 +88,32 @@ BEGIN
     SET NOCOUNT ON;
     
     SELECT 
-        sa.*,
+        sa.Id,
+        sa.UserId,
+        sa.Url,
+        sa.ArticleTitle,
+        sa.ArticleDescription,
+        sa.ArticleSource,
+        sa.ArticleImageUrl,
+        sa.Comment,
+        sa.Tags,
+        sa.CreatedAt,
+        sa.IsFlagged,
+        sa.CommentsCount,
         u.Username,
+        -- Calculate likes dynamically from the likes table
+        (SELECT COUNT(*) FROM [dbo].[NLM_NewsHub_SharedArticleLikes] 
+         WHERE SharedArticleId = sa.Id AND IsDeleted = 0) AS Likes,
+        -- Check if current user liked this article
         CASE 
-            WHEN sal.UserId IS NOT NULL THEN CAST(1 AS BIT)
+            WHEN @CurrentUserId IS NOT NULL AND EXISTS (
+                SELECT 1 FROM [dbo].[NLM_NewsHub_SharedArticleLikes] 
+                WHERE SharedArticleId = sa.Id AND UserId = @CurrentUserId AND IsDeleted = 0
+            ) THEN CAST(1 AS BIT)
             ELSE CAST(0 AS BIT)
         END AS IsLikedByCurrentUser
     FROM [dbo].[NLM_NewsHub_SharedArticles] sa
     INNER JOIN [dbo].[NLM_NewsHub_Users] u ON sa.UserId = u.Id
-    LEFT JOIN [dbo].[NLM_NewsHub_SharedArticleLikes] sal ON sa.Id = sal.SharedArticleId AND sal.UserId = @CurrentUserId
     WHERE sa.Id = @Id;
 END
 GO
@@ -113,35 +142,56 @@ SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-CREATE PROCEDURE [dbo].[NLM_NewsHub_LikeSharedArticle]
+-- Updated stored procedure for liking shared articles (soft delete)
+CREATE OR ALTER PROCEDURE NLM_NewsHub_LikeSharedArticle
     @SharedArticleId INT,
     @UserId INT
 AS
 BEGIN
     SET NOCOUNT ON;
-    BEGIN TRY
-        BEGIN TRANSACTION;
+    
+    DECLARE @ExistingLikeId INT;
+    
+    -- Check if user already liked this article (including soft deleted)
+    SELECT @ExistingLikeId = Id 
+    FROM NLM_NewsHub_SharedArticleLikes 
+    WHERE SharedArticleId = @SharedArticleId AND UserId = @UserId;
+    
+    IF @ExistingLikeId IS NULL
+    BEGIN
+        -- User hasn't liked this article before, add new like
+        INSERT INTO NLM_NewsHub_SharedArticleLikes (SharedArticleId, UserId, LikedAt, IsDeleted)
+        VALUES (@SharedArticleId, @UserId, GETDATE(), 0);
         
-        -- Insert like if not exists
-        IF NOT EXISTS (SELECT 1 FROM [dbo].[NLM_NewsHub_SharedArticleLikes] 
-                      WHERE SharedArticleId = @SharedArticleId AND UserId = @UserId)
-        BEGIN
-            INSERT INTO [dbo].[NLM_NewsHub_SharedArticleLikes] (SharedArticleId, UserId)
-            VALUES (@SharedArticleId, @UserId);
-            
-            -- Update like count
-            UPDATE [dbo].[NLM_NewsHub_SharedArticles] 
-            SET Likes = Likes + 1 
-            WHERE Id = @SharedArticleId;
-        END
-        
-        COMMIT TRANSACTION;
         SELECT 1 AS Success;
-    END TRY
-    BEGIN CATCH
-        ROLLBACK TRANSACTION;
-        SELECT 0 AS Success;
-    END CATCH
+    END
+    ELSE
+    BEGIN
+        -- User has liked this article before, check if it's currently active
+        DECLARE @IsCurrentlyLiked BIT;
+        SELECT @IsCurrentlyLiked = IsDeleted 
+        FROM NLM_NewsHub_SharedArticleLikes 
+        WHERE Id = @ExistingLikeId;
+        
+        IF @IsCurrentlyLiked = 1
+        BEGIN
+            -- Like was soft deleted, reactivate it
+            UPDATE NLM_NewsHub_SharedArticleLikes 
+            SET IsDeleted = 0, LikedAt = GETDATE()
+            WHERE Id = @ExistingLikeId;
+            
+            SELECT 1 AS Success;
+        END
+        ELSE
+        BEGIN
+            -- Like is currently active, soft delete it
+            UPDATE NLM_NewsHub_SharedArticleLikes 
+            SET IsDeleted = 1
+            WHERE Id = @ExistingLikeId;
+            
+            SELECT 0 AS Success;
+        END
+    END
 END
 GO
 
@@ -182,12 +232,8 @@ BEGIN
 END
 GO
 
--- Check if article is liked by user
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
-GO
-CREATE PROCEDURE [dbo].[NLM_NewsHub_IsSharedArticleLiked]
+-- Check if article is liked by user (updated for soft deletes)
+CREATE OR ALTER PROCEDURE [dbo].[NLM_NewsHub_IsSharedArticleLiked]
     @SharedArticleId INT,
     @UserId INT
 AS
@@ -196,7 +242,9 @@ BEGIN
     
     SELECT COUNT(*) AS IsLiked
     FROM [dbo].[NLM_NewsHub_SharedArticleLikes] 
-    WHERE SharedArticleId = @SharedArticleId AND UserId = @UserId;
+    WHERE SharedArticleId = @SharedArticleId 
+      AND UserId = @UserId 
+      AND IsDeleted = 0;
 END
 GO
 

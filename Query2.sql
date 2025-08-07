@@ -133,3 +133,6 @@ REFERENCES [dbo].[NLM_NewsHub_Users] ([Id])
 GO
 ALTER TABLE [dbo].[NLM_NewsHub_SharedArticleLikes] CHECK CONSTRAINT [FK_Likes_User]
 GO
+-- Add IsDeleted column to NLM_NewsHub_SharedArticleLikes table
+ALTER TABLE NLM_NewsHub_SharedArticleLikes 
+ADD IsDeleted BIT DEFAULT 0;

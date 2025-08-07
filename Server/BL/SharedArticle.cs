@@ -92,12 +92,6 @@ namespace Server.BL
             return db.LikeSharedArticle(articleId, userId);
         }
 
-        public static bool UnlikeSharedArticle(int articleId, int userId)
-        {
-            SharedArticleDBservices db = new SharedArticleDBservices();
-            return db.UnlikeSharedArticle(articleId, userId);
-        }
-
         public static bool IsLikedByUser(int articleId, int userId)
         {
             SharedArticleDBservices db = new SharedArticleDBservices();

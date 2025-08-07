@@ -100,34 +100,31 @@ namespace Server.Controllers
 
         // Like/Unlike endpoints
         [HttpPost("{articleId}/like")]
+        [HttpDelete("{articleId}/like")]
         public IActionResult LikeArticle(int articleId, [FromQuery] int userId)
         {
             try
             {
-                bool success = SharedArticle.LikeSharedArticle(articleId, userId);
-                return success 
-                    ? Ok(new { success = true, message = "Article liked" })
-                    : BadRequest(new { success = false, message = "Failed to like article" });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { success = false, message = "Error: " + ex.Message });
-            }
-        }
+                if (userId <= 0)
+                {
+                    return BadRequest(new { success = false, message = "Invalid user ID" });
+                }
 
-        [HttpDelete("{articleId}/like")]
-        public IActionResult UnlikeArticle(int articleId, [FromQuery] int userId)
-        {
-            try
-            {
-                bool success = SharedArticle.UnlikeSharedArticle(articleId, userId);
-                return success 
-                    ? Ok(new { success = true, message = "Article unliked" })
-                    : BadRequest(new { success = false, message = "Failed to unlike article" });
+                // The procedure handles both like and unlike logic
+                bool success = SharedArticle.LikeSharedArticle(articleId, userId);
+                
+                if (success)
+                {
+                    return Ok(new { success = true, message = "Like added successfully" });
+                }
+                else
+                {
+                    return Ok(new { success = true, message = "Like removed successfully" });
+                }
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { success = false, message = "Error: " + ex.Message });
+                return StatusCode(500, new { success = false, message = "Error processing like request" });
             }
         }
 

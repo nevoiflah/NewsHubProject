@@ -286,11 +286,10 @@ const ShareManager = {
         });
     },
 
-    // FIXED: Like/unlike article with better error handling
+    // FIXED: Simple like/unlike toggle using single endpoint
     handleLikeArticle: function(e) {
         const $btn = $(e.currentTarget);
         const articleId = $btn.data('article-id');
-        const isLiked = $btn.hasClass('liked');
         const userId = localStorage.getItem('userId');
 
         if (!userId) {
@@ -298,50 +297,32 @@ const ShareManager = {
             return;
         }
 
-        // Prevent double-clicking
+        // Prevent multiple clicks
         if ($btn.prop('disabled')) return;
         $btn.prop('disabled', true);
 
-        const method = isLiked ? 'DELETE' : 'POST';
+        // Always use POST - the backend procedure will handle the toggle logic
         const url = `${this.baseUrl}/shared/${articleId}/like?userId=${userId}`;
 
         $.ajax({
-            type: method,
+            type: 'POST',
             url: url,
             cache: false,
             dataType: "json",
             success: function(response) {
                 if (response && response.success) {
-                    // Update button state
-                    if (isLiked) {
-                        $btn.removeClass('liked btn-danger').addClass('btn-outline-danger');
-                        $btn.find('i').removeClass('fas').addClass('far');
-                    } else {
-                        $btn.addClass('liked btn-danger').removeClass('btn-outline-danger');
-                        $btn.find('i').removeClass('far').addClass('fas');
-                    }
-                    
-                    // Update like count safely
-                    const $likeCount = $btn.find('.like-count');
-                    if ($likeCount.length > 0) {
-                        let currentCount = parseInt($likeCount.text()) || 0;
-                        const newCount = isLiked ? Math.max(0, currentCount - 1) : currentCount + 1;
-                        $likeCount.text(newCount);
-                    }
-                    
-                    // Success message (shorter duration)
-                    showAlert('success', isLiked ? 'Article unliked' : 'Article liked', 2000);
+                    // Refresh the page after successful like/unlike
+                    location.reload();
                 } else {
-                    showAlert('danger', response.message || 'Failed to update like');
+                    // If failed, re-enable button and show error
+                    $btn.prop('disabled', false);
+                    showAlert('danger', response?.message || 'Failed to update like');
                 }
             },
             error: function(xhr, status, error) {
                 console.error('❌ Error updating like:', error);
-                showAlert('danger', 'Error updating like');
-            },
-            complete: function() {
-                // Re-enable button
                 $btn.prop('disabled', false);
+                showAlert('danger', 'Error updating like');
             }
         });
     },
@@ -497,28 +478,17 @@ const ShareManager = {
             dataType: "json",
             success: function(response) {
                 if (response && response.success) {
-                    showAlert('success', 'Comment added successfully', 2000);
-                    $textarea.val('');
-                    
-                    // Reload comments in the same card
-                    const $card = $btn.closest('.card');
-                    $card.find('.comments-section').remove();
-                    ShareManager.loadAndShowCommentsInline(articleId, $card);
-                    
-                    // Update comment count in button
-                    const $commentBtn = $card.find('.comment-btn');
-                    const currentCount = parseInt($commentBtn.text().match(/\d+/)?.[0] || '0');
-                    $commentBtn.html(`<i class="far fa-comment me-1"></i>${currentCount + 1}`);
-                    
+                    // Refresh the page immediately after successful comment
+                    location.reload();
                 } else {
                     showAlert('danger', response.message || 'Failed to add comment');
+                    $btn.html(originalText).prop('disabled', false);
+                    $textarea.prop('disabled', false);
                 }
             },
             error: function(xhr, status, error) {
                 console.error('❌ Error adding comment:', error);
                 showAlert('danger', 'Error adding comment');
-            },
-            complete: function() {
                 $btn.html(originalText).prop('disabled', false);
                 $textarea.prop('disabled', false);
             }
@@ -534,44 +504,16 @@ const ShareManager = {
 
         if (!confirm('Are you sure you want to delete this comment?')) return;
 
-        $btn.prop('disabled', true);
-
+        // Fire AJAX call in background
         $.ajax({
             type: 'DELETE',
             url: `${this.baseUrl}/shared/${articleId}/comments/${commentId}?userId=${userId}`,
             cache: false,
-            dataType: "json",
-            success: function(response) {
-                if (response && response.success) {
-                    showAlert('success', 'Comment deleted successfully', 2000);
-                    
-                    // Remove the comment with animation
-                    $btn.closest('.comment-item').fadeOut(300, function() {
-                        $(this).remove();
-                        
-                        // Update comments count
-                        const $card = $btn.closest('.card');
-                        const $commentsSection = $card.find('.comments-section');
-                        const remainingComments = $commentsSection.find('.comment-item').length;
-                        $commentsSection.find('h6').html(`<i class="fas fa-comments me-2"></i>Comments (${remainingComments})`);
-                        
-                        // Update comment count in main button
-                        const $commentBtn = $card.find('.comment-btn');
-                        const currentCount = parseInt($commentBtn.text().match(/\d+/)?.[0] || '0');
-                        $commentBtn.html(`<i class="far fa-comment me-1"></i>${Math.max(0, currentCount - 1)}`);
-                    });
-                    
-                } else {
-                    showAlert('danger', response.message || 'Failed to delete comment');
-                    $btn.prop('disabled', false);
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error('❌ Error deleting comment:', error);
-                showAlert('danger', 'Error deleting comment');
-                $btn.prop('disabled', false);
-            }
+            dataType: "json"
         });
+        
+        // Immediately refresh the page
+        location.reload();
     },
 
     // Handle follow user
@@ -778,25 +720,16 @@ const ShareManager = {
 
         if (!confirm('Are you sure you want to delete this shared article?')) return;
 
+        // Fire AJAX call in background
         $.ajax({
             type: 'DELETE',
             url: `${this.baseUrl}/shared/${shareId}?userId=${userId}`,
             cache: false,
-            dataType: "json",
-            success: function(response) {
-                if (response && response.success) {
-                    showAlert('success', 'Article deleted successfully');
-                    $(`[data-share-id="${shareId}"]`).fadeOut();
-                    setTimeout(() => ShareManager.loadSharedContent(), 1000);
-                } else {
-                    showAlert('danger', response.message || 'Failed to delete article');
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error('❌ Error deleting shared article:', error);
-                showAlert('danger', 'Error deleting article');
-            }
+            dataType: "json"
         });
+        
+        // Immediately refresh the page
+        location.reload();
     },
 
     // Handle save article
@@ -891,22 +824,21 @@ const ShareManager = {
     displaySharedContent: function() {
         const $container = $('#sharedContent');
         const userId = localStorage.getItem('userId');
+        const currentUser = window.Auth ? window.Auth.getCurrentUser() : {};
+        const isAdmin = currentUser.isAdmin === true;
         
         if (!this.filteredContent || this.filteredContent.length === 0) {
             $container.html(`
                 <div class="text-center py-5">
                     <i class="fas fa-share-alt fa-3x text-muted mb-3"></i>
                     <h5 class="text-muted">No shared articles found</h5>
-                    <p class="text-muted">Be the first to share interesting articles with the community!</p>
-                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#shareModal">
-                        <i class="fas fa-plus me-2"></i>Share an Article
-                    </button>
+                    <p class="text-muted">Try adjusting your filters or be the first to share an article!</p>
                 </div>
             `);
             return;
         }
-        
-        // Pagination
+
+        // Get current page items
         const startIndex = (this.currentPage - 1) * this.itemsPerPage;
         const endIndex = startIndex + this.itemsPerPage;
         const pageItems = this.filteredContent.slice(startIndex, endIndex);
@@ -935,43 +867,36 @@ const ShareManager = {
                                                 `<span class="badge bg-secondary ms-1">${this.sanitizeHtml(tag.trim())}</span>`
                                             ).join('') : ''}
                                         </h6>
-                                        <small class="text-muted">${this.formatDate(item.createdAt)}</small>
+                                        <small class="text-muted">${this.formatDate(item.createdAt)}
+                                            ${isFollowing ? '<span class="badge bg-info ms-1">Following</span>' : ''}
+                                        </small>
                                     </div>
                                     <div class="dropdown">
                                         <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" 
-                                                data-bs-toggle="dropdown">
-                                            <i class="fas fa-ellipsis-h"></i>
+                                                data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="fas fa-ellipsis-v"></i>
                                         </button>
                                         <ul class="dropdown-menu">
                                             <li>
                                                 <button class="dropdown-item save-article-btn" 
-                                                        data-article='${JSON.stringify(item).replace(/'/g, '&apos;')}'>
+                                                        data-article='${JSON.stringify({
+                                                    url: item.url,
+                                                    articleTitle: item.articleTitle,
+                                                    articleDescription: item.articleDescription,
+                                                    articleImageUrl: item.articleImageUrl,
+                                                    articleSource: item.articleSource,
+                                                    comment: item.comment
+                                                }).replace(/'/g, "&apos;")}'>
                                                     <i class="fas fa-bookmark me-2"></i>Save Article
                                                 </button>
                                             </li>
+                                            <li>
+                                                <button class="dropdown-item report-content-btn" 
+                                                        data-content-type="shared_article" data-content-id="${item.id}">
+                                                    <i class="fas fa-flag me-2"></i>Report Content
+                                                </button>
+                                            </li>
                                             ${!isCurrentUser ? `
-                                                <li><hr class="dropdown-divider"></li>
-                                                ${!isFollowing ? `
-                                                    <li>
-                                                        <button class="dropdown-item follow-user-btn" 
-                                                                data-user-id="${item.userId}" data-username="${item.username}">
-                                                            <i class="fas fa-user-plus me-2"></i>Follow ${item.username}
-                                                        </button>
-                                                    </li>
-                                                ` : `
-                                                    <li>
-                                                        <button class="dropdown-item unfollow-user-btn" 
-                                                                data-user-id="${item.userId}" data-username="${item.username}">
-                                                            <i class="fas fa-user-minus me-2"></i>Unfollow ${item.username}
-                                                        </button>
-                                                    </li>
-                                                `}
-                                                <li>
-                                                    <button class="dropdown-item text-warning report-content-btn" 
-                                                            data-share-id="${item.id}">
-                                                        <i class="fas fa-flag me-2"></i>Report Content
-                                                    </button>
-                                                </li>
                                                 <li>
                                                     <button class="dropdown-item text-danger block-user-btn" 
                                                             data-user-id="${item.userId}" data-username="${item.username}">
@@ -979,7 +904,7 @@ const ShareManager = {
                                                     </button>
                                                 </li>
                                             ` : ''}
-                                            ${isCurrentUser ? `
+                                            ${(isCurrentUser || isAdmin) ? `
                                                 <li><hr class="dropdown-divider"></li>
                                                 <li>
                                                     <button class="dropdown-item text-danger delete-shared-btn" 

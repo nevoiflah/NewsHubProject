@@ -536,11 +536,9 @@ function updateNavbarForUser() {
         let adminLink = '';
         
         if (user.isAdmin) {
-            adminLink = `<li class="nav-item">
-                <a class="nav-link" href="${window.getPageUrl('admin.html')}">
-                    <i class="fas fa-cog me-1"></i>Admin
-                </a>
-            </li>`;
+            adminLink = `<li><a class="dropdown-item" href="${window.getPageUrl('admin.html')}">
+                <i class="fas fa-cog me-2"></i>Admin Dashboard
+            </a></li>`;
         }
         
         $authNav.html(`
@@ -846,7 +844,8 @@ window.openCommunityShareModal = function(article) {
                 articleDescription: document.getElementById('articleDescription').value,
                 articleImageUrl: document.getElementById('articleImage').value,
                 comment: document.getElementById('shareComment').value,
-                tags: document.getElementById('shareTags').value
+                // Send tags as array
+                tags: document.getElementById('shareTags').value.split(',').map(tag => tag.trim()).filter(tag => tag)
             };
 
             if (!formData.url || !formData.articleTitle || !formData.comment) {
@@ -895,7 +894,9 @@ window.openCommunityShareModal = function(article) {
     document.getElementById('articleDescription').value = article.description || article.content || '';
     document.getElementById('articleImage').value = article.urlToImage || '';
     document.getElementById('shareComment').value = '';
-    document.getElementById('shareTags').value = '';
+    // Auto-fill tags from category if available
+    var category = article.category || article.Category || '';
+    document.getElementById('shareTags').value = category ? category : '';
 
     // Show the modal
     const modal = new bootstrap.Modal(document.getElementById('shareModal'));
