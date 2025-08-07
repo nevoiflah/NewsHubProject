@@ -1,0 +1,25 @@
+# Ignore build output
+bin/
+obj/
+
+# Ignore user-specific files
+*.user
+*.suo
+
+# Ignore build results
+*.dll
+*.exe
+*.pdb
+
+# Ignore Visual Studio temporary files
+.vscode/
+*.log
+
+# Ignore publish folder
+publish/
+
+# Ignore environment files
+.env
+
+# Ignore dependency folders
+node_modules/

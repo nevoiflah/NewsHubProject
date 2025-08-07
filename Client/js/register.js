@@ -1,3 +1,4 @@
+// register.js - תיקון פשוט
 document.addEventListener('DOMContentLoaded', initRegisterPage);
 
 const registerBaseUrl = 'http://localhost:5121/api';
@@ -14,6 +15,12 @@ function initRegisterPage() {
         messageDiv: document.getElementById('registerMessage')
     };
 
+    // בדיקה שכל האלמנטים קיימים
+    if (!elements.username || !elements.password || !elements.confirmPassword) {
+        console.error('❌ Required elements not found');
+        return;
+    }
+
     elements.password.addEventListener('input', () => validatePasswordMatch(elements));
     elements.confirmPassword.addEventListener('input', () => validatePasswordMatch(elements));
     elements.username.addEventListener('input', () => validateUsername(elements));
@@ -21,6 +28,9 @@ function initRegisterPage() {
 }
 
 function validatePasswordMatch(elements) {
+    // בדיקת קיום
+    if (!elements || !elements.password || !elements.confirmPassword) return;
+    
     const password = elements.password.value;
     const confirmPassword = elements.confirmPassword.value;
 
@@ -34,6 +44,9 @@ function validatePasswordMatch(elements) {
 }
 
 function validateUsername(elements) {
+    // בדיקת קיום - זה התיקון העיקרי!
+    if (!elements || !elements.username) return;
+    
     const username = elements.username.value;
     if (username.length > 0 && username.length < 3) {
         elements.username.setCustomValidity('Username must be at least 3 characters long');
@@ -48,58 +61,86 @@ function handleFormSubmit(e, elements) {
     e.preventDefault();
 
     const userData = {
-        firstName: elements.firstName.value,
-        lastName: elements.lastName.value,
-        email: elements.email.value,
-        username: elements.username.value,
-        passwordHash: elements.password.value,
-        avatarUrl: '/assets/default-avatar.png'
-
+        Username: elements.username.value.trim(),
+        Email: elements.email.value.trim(),
+        PasswordHash: elements.password.value,
+        FirstName: elements.firstName.value.trim(),
+        LastName: elements.lastName.value.trim(),
+        AvatarUrl: '/assets/default-avatar.png'
     };
 
-    submitRegistration(userData, elements.messageDiv, elements.username.value);
+    submitRegistration(userData, elements.messageDiv);
 }
 
-
-function submitRegistration(userData, messageDiv, username) {
-    $.ajax({
-        url: `${registerBaseUrl }/users/register`,
-        type: 'POST',
-        data: JSON.stringify(userData),
-        contentType: 'application/json',
-        success: function (response) {
-            showSuccessMessage(messageDiv, username);
+function submitRegistration(userData, messageDiv) {
+    ajaxCall(
+        'POST',
+        `${registerBaseUrl}/users/register`,
+        JSON.stringify(userData),
+        function (response) {
+            console.log('✅ Registration response:', response);
+            
+            // עכשיו השרת מחזיר JSON עם success flag
+            if (response && response.success === true) {
+                showSuccessMessage(messageDiv, userData.Username);
+            } else {
+                showErrorMessage(messageDiv, response.message || 'Registration failed');
+            }
         },
-        error: function (xhr) {
-            showErrorMessage(messageDiv, xhr);
+        function (xhr, status, error) {
+            console.error('❌ Registration failed:', xhr.status, xhr.responseText);
+            
+            let errorMsg = 'Registration failed. Please try again.';
+            try {
+                const errorResponse = JSON.parse(xhr.responseText);
+                if (errorResponse.message) {
+                    errorMsg = errorResponse.message;
+                }
+            } catch (e) {
+                // אם זה לא JSON, השתמש בהודעה הכללית
+            }
+            
+            showErrorMessage(messageDiv, errorMsg);
         }
-    });
+    );
 }
 
 function showSuccessMessage(messageDiv, username) {
     messageDiv.classList.remove('d-none', 'alert-danger');
     messageDiv.classList.add('alert-success');
-    messageDiv.innerHTML = 'Registration successful! Redirecting to login...';
+    messageDiv.innerHTML = '🎉 Registration successful! Logging you in...';
 
-    localStorage.setItem('demoUsername', username);
-
-    setTimeout(function () {
-        window.location.href = 'login.html';
-    }, 2000);
+    // התחברות אוטומטית לאחר הרשמה מוצלחת
+    const password = document.getElementById('password').value;
+    
+    // קריאה לפונקציית התחברות מ-auth.js
+    Auth.login(username, password).then(loginResult => {
+        if (loginResult.success) {
+            messageDiv.innerHTML = '🎉 Registration and login successful! Redirecting...';
+            setTimeout(() => {
+                window.location.href = 'news.html'; // או כל דף שאתה רוצה לאחר התחברות
+            }, 1500);
+        } else {
+            // אם ההתחברות נכשלה, הפנה לדף לוגין
+            messageDiv.innerHTML = '🎉 Registration successful! Please login manually.';
+            localStorage.setItem('demoUsername', username);
+            setTimeout(() => {
+                window.location.href = 'login.html';
+            }, 2000);
+        }
+    }).catch(error => {
+        // אם יש שגיאה בהתחברות, הפנה לדף לוגין
+        console.error('Login after registration failed:', error);
+        messageDiv.innerHTML = '🎉 Registration successful! Please login manually.';
+        localStorage.setItem('demoUsername', username);
+        setTimeout(() => {
+            window.location.href = 'login.html';
+        }, 2000);
+    });
 }
 
-function showErrorMessage(messageDiv, xhr) {
+function showErrorMessage(messageDiv, msg) {
     messageDiv.classList.remove('d-none', 'alert-success');
     messageDiv.classList.add('alert-danger');
-
-    try {
-        const response = JSON.parse(xhr.responseText);
-        if (response && response.message) {
-            messageDiv.innerHTML = response.message;
-        } else {
-            messageDiv.innerHTML = 'Registration failed. Please try again.';
-        }
-    } catch {
-        messageDiv.innerHTML = 'Registration failed. Please try again.';
-    }
+    messageDiv.innerHTML = msg;
 }
