@@ -261,26 +261,27 @@
                         </button>
                     </div>
                     
-                    <div class="alert alert-info mb-4">
-                        <i class="fas fa-info-circle me-2"></i>
-                        Analytics charts require Chart.js library and will show sample data since detailed analytics endpoints are not yet implemented.
+                    <div class="alert alert-success mb-4">
+                        <i class="fas fa-check-circle me-2"></i>
+                        <strong>Real-time Analytics Enabled!</strong> Charts display live data from your NewsHub database.
                     </div>
                     
+                    <!-- First Row: Login Activity and User Distribution -->
                     <div class="row">
-                        <div class="col-md-6 mb-4">
+                        <div class="col-lg-8 mb-4">
                             <div class="card">
                                 <div class="card-header">
-                                    <h6 class="mb-0">Login Activity</h6>
+                                    <h6 class="mb-0"><i class="fas fa-chart-line me-2"></i>Daily Login Activity (Last 7 Days)</h6>
                                 </div>
                                 <div class="card-body">
                                     <canvas id="loginChart" style="height: 300px;"></canvas>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-6 mb-4">
+                        <div class="col-lg-4 mb-4">
                             <div class="card">
                                 <div class="card-header">
-                                    <h6 class="mb-0">User Activity Distribution</h6>
+                                    <h6 class="mb-0"><i class="fas fa-chart-pie me-2"></i>User Activity Distribution</h6>
                                 </div>
                                 <div class="card-body">
                                     <canvas id="activityChart" style="height: 300px;"></canvas>
@@ -289,37 +290,33 @@
                         </div>
                     </div>
                     
+                    <!-- Second Row: Registration Trends and Content Activity -->
                     <div class="row">
-                        <div class="col-12">
+                        <div class="col-lg-6 mb-4">
                             <div class="card">
                                 <div class="card-header">
-                                    <h6 class="mb-0">Backend Endpoints Status</h6>
+                                    <h6 class="mb-0"><i class="fas fa-user-plus me-2"></i>User Registration Trends (Last 14 Days)</h6>
                                 </div>
                                 <div class="card-body">
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <h6>Currently Available:</h6>
-                                            <ul class="small">
-                                                <li><code>GET /api/Admin/stats</code> - Basic system stats</li>
-                                                <li><code>GET /api/Admin/users</code> - User list</li>
-                                                <li><code>GET /api/Reports</code> - Content reports</li>
-                                                <li><code>GET /api/shared</code> - Shared articles</li>
-                                            </ul>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <h6>Needed for Full Analytics:</h6>
-                                            <ul class="small">
-                                                <li><code>GET /api/Admin/analytics/logins</code> - Login trends</li>
-                                                <li><code>GET /api/Admin/analytics/activity</code> - User activity</li>
-                                                <li><code>GET /api/Admin/analytics/content</code> - Content stats</li>
-                                                <li><code>GET /api/Admin/analytics/performance</code> - System metrics</li>
-                                            </ul>
-                                        </div>
+                                    <canvas id="registrationChart" style="height: 250px;"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 mb-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0"><i class="fas fa-chart-area me-2"></i>Content Activity (Last 7 Days)</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div style="height: 150px; max-height: 150px; overflow: hidden; position: relative;">
+                                        <canvas id="contentChart"></canvas>
                                     </div>
+                                    <!-- Stats will be appended here by JavaScript -->
                                 </div>
                             </div>
                         </div>
                     </div>
+
                 </div>
             </div>
         </div>

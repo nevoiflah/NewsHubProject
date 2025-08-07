@@ -180,11 +180,23 @@ const AdminManager = {
                 reportsPromise.catch(() => [])
             ]);
 
-            // Update dashboard stats
-            $('#totalUsers').text(users.length || 0);
-            $('#activeUsers').text(users.filter(u => !u.isLocked).length || 0);
-            $('#sharedArticles').text(shared.length || 0);
-            $('#pendingReports').text(reports.filter(r => !r.isResolved).length || 0);
+            // Update dashboard stats - ensure arrays are valid and handle API response structure
+            const usersArray = Array.isArray(users) ? users : [];
+            
+            // Handle shared articles API response structure
+            let sharedArray = [];
+            if (shared && shared.success && Array.isArray(shared.articles)) {
+                sharedArray = shared.articles;
+            } else if (Array.isArray(shared)) {
+                sharedArray = shared;
+            }
+            
+            const reportsArray = Array.isArray(reports) ? reports : [];
+            
+            $('#totalUsers').text(usersArray.length || 0);
+            $('#activeUsers').text(usersArray.filter(u => !u.isLocked).length || 0);
+            $('#sharedArticles').text(sharedArray.length || 0);
+            $('#pendingReports').text(reportsArray.filter(r => !r.isResolved).length || 0);
 
             console.log('✅ Dashboard data loaded successfully');
         } catch (error) {
@@ -449,7 +461,7 @@ const AdminManager = {
         try {
             console.log('🔄 Loading shared articles...');
             
-            const articles = await $.ajax({
+            const response = await $.ajax({
                 type: 'GET',
                 url: 'http://localhost:5121/api/shared',
                 cache: false,
@@ -458,15 +470,27 @@ const AdminManager = {
 
             const $tbody = $('#sharedArticlesTable');
             
-            if (!articles || articles.length === 0) {
+            // Handle the API response structure: { success: true, articles: [...], count: N }
+            let articlesArray = [];
+            
+            if (response && response.success && Array.isArray(response.articles)) {
+                articlesArray = response.articles;
+                console.log(`📊 Found ${articlesArray.length} shared articles`);
+            } else if (Array.isArray(response)) {
+                // Fallback for direct array response
+                articlesArray = response;
+                console.log(`📊 Found ${articlesArray.length} shared articles (direct array)`);
+            }
+            
+            if (!articlesArray || articlesArray.length === 0) {
                 $tbody.html('<tr><td colspan="6" class="text-center text-muted">No shared articles found</td></tr>');
                 return;
             }
 
-            const rows = articles.map(article => {
+            const rows = articlesArray.map(article => {
                 const title = article.articleTitle || article.title || 'Untitled';
                 const username = article.username || article.sharedBy || 'Unknown';
-                const commentCount = article.commentCount || 0;
+                const commentCount = article.commentsCount || article.commentCount || 0;
                 
                 return `
                     <tr data-article-id="${article.id}">
@@ -558,7 +582,7 @@ const AdminManager = {
     // View comments for shared article
     viewComments: async (articleId) => {
         try {
-            const comments = await $.ajax({
+            const response = await $.ajax({
                 type: 'GET',
                 url: `http://localhost:5121/api/shared/${articleId}/comments`,
                 cache: false,
@@ -566,6 +590,9 @@ const AdminManager = {
             });
 
             const $container = $('#commentsContainer');
+            
+            // Handle both direct array and object response formats
+            const comments = Array.isArray(response) ? response : (response.comments || []);
             
             if (!comments || comments.length === 0) {
                 $container.html('<p class="text-muted">No comments found for this article.</p>');
@@ -603,28 +630,27 @@ const AdminManager = {
         if (!confirm('Are you sure you want to delete this comment?')) return;
         
         try {
+            // Get current user ID (admin should be logged in)
+            const currentUser = Auth.getCurrentUser();
+            if (!currentUser || !currentUser.id) {
+                showAlert('danger', 'Authentication required to delete comments');
+                return;
+            }
+
             const response = await $.ajax({
                 type: 'DELETE',
-                url: `http://localhost:5121/api/shared/comments/${commentId}`,
+                url: `http://localhost:5121/api/shared/${articleId}/comments/${commentId}?userId=${currentUser.id}`,
                 cache: false,
                 contentType: "application/json",
-                dataType: "text"
+                dataType: "json"
             });
 
-            if (response && response.includes('successfully')) {
-                showAlert('success', 'Comment deleted successfully');
-                // Remove the comment from the modal
-                $(`[data-comment-id="${commentId}"]`).fadeOut(function() {
-                    $(this).remove();
-                });
-                // Reload shared articles to update comment count
-                AdminManager.loadSharedArticles();
-            } else {
-                showAlert('danger', 'Failed to delete comment');
-            }
+            // Refresh the page after any response to ensure clean state
+            window.location.reload();
         } catch (error) {
             console.error('❌ Error deleting comment:', error);
-            showAlert('danger', 'Error deleting comment');
+            // Refresh the page even on error to ensure clean state
+            window.location.reload();
         }
     },
 
@@ -646,12 +672,15 @@ const AdminManager = {
 
             const $tbody = $('#reportsTable');
             
-            if (!reports || reports.length === 0) {
+            // Ensure reports is an array
+            const reportsArray = Array.isArray(reports) ? reports : [];
+            
+            if (!reportsArray || reportsArray.length === 0) {
                 $tbody.html('<tr><td colspan="7" class="text-center text-muted">No reports found</td></tr>');
                 return;
             }
 
-            const rows = reports.map(report => {
+            const rows = reportsArray.map(report => {
                 const statusBadge = report.isResolved ? 
                     '<span class="badge bg-success">Resolved</span>' : 
                     '<span class="badge bg-warning">Pending</span>';
@@ -779,8 +808,16 @@ ${report.description ? `Description: ${report.description}` : ''}`;
     loadAnalyticsData: async () => {
         try {
             console.log('🔄 Loading analytics data...');
-            AdminManager.loadLoginChart();
-            AdminManager.loadActivityChart();
+            
+            // Load all analytics charts
+            await Promise.all([
+                AdminManager.loadLoginChart(),
+                AdminManager.loadActivityChart(),
+                AdminManager.loadRegistrationChart(),
+                AdminManager.loadContentChart()
+            ]);
+            
+            console.log('✅ All analytics data loaded successfully');
         } catch (error) {
             console.error('❌ Error loading analytics:', error);
             AdminManager.renderSampleCharts();
@@ -811,19 +848,78 @@ ${report.description ? `Description: ${report.description}` : ''}`;
             });
             AdminManager.renderActivityChart(data);
         } catch (error) {
-            showAlert('danger', 'Failed to load user activity analytics data.');
+            console.error('❌ Failed to load user activity analytics:', error);
+            AdminManager.renderActivityChart({
+                labels: ['Active Users', 'Locked Users', 'New Users'],
+                values: [0, 0, 0],
+                title: 'User Activity (Error)'
+            });
+        }
+    },
+
+    loadRegistrationChart: async () => {
+        try {
+            const data = await $.ajax({
+                type: 'GET',
+                url: 'http://localhost:5121/api/Admin/analytics/registrations?days=14',
+                cache: false,
+                dataType: "json"
+            });
+            AdminManager.renderRegistrationChart(data);
+        } catch (error) {
+            console.error('❌ Failed to load registration analytics:', error);
+            AdminManager.renderRegistrationChart({
+                labels: [],
+                values: [],
+                title: 'Daily Registrations (Error)'
+            });
+        }
+    },
+
+    loadContentChart: async () => {
+        try {
+            const data = await $.ajax({
+                type: 'GET',
+                url: 'http://localhost:5121/api/Admin/analytics/content?days=7',
+                cache: false,
+                dataType: "json"
+            });
+            AdminManager.renderContentChart(data);
+        } catch (error) {
+            console.error('❌ Failed to load content analytics:', error);
+            AdminManager.renderContentChart({
+                labels: [],
+                datasets: [],
+                title: 'Content Activity (Error)'
+            });
         }
     },
 
     renderSampleCharts: () => {
+        console.log('📊 Rendering sample charts as fallback...');
+        
         AdminManager.renderLoginChart({
             labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-            values: [12, 19, 8, 15, 22, 9, 14]
+            values: [0, 0, 0, 0, 0, 0, 0],
+            title: 'Daily Logins (No Data)'
         });
         
         AdminManager.renderActivityChart({
             labels: ['Active Users', 'Locked Users', 'New Users'],
-            values: [65, 10, 25]
+            values: [0, 0, 0],
+            title: 'User Activity (No Data)'
+        });
+
+        AdminManager.renderRegistrationChart({
+            labels: [],
+            values: [],
+            title: 'Daily Registrations (No Data)'
+        });
+
+        AdminManager.renderContentChart({
+            labels: [],
+            datasets: [],
+            title: 'Content Activity (No Data)'
         });
     },
 
@@ -907,6 +1003,131 @@ ${report.description ? `Description: ${report.description}` : ''}`;
         });
     },
 
+    renderRegistrationChart: (data) => {
+        const ctx = document.getElementById('registrationChart');
+        if (!ctx || !data) return;
+
+        // Destroy existing chart if it exists
+        if (ctx.chart) {
+            ctx.chart.destroy();
+        }
+
+        ctx.chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.labels || [],
+                datasets: [{
+                    label: 'New Registrations',
+                    data: data.values || [],
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderColor: 'rgb(54, 162, 235)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    title: {
+                        display: true,
+                        text: data.title || 'Daily Registrations'
+                    }
+                }
+            }
+        });
+    },
+
+    renderContentChart: (data) => {
+        const ctx = document.getElementById('contentChart');
+        if (!ctx || !data) return;
+
+        // Destroy existing chart if it exists
+        if (ctx.chart) {
+            ctx.chart.destroy();
+        }
+
+        ctx.chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.labels || [],
+                datasets: data.datasets || []
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                aspectRatio: 2,
+                layout: {
+                    padding: 10
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    },
+                    title: {
+                        display: true,
+                        text: data.title || 'Content Activity'
+                    }
+                }
+            }
+        });
+
+        // Display overall stats if provided
+        if (data.overallStats) {
+            // Remove any existing stats before adding new ones
+            $('#contentChart').parent().find('.content-stats').remove();
+            
+            const statsHtml = `
+                <div class="row mt-3 content-stats">
+                    <div class="col-3">
+                        <div class="text-center">
+                            <div class="h4 mb-0 text-primary">${data.overallStats.totalSharedArticles}</div>
+                            <small class="text-muted">Total Shared</small>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="text-center">
+                            <div class="h4 mb-0 text-danger">${data.overallStats.totalReports}</div>
+                            <small class="text-muted">Total Reports</small>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="text-center">
+                            <div class="h4 mb-0 text-warning">${data.overallStats.pendingReports}</div>
+                            <small class="text-muted">Pending Reports</small>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="text-center">
+                            <div class="h4 mb-0 text-success">${data.overallStats.sharedArticlesToday}</div>
+                            <small class="text-muted">Today's Shares</small>
+                        </div>
+                    </div>
+                </div>
+            `;
+            $('#contentChart').parent().append(statsHtml);
+        }
+    },
+
     // ============================================================================
     // REPORT GENERATION FUNCTIONS
     // ============================================================================
@@ -949,28 +1170,40 @@ ${report.description ? `Description: ${report.description}` : ''}`;
 
             const [stats, users, reports, shared] = await Promise.all(promises);
 
+            // Ensure all data is arrays and handle API response structures
+            const usersArray = Array.isArray(users) ? users : [];
+            const reportsArray = Array.isArray(reports) ? reports : [];
+            
+            // Handle shared articles API response structure
+            let sharedArray = [];
+            if (shared && shared.success && Array.isArray(shared.articles)) {
+                sharedArray = shared.articles;
+            } else if (Array.isArray(shared)) {
+                sharedArray = shared;
+            }
+            
             const currentUser = Auth.getCurrentUser();
             const reportData = {
                 generatedAt: new Date().toISOString(),
                 generatedBy: currentUser.username || 'Unknown Admin',
                 summary: {
-                    totalUsers: users.length,
-                    activeUsers: users.filter(u => !u.isLocked).length,
-                    lockedUsers: users.filter(u => u.isLocked).length,
-                    adminUsers: users.filter(u => u.isAdmin).length,
-                    totalSharedArticles: shared.length,
-                    totalReports: reports.length,
-                    pendingReports: reports.filter(r => !r.isResolved).length,
-                    resolvedReports: reports.filter(r => r.isResolved).length
+                    totalUsers: usersArray.length,
+                    activeUsers: usersArray.filter(u => !u.isLocked).length,
+                    lockedUsers: usersArray.filter(u => u.isLocked).length,
+                    adminUsers: usersArray.filter(u => u.isAdmin).length,
+                    totalSharedArticles: sharedArray.length,
+                    totalReports: reportsArray.length,
+                    pendingReports: reportsArray.filter(r => !r.isResolved).length,
+                    resolvedReports: reportsArray.filter(r => r.isResolved).length
                 },
                 systemStats: stats,
                 userBreakdown: {
-                    byRegistrationMonth: AdminManager.groupUsersByMonth(users),
-                    recentUsers: users.filter(u => new Date(u.createdAt) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)).length
+                    byRegistrationMonth: AdminManager.groupUsersByMonth(usersArray),
+                    recentUsers: usersArray.filter(u => new Date(u.createdAt) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)).length
                 },
                 contentStats: {
-                    sharedArticlesCount: shared.length,
-                    reportsCount: reports.length
+                    sharedArticlesCount: sharedArray.length,
+                    reportsCount: reportsArray.length
                 }
             };
 
