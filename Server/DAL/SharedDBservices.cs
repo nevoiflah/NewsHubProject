@@ -62,7 +62,7 @@ namespace Server.DAL
         public List<SharedArticle> GetAllShared()
         {
             using SqlConnection con = connect("myProjDB");
-            SqlCommand cmd = CreateCommandWithStoredProcedureGeneral("NLM_NewsHub_GetAllShared", con, null);
+            SqlCommand cmd = CreateCommandWithStoredProcedureGeneral("NLM_NewsHub_GetSharedArticles", con, null);
             SqlDataReader reader = cmd.ExecuteReader();
             List<SharedArticle> list = new();
 
@@ -77,7 +77,7 @@ namespace Server.DAL
         public SharedArticle? GetById(int id)
         {
             using SqlConnection con = connect("myProjDB");
-            SqlCommand cmd = CreateCommandWithStoredProcedureGeneral("NLM_NewsHub_GetSharedById", con, new() { { "@Id", id } });
+            SqlCommand cmd = CreateCommandWithStoredProcedureGeneral("NLM_NewsHub_GetSharedArticleById", con, new() { { "@Id", id } });
             SqlDataReader reader = cmd.ExecuteReader();
 
             return reader.Read() ? MapShared(reader) : null;
@@ -112,7 +112,8 @@ namespace Server.DAL
                 IsFlagged = Convert.ToBoolean(reader["IsFlagged"]),
                 Likes = Convert.ToInt32(reader["Likes"]),
                 CommentsCount = Convert.ToInt32(reader["CommentsCount"]),
-                Username = reader["Username"]?.ToString()
+                Username = reader["Username"]?.ToString(),
+                ActivityLevel = reader["ActivityLevel"] != DBNull.Value ? Convert.ToInt32(reader["ActivityLevel"]) : 0
             };
         }
     }

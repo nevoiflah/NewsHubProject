@@ -86,6 +86,7 @@ namespace Server.DAL
                 Dictionary<string, object> paramDic = new Dictionary<string, object>
                 {
                     { "@Id", id },
+                    { "@Username", user.Username },
                     { "@Email", user.Email },
                     { "@FirstName", user.FirstName },
                     { "@LastName", user.LastName },
@@ -95,6 +96,42 @@ namespace Server.DAL
                     { "@NotifyOnComments", user.NotifyOnComments },
                     { "@NotifyOnFollow", user.NotifyOnFollow },
                     { "@NotifyOnShare", user.NotifyOnShare }
+                };
+
+                SqlCommand cmd = CreateCommandWithStoredProcedureGeneral("NLM_NewsHub_UpdateUser", con, paramDic);
+                return cmd.ExecuteNonQuery();
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            finally
+            {
+                con?.Close();
+            }
+        }
+
+        public int UpdateUserSimple(int id, string username, string email, string firstName, string lastName, string passwordHash = null)
+        {
+            SqlConnection con = null;
+
+            try
+            {
+                con = connect("myProjDB");
+
+                Dictionary<string, object> paramDic = new Dictionary<string, object>
+                {
+                    { "@Id", id },
+                    { "@Username", username },
+                    { "@Email", email },
+                    { "@FirstName", firstName },
+                    { "@LastName", lastName },
+                    { "@PasswordHash", passwordHash ?? "" },
+                    { "@AvatarUrl", "" },
+                    { "@NotifyOnLikes", true },
+                    { "@NotifyOnComments", true },
+                    { "@NotifyOnFollow", true },
+                    { "@NotifyOnShare", true }
                 };
 
                 SqlCommand cmd = CreateCommandWithStoredProcedureGeneral("NLM_NewsHub_UpdateUser", con, paramDic);
@@ -277,59 +314,58 @@ namespace Server.DAL
         }
         public List<string> GetUserInterests(int userId)
         {
-            SqlConnection con = null;
-            List<string> tags = new List<string>();
-
             try
             {
-                con = connect("myProjDB");
+                using SqlConnection con = connect("myProjDB");
+                Dictionary<string, object> paramDic = new() { { "@UserId", userId } };
 
-                Dictionary<string, object> paramDic = new Dictionary<string, object>
-        {
-            { "@UserId", userId }
-        };
-
-                SqlCommand cmd = CreateCommandWithStoredProcedureGeneral("NLM_NewsHub_GetUserInterests", con, paramDic);
+                SqlCommand cmd = CreateCommandWithStoredProcedureGeneral("NLM_NewsHub_GetUserPreference", con, paramDic);
                 SqlDataReader reader = cmd.ExecuteReader();
-
+                
+                List<string> interests = new();
                 while (reader.Read())
                 {
-                    tags.Add(reader["TagName"].ToString());
+                    string category = reader["Category"] as string;
+                    if (!string.IsNullOrEmpty(category))
+                    {
+                        interests.Add(category);
+                    }
                 }
-
-                return tags;
+                
+                return interests;
             }
             catch (Exception ex)
             {
                 Console.WriteLine("DB error GetUserInterests: " + ex.Message);
                 return new List<string>();
             }
-            finally
-            {
-                if (con != null)
-                    con.Close();
-            }
         }
+
         public bool SaveUserInterests(int userId, List<string> categories)
         {
-            SqlConnection con = null;
-
             try
             {
-                con = connect("myProjDB");
-
-                foreach (string tag in categories)
+                using SqlConnection con = connect("myProjDB");
+                
+                // Clear existing preferences first
+                Dictionary<string, object> clearParamDic = new() { { "@UserId", userId } };
+                SqlCommand clearCmd = CreateCommandWithStoredProcedureGeneral("NLM_NewsHub_SaveUserPreference", con, clearParamDic);
+                clearCmd.Parameters.AddWithValue("@Category", DBNull.Value);
+                clearCmd.ExecuteNonQuery();
+                
+                // Save each category as a separate preference
+                foreach (string category in categories)
                 {
                     Dictionary<string, object> paramDic = new()
-            {
-                { "@UserId", userId },
-                { "@TagName", tag }
-            };
+                    {
+                        { "@UserId", userId },
+                        { "@Category", category }
+                    };
 
-                    SqlCommand cmd = CreateCommandWithStoredProcedureGeneral("NLM_NewsHub_AddUserInterest", con, paramDic);
+                    SqlCommand cmd = CreateCommandWithStoredProcedureGeneral("NLM_NewsHub_SaveUserPreference", con, paramDic);
                     cmd.ExecuteNonQuery();
                 }
-
+                
                 return true;
             }
             catch (Exception ex)
@@ -337,30 +373,74 @@ namespace Server.DAL
                 Console.WriteLine("❌ DB Error SaveUserInterests: " + ex.Message);
                 return false;
             }
-            finally
-            {
-                con?.Close();
-            }
         }
 
         public bool DeleteUserInterests(int userId)
         {
-            SqlConnection con = null;
             try
             {
-                con = connect("myProjDB");
+                using SqlConnection con = connect("myProjDB");
                 Dictionary<string, object> paramDic = new() { { "@UserId", userId } };
-                SqlCommand cmd = CreateCommandWithStoredProcedureGeneral("NLM_NewsHub_ClearUserInterests", con, paramDic);
-                return cmd.ExecuteNonQuery() > 0;
+
+                SqlCommand cmd = CreateCommandWithStoredProcedureGeneral("NLM_NewsHub_SaveUserPreference", con, paramDic);
+                cmd.Parameters.AddWithValue("@Category", DBNull.Value);
+                cmd.ExecuteNonQuery();
+                
+                return true;
             }
             catch (Exception ex)
             {
                 Console.WriteLine("DB Error DeleteUserInterests: " + ex.Message);
                 return false;
             }
-            finally
+        }
+
+        public bool UpdateNotificationPreferences(int userId, bool notifyOnLikes, bool notifyOnComments, bool notifyOnFollow, bool notifyOnShare)
+        {
+            try
             {
-                con?.Close();
+                using SqlConnection con = connect("myProjDB");
+                Dictionary<string, object> paramDic = new()
+                {
+                    { "@UserId", userId },
+                    { "@NotifyOnLikes", notifyOnLikes },
+                    { "@NotifyOnComments", notifyOnComments },
+                    { "@NotifyOnFollow", notifyOnFollow },
+                    { "@NotifyOnShare", notifyOnShare }
+                };
+
+                SqlCommand cmd = CreateCommandWithStoredProcedureGeneral("NLM_NewsHub_UpdateUser", con, paramDic);
+                cmd.ExecuteNonQuery();
+                
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("DB Error UpdateNotificationPreferences: " + ex.Message);
+                return false;
+            }
+        }
+
+        public int UpdateUserActivity(int userId, int activityPoints = 2)
+        {
+            try
+            {
+                using SqlConnection con = connect("myProjDB");
+                Dictionary<string, object> paramDic = new()
+                {
+                    { "@UserId", userId },
+                    { "@ActivityPoints", activityPoints }
+                };
+
+                SqlCommand cmd = CreateCommandWithStoredProcedureGeneral("NLM_NewsHub_UpdateUserActivity", con, paramDic);
+                object result = cmd.ExecuteScalar();
+                
+                return result != null ? Convert.ToInt32(result) : 0;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("DB Error UpdateUserActivity: " + ex.Message);
+                return 0;
             }
         }
 

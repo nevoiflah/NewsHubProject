@@ -24,20 +24,78 @@ const InterestsManager = {
         InterestsManager.setupEventListeners();
         InterestsManager.loadUserProfile();
         InterestsManager.loadUserInterests();
+        InterestsManager.loadFollowingStats();
+        
+        // Refresh activity level every 30 seconds
+        setInterval(function() {
+            InterestsManager.refreshActivityLevel();
+        }, 30000);
+    },
+
+    // Refresh activity level from database
+    refreshActivityLevel: function() {
+        const userId = getUserIdFromStorage();
+        if (!userId) return;
+
+        $.ajax({
+            type: 'GET',
+            url: `http://localhost:5121/api/users/GetById/${userId}`,
+            cache: false,
+            dataType: "json",
+            success: function(userData) {
+                InterestsManager.updateUserAvatar(userData.activityLevel || 0);
+                InterestsManager.updateActivityProgress(userData.activityLevel || 0);
+            },
+            error: function(xhr, status, error) {
+                console.warn('Failed to refresh activity level:', error);
+            }
+        });
     },
 
     // Setup event listeners
     setupEventListeners: function() {
-        // Profile form submission
-        $('#editProfileForm').on('submit', InterestsManager.saveProfile);
-        $('#cancelEdit').on('click', InterestsManager.cancelEdit);
+        // Clear validation errors when user starts typing
+        $('#editUsername').on('input', function() {
+            $('#usernameError').hide();
+            $(this).removeClass('is-invalid');
+        });
         
-        // Interest management
+        $('#editEmail').on('input', function() {
+            $('#emailError').hide();
+            $(this).removeClass('is-invalid');
+        });
+        
+        // Clear password errors when user starts typing
+        $('#newPassword, #confirmPassword').on('input', function() {
+            $('#passwordError').hide();
+            $('#confirmPassword').removeClass('is-invalid');
+        });
+        
+        // Handle password confirmation validation
+        $('#confirmPassword').on('input', function() {
+            const newPassword = $('#newPassword').val();
+            const confirmPassword = $(this).val();
+            
+            if (confirmPassword && newPassword !== confirmPassword) {
+                $('#passwordError').show();
+                $(this).addClass('is-invalid');
+            } else {
+                $('#passwordError').hide();
+                $(this).removeClass('is-invalid');
+            }
+        });
+        
+        // Interest selection change
+        $('input[name="interestCategory"]').on('change', InterestsManager.handleInterestChange);
+        
+        // Form submissions
+        $('#editProfileForm').on('submit', InterestsManager.saveProfile);
+        $('#interestsForm').on('submit', InterestsManager.saveInterests);
+        
+        // Button clicks
         $('#saveInterests').on('click', InterestsManager.saveInterests);
         $('#resetInterests').on('click', InterestsManager.resetInterests);
-        
-        // Interest category selection
-        $('input[name="interestCategory"]').on('change', InterestsManager.handleInterestChange);
+        $('#cancelEdit').on('click', InterestsManager.cancelEdit);
     },
 
     // Load user profile - Using direct $.ajax
@@ -48,28 +106,42 @@ const InterestsManager = {
                 return;
             }
 
-            const currentUser = Auth.getCurrentUser();
-            if (!currentUser || !currentUser.id) {
+            const userId = getUserIdFromStorage();
+            if (!userId) {
                 showAlert('danger', 'Invalid user data');
                 return;
             }
 
-            // Populate form with current user data
-            $('#editUsername').val(currentUser.username || '');
-            $('#editEmail').val(currentUser.email || '');
-            
-            // Load notification preferences from localStorage (since backend doesn't support them yet)
-            const notifyOnLikes = localStorage.getItem('notifyOnLikes') !== 'false';
-            const notifyOnComments = localStorage.getItem('notifyOnComments') !== 'false';
-            const notifyOnFollows = localStorage.getItem('notifyOnFollows') !== 'false';
-            const notifyOnShares = localStorage.getItem('notifyOnShares') !== 'false';
-            
-            $('#notifyOnLikes').prop('checked', notifyOnLikes);
-            $('#notifyOnComments').prop('checked', notifyOnComments);
-            $('#notifyOnFollows').prop('checked', notifyOnFollows);
-            $('#notifyOnShares').prop('checked', notifyOnShares);
+            // Load user data from database
+            $.ajax({
+                type: 'GET',
+                url: `http://localhost:5121/api/users/GetById/${userId}`,
+                cache: false,
+                dataType: "json",
+                success: function(userData) {
+                    // Populate form with current user data
+                    $('#editUsername').val(userData.username || '');
+                    $('#editEmail').val(userData.email || '');
+                    $('#firstName').val(userData.firstName || '');
+                    $('#lastName').val(userData.lastName || '');
+                    
+                    // Load notification preferences from database
+                    $('#notifyOnLikes').prop('checked', userData.notifyOnLikes !== false);
+                    $('#notifyOnComments').prop('checked', userData.notifyOnComments !== false);
+                    $('#notifyOnFollows').prop('checked', userData.notifyOnFollow !== false);
+                    $('#notifyOnShares').prop('checked', userData.notifyOnShare !== false);
 
-            console.log('✅ User profile loaded successfully');
+                    // Update avatar based on activity level
+                    InterestsManager.updateUserAvatar(userData.activityLevel || 0);
+                    InterestsManager.updateActivityProgress(userData.activityLevel || 0);
+
+                    console.log('✅ User profile loaded successfully');
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error loading user profile:', error);
+                    showAlert('danger', 'Failed to load user profile');
+                }
+            });
         } catch (error) {
             console.error('Error loading user profile:', error);
             showAlert('danger', 'Failed to load user profile');
@@ -112,15 +184,93 @@ const InterestsManager = {
         });
     },
 
+    // Load following stats
+    loadFollowingStats: function() {
+        const userId = getUserIdFromStorage();
+        if (!userId) {
+            console.warn("⚠️ No userId found in localStorage.");
+            return;
+        }
+
+        $.ajax({
+            type: 'GET',
+            url: `http://localhost:5121/api/users/following-stats?userId=${userId}`,
+            cache: false,
+            dataType: "json",
+            success: function(response) {
+                if (response && response.success && response.stats) {
+                    $('#followingCount').text(response.stats.following || 0);
+                    $('#followersCount').text(response.stats.followers || 0);
+                    console.log("✅ Following stats loaded:", response.stats);
+                } else {
+                    console.log("📝 No following stats found");
+                    $('#followingCount').text('0');
+                    $('#followersCount').text('0');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.warn("⚠️ Failed to load following stats:", error);
+                $('#followingCount').text('0');
+                $('#followersCount').text('0');
+            }
+        });
+    },
+
+    // Update user avatar based on activity level
+    updateUserAvatar: function(activityLevel) {
+        let avatarSrc = '../assets/default-avatar.png';
+        let tierName = 'Member';
+        
+        if (activityLevel >= 50) {
+            avatarSrc = '../assets/avatar-legend.png';
+            tierName = 'Legend';
+        } else if (activityLevel >= 30) {
+            avatarSrc = '../assets/avatar-master.png';
+            tierName = 'Master';
+        } else if (activityLevel >= 20) {
+            avatarSrc = '../assets/avatar-expert.png';
+            tierName = 'Expert';
+        } else if (activityLevel >= 10) {
+            avatarSrc = '../assets/avatar-active.png';
+            tierName = 'Active';
+        } else if (activityLevel >= 5) {
+            avatarSrc = '../assets/avatar-reader.png';
+            tierName = 'Reader';
+        }
+        
+        $('#userAvatar').attr('src', avatarSrc);
+        $('#tierName').text(tierName);
+    },
+
+    // Update activity progress bar
+    updateActivityProgress: function(activityLevel) {
+        const currentLevel = Math.floor(activityLevel / 10);
+        const nextLevel = currentLevel + 1;
+        const pointsInCurrentLevel = activityLevel % 10;
+        const progress = pointsInCurrentLevel * 10;
+        
+        $('#activityBar').css('width', `${progress}%`);
+        
+        if (activityLevel >= 50) {
+            $('#activityText').text(`${activityLevel} points (Legend level reached!)`);
+        } else {
+            const pointsToNext = 10 - pointsInCurrentLevel;
+            $('#activityText').text(`${activityLevel} points (${pointsToNext} to next level)`);
+        }
+    },
 
 
-    // Save user profile - Using direct $.ajax
+    // Save profile changes
     saveProfile: async function(e) {
         e.preventDefault();
         
         const profileData = {
             username: $('#editUsername').val().trim(),
             email: $('#editEmail').val().trim(),
+            firstName: $('#firstName').val().trim(),
+            lastName: $('#lastName').val().trim(),
+            newPassword: $('#newPassword').val().trim(),
+            confirmPassword: $('#confirmPassword').val().trim(),
             notifyOnLikes: $('#notifyOnLikes').is(':checked'),
             notifyOnComments: $('#notifyOnComments').is(':checked'),
             notifyOnFollow: $('#notifyOnFollows').is(':checked'),
@@ -128,7 +278,7 @@ const InterestsManager = {
         };
 
         // Basic validation
-        if (!profileData.username || !profileData.email) {
+        if (!profileData.username || !profileData.email || !profileData.firstName || !profileData.lastName) {
             showAlert('warning', 'Please fill in all required fields!');
             return;
         }
@@ -145,33 +295,140 @@ const InterestsManager = {
             return;
         }
         
+        // Password validation
+        if (profileData.newPassword || profileData.confirmPassword) {
+            if (!profileData.newPassword) {
+                showAlert('warning', 'Please enter a new password!');
+                return;
+            }
+            if (!profileData.confirmPassword) {
+                showAlert('warning', 'Please confirm your new password!');
+                return;
+            }
+            if (profileData.newPassword.length < 6) {
+                showAlert('warning', 'Password must be at least 6 characters long!');
+                return;
+            }
+            if (profileData.newPassword !== profileData.confirmPassword) {
+                $('#passwordError').show();
+                $('#confirmPassword').addClass('is-invalid');
+                return;
+            }
+        }
+        
+        // Clear any previous password errors
+        $('#passwordError').hide();
+        $('#confirmPassword').removeClass('is-invalid');
+        
         try {
             const button = $('#saveProfile');
             button.prop('disabled', true);
             button.html('<i class="fas fa-spinner fa-spin me-2"></i>Saving...');
             
-            // Use Auth.updateProfile which calls the backend
-            const result = await Auth.updateProfile(profileData);
+            const userId = getUserIdFromStorage();
             
-            if (result.success) {
-                // Save notification preferences to localStorage since backend doesn't support them yet
-                localStorage.setItem('notifyOnLikes', profileData.notifyOnLikes);
-                localStorage.setItem('notifyOnComments', profileData.notifyOnComments);
-                localStorage.setItem('notifyOnFollows', profileData.notifyOnFollow);
-                localStorage.setItem('notifyOnShares', profileData.notifyOnShare);
+            // Check if password is being updated
+            const isPasswordUpdate = profileData.newPassword && profileData.confirmPassword;
+            
+            // If password is being updated, show confirmation dialog
+            if (isPasswordUpdate) {
+                const confirmPassword = prompt('Please enter your current password to confirm the changes:');
+                if (!confirmPassword) {
+                    showAlert('warning', 'Password confirmation required to update your password!');
+                    button.prop('disabled', false);
+                    button.html('<i class="fas fa-save me-2"></i>Save Changes');
+                    return;
+                }
                 
+                // Verify current password first
+                try {
+                    const verifyResult = await $.ajax({
+                        type: 'POST',
+                        url: 'http://localhost:5121/api/users/verify-password',
+                        contentType: 'application/json',
+                        data: JSON.stringify({
+                            userId: parseInt(userId),
+                            password: confirmPassword
+                        }),
+                        dataType: "json"
+                    });
+                    
+                    if (!verifyResult.success) {
+                        showAlert('danger', 'Current password is incorrect!');
+                        button.prop('disabled', false);
+                        button.html('<i class="fas fa-save me-2"></i>Save Changes');
+                        return;
+                    }
+                } catch (error) {
+                    showAlert('danger', 'Failed to verify current password. Please try again.');
+                    button.prop('disabled', false);
+                    button.html('<i class="fas fa-save me-2"></i>Save Changes');
+                    return;
+                }
+            }
+            
+            // Save profile data using the test-update endpoint
+            const profileResult = await $.ajax({
+                type: 'PUT',
+                url: `http://localhost:5121/api/users/test-update/${userId}`,
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    username: profileData.username,
+                    email: profileData.email,
+                    firstName: profileData.firstName,
+                    lastName: profileData.lastName,
+                    passwordHash: isPasswordUpdate ? profileData.newPassword : null
+                }),
+                dataType: "json"
+            });
+            
+            // Save notification preferences
+            const notificationResult = await $.ajax({
+                type: 'PUT',
+                url: 'http://localhost:5121/api/users/notification-preferences',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    userId: parseInt(userId),
+                    notifyOnLikes: profileData.notifyOnLikes,
+                    notifyOnComments: profileData.notifyOnComments,
+                    notifyOnFollow: profileData.notifyOnFollow,
+                    notifyOnShare: profileData.notifyOnShare
+                }),
+                dataType: "json"
+            });
+            
+            if (profileResult && notificationResult) {
                 showAlert('success', 'Profile updated successfully!');
+                
+                // Clear password fields
+                $('#newPassword').val('');
+                $('#confirmPassword').val('');
                 
                 // Update navbar if needed
                 if (typeof updateNavbarForUser === 'function') {
                     updateNavbarForUser();
                 }
             } else {
-                showAlert('danger', result.error || 'Failed to update profile');
+                showAlert('danger', 'Failed to update profile');
             }
         } catch (error) {
             console.error('Error saving profile:', error);
-            showAlert('danger', 'Error updating profile. Please try again.');
+            if (error.responseJSON && error.responseJSON.message) {
+                const errorMessage = error.responseJSON.message;
+                
+                // Check for specific validation errors
+                if (errorMessage.toLowerCase().includes('username')) {
+                    $('#usernameError').show();
+                    $('#editUsername').addClass('is-invalid');
+                } else if (errorMessage.toLowerCase().includes('email')) {
+                    $('#emailError').show();
+                    $('#editEmail').addClass('is-invalid');
+                } else {
+                    showAlert('danger', errorMessage);
+                }
+            } else {
+                showAlert('danger', 'Error updating profile. Please try again.');
+            }
         } finally {
             const button = $('#saveProfile');
             button.prop('disabled', false);

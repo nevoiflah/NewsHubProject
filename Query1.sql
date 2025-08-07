@@ -348,12 +348,26 @@ AS
 BEGIN
     SET NOCOUNT ON;
     
+    -- Check if username is already taken by another user (only if username is provided)
+    IF @Username IS NOT NULL AND EXISTS (SELECT 1 FROM NLM_NewsHub_Users WHERE Username = @Username AND Id != @Id)
+    BEGIN
+        RAISERROR('Username must be unique', 16, 1);
+        RETURN;
+    END
+    
+    -- Check if email is already taken by another user (only if email is provided)
+    IF @Email IS NOT NULL AND EXISTS (SELECT 1 FROM NLM_NewsHub_Users WHERE Email = @Email AND Id != @Id)
+    BEGIN
+        RAISERROR('Email must be unique', 16, 1);
+        RETURN;
+    END
+    
     UPDATE NLM_NewsHub_Users 
-    SET Username = @Username,
-        Email = @Email,
-        FirstName = @FirstName,
-        LastName = @LastName,
-        PasswordHash = @PasswordHash,
+    SET Username = ISNULL(@Username, Username),
+        Email = ISNULL(@Email, Email),
+        FirstName = ISNULL(@FirstName, FirstName),
+        LastName = ISNULL(@LastName, LastName),
+        PasswordHash = ISNULL(@PasswordHash, PasswordHash),
         NotifyOnLikes = @NotifyOnLikes,
         NotifyOnComments = @NotifyOnComments,
         NotifyOnFollow = @NotifyOnFollow,
@@ -576,6 +590,22 @@ BEGIN
     UPDATE NLM_NewsHub_Users 
     SET ActivityLevel = ActivityLevel + @Points
     WHERE Id = @UserId;
+END
+GO
+
+-- Update User Activity Level
+CREATE OR ALTER PROCEDURE NLM_NewsHub_UpdateUserActivity
+    @UserId INT,
+    @ActivityPoints INT = 2
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    UPDATE NLM_NewsHub_Users 
+    SET ActivityLevel = ActivityLevel + @ActivityPoints
+    WHERE Id = @UserId;
+    
+    SELECT ActivityLevel FROM NLM_NewsHub_Users WHERE Id = @UserId;
 END
 GO
 

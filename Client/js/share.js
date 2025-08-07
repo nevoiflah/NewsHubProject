@@ -178,9 +178,24 @@ const ShareManager = {
             success: function(response) {
                 if (response && response.success) {
                     showAlert('success', 'Article shared successfully!');
+                    
+                    // Track activity for sharing
+                    const userId = localStorage.getItem('userId');
+                    if (userId) {
+                        $.ajax({
+                            type: 'POST',
+                            url: `http://localhost:5121/api/users/activity/${userId}`,
+                            cache: false,
+                            dataType: "json"
+                        });
+                    }
+                    
+                    // Reset form
                     $('#shareForm')[0].reset();
                     $('#metadataPreview').addClass('d-none');
                     bootstrap.Modal.getInstance($('#shareModal')[0]).hide();
+                    
+                    // Refresh shared content
                     setTimeout(() => ShareManager.loadSharedContent(), 1000);
                 } else {
                     showAlert('danger', response.message || 'Failed to share article');
@@ -311,6 +326,16 @@ const ShareManager = {
             dataType: "json",
             success: function(response) {
                 if (response && response.success) {
+                    // Track activity for liking
+                    const userId = localStorage.getItem('userId');
+                    if (userId) {
+                        $.ajax({
+                            type: 'POST',
+                            url: `http://localhost:5121/api/users/activity/${userId}`,
+                            cache: false,
+                            dataType: "json"
+                        });
+                    }
                     // Refresh the page after successful like/unlike
                     location.reload();
                 } else {
@@ -478,7 +503,18 @@ const ShareManager = {
             dataType: "json",
             success: function(response) {
                 if (response && response.success) {
-                    // Refresh the page immediately after successful comment
+                    // Track activity for commenting
+                    const userId = localStorage.getItem('userId');
+                    if (userId) {
+                        $.ajax({
+                            type: 'POST',
+                            url: `http://localhost:5121/api/users/activity/${userId}`,
+                            cache: false,
+                            dataType: "json"
+                        });
+                    }
+                    
+                    // Refresh the page to show the new comment
                     location.reload();
                 } else {
                     showAlert('danger', response.message || 'Failed to add comment');
@@ -518,91 +554,82 @@ const ShareManager = {
 
     // Handle follow user
     handleFollowUser: function(e) {
-        const targetUserId = $(e.currentTarget).data('user-id');
-        const username = $(e.currentTarget).data('username');
+        const $btn = $(e.currentTarget);
+        const targetUserId = $btn.data('user-id');
+        const username = $btn.data('username');
         const userId = localStorage.getItem('userId');
 
+        if (!userId) {
+            showAlert('warning', 'Please log in to follow users');
+            return;
+        }
+
+        // Fire AJAX call in background
         $.ajax({
             type: 'POST',
             url: `${this.baseUrl}/users/${targetUserId}/follow?userId=${userId}`,
             cache: false,
-            dataType: "json",
-            success: function(response) {
-                if (response && response.success) {
-                    showAlert('success', `You are now following ${username}`);
-                    ShareManager.loadFollowingUsers();
-                    ShareManager.loadFollowingStats();
-                    ShareManager.loadSharedContent(); // Refresh to update UI
-                } else {
-                    showAlert('danger', response.message || 'Failed to follow user');
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error('❌ Error following user:', error);
-                showAlert('danger', 'Error following user');
-            }
+            dataType: "json"
         });
+
+        // Immediately refresh the page
+        location.reload();
     },
 
     // Handle unfollow user
     handleUnfollowUser: function(e) {
-        const targetUserId = $(e.currentTarget).data('user-id');
-        const username = $(e.currentTarget).data('username');
+        const $btn = $(e.currentTarget);
+        const targetUserId = $btn.data('user-id');
+        const username = $btn.data('username');
         const userId = localStorage.getItem('userId');
+
+        if (!userId) {
+            showAlert('warning', 'Please log in to unfollow users');
+            return;
+        }
 
         if (!confirm(`Are you sure you want to unfollow ${username}?`)) return;
 
+        // Fire AJAX call in background
         $.ajax({
             type: 'DELETE',
-            url: `${this.baseUrl}/users/${targetUserId}/unfollow?userId=${userId}`,
+            url: `${this.baseUrl}/users/${targetUserId}/follow?userId=${userId}`,
             cache: false,
-            dataType: "json",
-            success: function(response) {
-                if (response && response.success) {
-                    showAlert('success', `You have unfollowed ${username}`);
-                    ShareManager.loadFollowingUsers();
-                    ShareManager.loadFollowingStats();
-                    ShareManager.loadSharedContent(); // Refresh to update UI
-                } else {
-                    showAlert('danger', response.message || 'Failed to unfollow user');
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error('❌ Error unfollowing user:', error);
-                showAlert('danger', 'Error unfollowing user');
-            }
+            dataType: "json"
         });
+
+        // Immediately refresh the page
+        location.reload();
     },
 
     // Handle block user
     handleBlockUser: function(e) {
-        const targetUserId = $(e.currentTarget).data('user-id');
-        const username = $(e.currentTarget).data('username');
+        const $btn = $(e.currentTarget);
+        const targetUserId = $btn.data('user-id');
+        const username = $btn.data('username');
         const userId = localStorage.getItem('userId');
 
-        const reason = prompt(`Why are you blocking ${username}? (Optional)`);
-        if (reason === null) return; // User cancelled
+        if (!userId) {
+            showAlert('warning', 'Please log in to block users');
+            return;
+        }
 
+        if (!confirm(`Are you sure you want to block ${username}? Their content will no longer be visible to you.`)) {
+            return;
+        }
+
+        // Fire AJAX call in background
         $.ajax({
             type: 'POST',
             url: `${this.baseUrl}/users/${targetUserId}/block?userId=${userId}`,
-            data: JSON.stringify({ reason: reason || null }),
-            contentType: "application/json",
-            dataType: "json",
-            success: function(response) {
-                if (response && response.success) {
-                    showAlert('success', `${username} has been blocked`);
-                    ShareManager.loadBlockedUsers();
-                    ShareManager.loadSharedContent(); // Refresh to hide blocked user content
-                } else {
-                    showAlert('danger', response.message || 'Failed to block user');
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error('❌ Error blocking user:', error);
-                showAlert('danger', 'Error blocking user');
-            }
+            contentType: 'application/json',
+            data: JSON.stringify({ reason: 'User blocked via shared articles page' }),
+            cache: false,
+            dataType: "json"
         });
+
+        // Immediately refresh the page
+        location.reload();
     },
 
     // Handle report content
@@ -848,15 +875,29 @@ const ShareManager = {
             const isCurrentUser = userId && parseInt(userId) === item.userId;
             const isFollowing = this.followingUsers.some(f => f.followedUserId === item.userId);
             
+            // Get user avatar based on activity level
+            let avatarSrc = '../assets/default-avatar.png';
+            if (item.activityLevel !== undefined) {
+                if (item.activityLevel >= 50) {
+                    avatarSrc = '../assets/avatar-legend.png';
+                } else if (item.activityLevel >= 30) {
+                    avatarSrc = '../assets/avatar-master.png';
+                } else if (item.activityLevel >= 20) {
+                    avatarSrc = '../assets/avatar-expert.png';
+                } else if (item.activityLevel >= 10) {
+                    avatarSrc = '../assets/avatar-active.png';
+                } else {
+                    avatarSrc = '../assets/avatar-reader.png';
+                }
+            }
+            
             return `
                 <div class="card mb-4" data-share-id="${item.id}">
                     <div class="card-body">
                         <div class="d-flex align-items-start mb-3">
                             <div class="flex-shrink-0">
-                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" 
-                                     style="width: 40px; height: 40px;">
-                                    <i class="fas fa-user"></i>
-                                </div>
+                                <img src="${avatarSrc}" alt="User Avatar" class="rounded-circle" 
+                                     style="width: 40px; height: 40px; object-fit: cover;">
                             </div>
                             <div class="flex-grow-1 ms-3">
                                 <div class="d-flex justify-content-between align-items-start">
@@ -897,6 +938,12 @@ const ShareManager = {
                                                 </button>
                                             </li>
                                             ${!isCurrentUser ? `
+                                                <li>
+                                                    <button class="dropdown-item ${isFollowing ? 'text-warning' : 'text-primary'} ${isFollowing ? 'unfollow-user-btn' : 'follow-user-btn'}" 
+                                                            data-user-id="${item.userId}" data-username="${item.username}">
+                                                        <i class="fas ${isFollowing ? 'fa-user-minus' : 'fa-user-plus'} me-2"></i>${isFollowing ? 'Unfollow' : 'Follow'} ${item.username}
+                                                    </button>
+                                                </li>
                                                 <li>
                                                     <button class="dropdown-item text-danger block-user-btn" 
                                                             data-user-id="${item.userId}" data-username="${item.username}">
@@ -1035,25 +1082,16 @@ const ShareManager = {
 
         if (!confirm(`Are you sure you want to unblock ${username}?`)) return;
 
+        // Fire AJAX call in background
         $.ajax({
             type: 'DELETE',
             url: `${this.baseUrl}/users/${targetUserId}/block?userId=${userId}`,
             cache: false,
-            dataType: "json",
-            success: function(response) {
-                if (response && response.success) {
-                    showAlert('success', `${username} has been unblocked`);
-                    ShareManager.loadBlockedUsers();
-                    ShareManager.loadSharedContent();
-                } else {
-                    showAlert('danger', response.message || 'Failed to unblock user');
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error('❌ Error unblocking user:', error);
-                showAlert('danger', 'Error unblocking user');
-            }
+            dataType: "json"
         });
+
+        // Immediately refresh the page
+        location.reload();
     },
 
     // Update filter indicators

@@ -38,6 +38,7 @@ namespace Server.BL
         // Extended properties for API responses
         public string? Username { get; set; }
         public bool IsLikedByCurrentUser { get; set; }
+        public int ActivityLevel { get; set; }
 
         // Constructors
         public SharedArticle() { }

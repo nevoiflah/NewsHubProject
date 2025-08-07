@@ -27,7 +27,7 @@ BEGIN
 END
 GO
 
--- Get Shared Articles with dynamic like count
+-- Get Shared Articles with dynamic like count and block filtering
 CREATE OR ALTER PROCEDURE [dbo].[NLM_NewsHub_GetSharedArticles]
     @UserId INT = NULL,
     @SortBy NVARCHAR(50) = 'newest',
@@ -53,6 +53,7 @@ BEGIN
         sa.IsFlagged,
         sa.CommentsCount,
         u.Username,
+        u.ActivityLevel,
         -- Calculate likes dynamically from the likes table
         (SELECT COUNT(*) FROM [dbo].[NLM_NewsHub_SharedArticleLikes] 
          WHERE SharedArticleId = sa.Id AND IsDeleted = 0) AS Likes,
@@ -67,6 +68,16 @@ BEGIN
     FROM [dbo].[NLM_NewsHub_SharedArticles] sa
     INNER JOIN [dbo].[NLM_NewsHub_Users] u ON sa.UserId = u.Id
     WHERE sa.IsFlagged = 0
+      -- Exclude content from blocked users (if @UserId is provided)
+      AND (@UserId IS NULL OR NOT EXISTS (
+          SELECT 1 FROM [dbo].[NLM_NewsHub_UserBlocks] 
+          WHERE BlockerUserId = @UserId AND BlockedUserId = sa.UserId
+      ))
+      -- Exclude content from users who blocked the current user (if @UserId is provided)
+      AND (@UserId IS NULL OR NOT EXISTS (
+          SELECT 1 FROM [dbo].[NLM_NewsHub_UserBlocks] 
+          WHERE BlockerUserId = sa.UserId AND BlockedUserId = @UserId
+      ))
     ORDER BY 
         CASE WHEN @SortBy = 'newest' THEN sa.CreatedAt END DESC,
         CASE WHEN @SortBy = 'oldest' THEN sa.CreatedAt END ASC,
@@ -79,7 +90,7 @@ BEGIN
 END
 GO
 
--- Get Shared Article By ID with dynamic like count
+-- Get Shared Article By ID with dynamic like count and block filtering
 CREATE OR ALTER PROCEDURE [dbo].[NLM_NewsHub_GetSharedArticleById]
     @Id INT,
     @CurrentUserId INT = NULL
@@ -101,6 +112,7 @@ BEGIN
         sa.IsFlagged,
         sa.CommentsCount,
         u.Username,
+        u.ActivityLevel,
         -- Calculate likes dynamically from the likes table
         (SELECT COUNT(*) FROM [dbo].[NLM_NewsHub_SharedArticleLikes] 
          WHERE SharedArticleId = sa.Id AND IsDeleted = 0) AS Likes,
@@ -114,7 +126,17 @@ BEGIN
         END AS IsLikedByCurrentUser
     FROM [dbo].[NLM_NewsHub_SharedArticles] sa
     INNER JOIN [dbo].[NLM_NewsHub_Users] u ON sa.UserId = u.Id
-    WHERE sa.Id = @Id;
+    WHERE sa.Id = @Id
+      -- Exclude content from blocked users (if @CurrentUserId is provided)
+      AND (@CurrentUserId IS NULL OR NOT EXISTS (
+          SELECT 1 FROM [dbo].[NLM_NewsHub_UserBlocks] 
+          WHERE BlockerUserId = @CurrentUserId AND BlockedUserId = sa.UserId
+      ))
+      -- Exclude content from users who blocked the current user (if @CurrentUserId is provided)
+      AND (@CurrentUserId IS NULL OR NOT EXISTS (
+          SELECT 1 FROM [dbo].[NLM_NewsHub_UserBlocks] 
+          WHERE BlockerUserId = sa.UserId AND BlockedUserId = @CurrentUserId
+      ));
 END
 GO
 
@@ -514,7 +536,7 @@ SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-CREATE PROCEDURE [dbo].[NLM_NewsHub_BlockUser]
+CREATE OR ALTER PROCEDURE [dbo].[NLM_NewsHub_BlockUser]
     @BlockerUserId INT,
     @BlockedUserId INT,
     @Reason NVARCHAR(500) = NULL
@@ -523,6 +545,18 @@ BEGIN
     SET NOCOUNT ON;
     BEGIN TRY
         BEGIN TRANSACTION;
+        
+        -- Check if the user to be blocked is an admin
+        DECLARE @IsAdmin BIT;
+        SELECT @IsAdmin = IsAdmin FROM [dbo].[NLM_NewsHub_Users] WHERE Id = @BlockedUserId;
+        
+        -- Prevent blocking admins
+        IF @IsAdmin = 1
+        BEGIN
+            ROLLBACK TRANSACTION;
+            SELECT 0 AS Success;
+            RETURN;
+        END
         
         -- Prevent self-block and duplicate blocks
         IF @BlockerUserId != @BlockedUserId AND NOT EXISTS (

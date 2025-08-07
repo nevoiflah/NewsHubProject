@@ -119,7 +119,8 @@ namespace Server.DAL
             };
 
             SqlCommand cmd = CreateCommandWithStoredProcedureGeneral("NLM_NewsHub_FollowUser", con, paramDic);
-            return cmd.ExecuteNonQuery() > 0;
+            object result = cmd.ExecuteScalar();
+            return result != null && Convert.ToInt32(result) == 1;
         }
 
         public bool UnfollowUser(int followerUserId, int followedUserId)
@@ -132,7 +133,8 @@ namespace Server.DAL
             };
 
             SqlCommand cmd = CreateCommandWithStoredProcedureGeneral("NLM_NewsHub_UnfollowUser", con, paramDic);
-            return cmd.ExecuteNonQuery() > 0;
+            object result = cmd.ExecuteScalar();
+            return result != null && Convert.ToInt32(result) > 0;
         }
 
         public bool IsFollowing(int followerUserId, int followedUserId)

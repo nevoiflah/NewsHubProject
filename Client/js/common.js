@@ -75,7 +75,8 @@
                                         id: response.id,
                                         username: response.username,
                                         email: response.email,
-                                        isAdmin: response.isAdmin
+                                        isAdmin: response.isAdmin,
+                                        activityLevel: response.activityLevel || 0
                                     }));
                                     resolve({ success: true, message: 'Login successful' });
                                 } else {
@@ -541,10 +542,27 @@ function updateNavbarForUser() {
             </a></li>`;
         }
         
+        // Get user avatar - use activity level to determine avatar
+        let avatarSrc = '../assets/default-avatar.png';
+        if (user.activityLevel !== undefined) {
+            if (user.activityLevel >= 50) {
+                avatarSrc = '../assets/avatar-legend.png';
+            } else if (user.activityLevel >= 30) {
+                avatarSrc = '../assets/avatar-master.png';
+            } else if (user.activityLevel >= 20) {
+                avatarSrc = '../assets/avatar-expert.png';
+            } else if (user.activityLevel >= 10) {
+                avatarSrc = '../assets/avatar-active.png';
+            } else {
+                avatarSrc = '../assets/avatar-reader.png';
+            }
+        }
+        
         $authNav.html(`
             <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                    <i class="fas fa-user me-1"></i>${user.username || 'User'}
+                <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
+                    <img src="${avatarSrc}" alt="User Avatar" class="rounded-circle me-2" style="width: 32px; height: 32px; object-fit: cover;">
+                    <span>${user.username || 'User'}</span>
                 </a>
                 <ul class="dropdown-menu">
                     <li><a class="dropdown-item" href="${window.getPageUrl('saved.html')}">

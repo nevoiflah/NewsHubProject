@@ -128,6 +128,27 @@ namespace Server.BL
             }
         }
 
+        public static bool UpdateSimple(int id, string username, string email, string firstName, string lastName, string passwordHash = null)
+        {
+            if (!string.IsNullOrEmpty(passwordHash))
+            {
+                // Hash the password if provided
+                var tempUser = new Users(0, "", "", "", "", passwordHash, DateTime.Now, null, false, false, "", 0, 0, true, true, true, true);
+                passwordHash = tempUser.HashPassword(passwordHash);
+            }
+
+            try
+            {
+                UsersDBservices dbs = new UsersDBservices();
+                return dbs.UpdateUserSimple(id, username, email, firstName, lastName, passwordHash) == 1;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"❌ UpdateSimple error: {e.Message}");
+                return false;
+            }
+        }
+
         public static int DeleteUser(int id)
         {
             UsersDBservices dbs = new UsersDBservices();
@@ -166,6 +187,18 @@ namespace Server.BL
         {
             UsersDBservices db = new UsersDBservices();
             return db.DeleteUserInterests(userId);
+        }
+
+        public static bool UpdateNotificationPreferences(int userId, bool notifyOnLikes, bool notifyOnComments, bool notifyOnFollow, bool notifyOnShare)
+        {
+            UsersDBservices db = new UsersDBservices();
+            return db.UpdateNotificationPreferences(userId, notifyOnLikes, notifyOnComments, notifyOnFollow, notifyOnShare);
+        }
+
+        public static int UpdateUserActivity(int userId, int activityPoints = 2)
+        {
+            UsersDBservices db = new UsersDBservices();
+            return db.UpdateUserActivity(userId, activityPoints);
         }
 
 
