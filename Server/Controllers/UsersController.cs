@@ -90,176 +90,22 @@ namespace Server.Controllers
         }
 
         [HttpPut("Update/{id}")]
-        public IActionResult Put([FromRoute] int id, [FromBody] UserUpdateRequest userUpdate)
+        public IActionResult UpdateProfile([FromRoute] int id, [FromBody] Users user)
         {
             try
             {
-                // Get current user data
-                var currentUser = Users.GetUserById(id);
-                if (currentUser == null)
+                if (Users.Update(id, user))
                 {
-                    return NotFound("User not found.");
-                }
-
-                // Merge the update data with current data
-                if (!string.IsNullOrEmpty(userUpdate.Username))
-                    currentUser.Username = userUpdate.Username;
-                if (!string.IsNullOrEmpty(userUpdate.Email))
-                    currentUser.Email = userUpdate.Email;
-                if (!string.IsNullOrEmpty(userUpdate.FirstName))
-                    currentUser.FirstName = userUpdate.FirstName;
-                if (!string.IsNullOrEmpty(userUpdate.LastName))
-                    currentUser.LastName = userUpdate.LastName;
-                if (!string.IsNullOrEmpty(userUpdate.PasswordHash))
-                    currentUser.PasswordHash = userUpdate.PasswordHash;
-
-                if (Users.Update(id, currentUser))
-                    return Ok("User updated successfully.");
-                else
-                    return NotFound("User not found.");
-            }
-            catch (Exception ex)
-            {
-                // Check for specific validation errors
-                if (ex.Message.Contains("Username must be unique"))
-                {
-                    return BadRequest(new { success = false, message = "Username must be unique" });
-                }
-                else if (ex.Message.Contains("Email must be unique"))
-                {
-                    return BadRequest(new { success = false, message = "Email must be unique" });
-                }
-                else
-                {
-                    return StatusCode(500, new { success = false, message = "Error updating user: " + ex.Message });
-                }
-            }
-        }
-
-        [HttpPut("simple-update/{id}")]
-        public IActionResult SimpleUpdate([FromRoute] int id, [FromBody] string userUpdateJson)
-        {
-            try
-            {
-                Console.WriteLine($"🔍 SimpleUpdate: Starting update for user {id}");
-                Console.WriteLine($"🔍 SimpleUpdate: JSON data: {userUpdateJson}");
-                
-                // Parse JSON manually
-                using var document = System.Text.Json.JsonDocument.Parse(userUpdateJson);
-                var root = document.RootElement;
-                
-                Console.WriteLine($"🔍 SimpleUpdate: JSON parsed successfully");
-                
-                // Extract values
-                string username = "";
-                string email = "";
-                string firstName = "";
-                string lastName = "";
-                string passwordHash = null;
-                
-                if (root.TryGetProperty("Username", out var usernameElement) && usernameElement.ValueKind != System.Text.Json.JsonValueKind.Null)
-                {
-                    username = usernameElement.GetString();
-                    Console.WriteLine($"🔍 SimpleUpdate: Username: {username}");
-                }
-                if (root.TryGetProperty("Email", out var emailElement) && emailElement.ValueKind != System.Text.Json.JsonValueKind.Null)
-                {
-                    email = emailElement.GetString();
-                    Console.WriteLine($"🔍 SimpleUpdate: Email: {email}");
-                }
-                if (root.TryGetProperty("FirstName", out var firstNameElement) && firstNameElement.ValueKind != System.Text.Json.JsonValueKind.Null)
-                {
-                    firstName = firstNameElement.GetString();
-                    Console.WriteLine($"🔍 SimpleUpdate: FirstName: {firstName}");
-                }
-                if (root.TryGetProperty("LastName", out var lastNameElement) && lastNameElement.ValueKind != System.Text.Json.JsonValueKind.Null)
-                {
-                    lastName = lastNameElement.GetString();
-                    Console.WriteLine($"🔍 SimpleUpdate: LastName: {lastName}");
-                }
-                if (root.TryGetProperty("PasswordHash", out var passwordElement) && passwordElement.ValueKind != System.Text.Json.JsonValueKind.Null)
-                {
-                    passwordHash = passwordElement.GetString();
-                    Console.WriteLine($"🔍 SimpleUpdate: PasswordHash provided");
-                }
-
-                Console.WriteLine($"🔍 SimpleUpdate: Calling Users.UpdateSimple...");
-                if (Users.UpdateSimple(id, username, email, firstName, lastName, passwordHash))
-                {
-                    Console.WriteLine($"✅ SimpleUpdate: User updated successfully");
                     return Ok("User updated successfully.");
                 }
                 else
                 {
-                    Console.WriteLine($"❌ SimpleUpdate: User update failed");
                     return NotFound("User not found.");
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ SimpleUpdate: Exception occurred: {ex.Message}");
-                Console.WriteLine($"❌ SimpleUpdate: Stack trace: {ex.StackTrace}");
-                
-                // Check for specific validation errors
-                if (ex.Message.Contains("Username must be unique"))
-                {
-                    return BadRequest(new { success = false, message = "Username must be unique" });
-                }
-                else if (ex.Message.Contains("Email must be unique"))
-                {
-                    return BadRequest(new { success = false, message = "Email must be unique" });
-                }
-                else
-                {
-                    return StatusCode(500, new { success = false, message = "Error updating user: " + ex.Message });
-                }
-            }
-        }
-
-        [HttpPut("profile/{id}")]
-        public IActionResult UpdateProfile([FromRoute] int id, [FromBody] UserUpdateRequest userUpdate)
-        {
-            try
-            {
-                // Get current user data
-                var currentUser = Users.GetUserById(id);
-                if (currentUser == null)
-                {
-                    return NotFound("User not found.");
-                }
-
-                // Merge the update data with current data
-                if (!string.IsNullOrEmpty(userUpdate.Username))
-                    currentUser.Username = userUpdate.Username;
-                if (!string.IsNullOrEmpty(userUpdate.Email))
-                    currentUser.Email = userUpdate.Email;
-                if (!string.IsNullOrEmpty(userUpdate.FirstName))
-                    currentUser.FirstName = userUpdate.FirstName;
-                if (!string.IsNullOrEmpty(userUpdate.LastName))
-                    currentUser.LastName = userUpdate.LastName;
-                if (!string.IsNullOrEmpty(userUpdate.PasswordHash))
-                    currentUser.PasswordHash = userUpdate.PasswordHash;
-
-                if (Users.Update(id, currentUser))
-                    return Ok("User updated successfully.");
-                else
-                    return NotFound("User not found.");
-            }
-            catch (Exception ex)
-            {
-                // Check for specific validation errors
-                if (ex.Message.Contains("Username must be unique"))
-                {
-                    return BadRequest(new { success = false, message = "Username must be unique" });
-                }
-                else if (ex.Message.Contains("Email must be unique"))
-                {
-                    return BadRequest(new { success = false, message = "Email must be unique" });
-                }
-                else
-                {
-                    return StatusCode(500, new { success = false, message = "Error updating user: " + ex.Message });
-                }
+                return StatusCode(500, "An error occurred while updating the user: " + ex.Message);
             }
         }
 
@@ -594,81 +440,7 @@ namespace Server.Controllers
             }
         }
 
-        [HttpPut("test-update/{id}")]
-        public IActionResult TestUpdate([FromRoute] int id, [FromBody] string userUpdateJson)
-        {
-            try
-            {
-                Console.WriteLine($"🔍 TestUpdate: Starting update for user {id}");
-                Console.WriteLine($"🔍 TestUpdate: JSON data: {userUpdateJson}");
-                
-                // Parse JSON manually
-                using var document = System.Text.Json.JsonDocument.Parse(userUpdateJson);
-                var root = document.RootElement;
-                
-                Console.WriteLine($"🔍 TestUpdate: JSON parsed successfully");
-                
-                // Extract values
-                string username = "";
-                string email = "";
-                string firstName = "";
-                string lastName = "";
-                
-                if (root.TryGetProperty("Username", out var usernameElement) && usernameElement.ValueKind != System.Text.Json.JsonValueKind.Null)
-                {
-                    username = usernameElement.GetString();
-                    Console.WriteLine($"🔍 TestUpdate: Username: {username}");
-                }
-                if (root.TryGetProperty("Email", out var emailElement) && emailElement.ValueKind != System.Text.Json.JsonValueKind.Null)
-                {
-                    email = emailElement.GetString();
-                    Console.WriteLine($"🔍 TestUpdate: Email: {email}");
-                }
-                if (root.TryGetProperty("FirstName", out var firstNameElement) && firstNameElement.ValueKind != System.Text.Json.JsonValueKind.Null)
-                {
-                    firstName = firstNameElement.GetString();
-                    Console.WriteLine($"🔍 TestUpdate: FirstName: {firstName}");
-                }
-                if (root.TryGetProperty("LastName", out var lastNameElement) && lastNameElement.ValueKind != System.Text.Json.JsonValueKind.Null)
-                {
-                    lastName = lastNameElement.GetString();
-                    Console.WriteLine($"🔍 TestUpdate: LastName: {lastName}");
-                }
-
-                // Direct database update without stored procedure
-                using var connection = new SqlConnection("Server=localhost;Database=igroup117_test2;Trusted_Connection=true;TrustServerCertificate=true;");
-                connection.Open();
-                
-                string sql = "UPDATE NLM_NewsHub_Users SET Username = @Username, Email = @Email, FirstName = @FirstName, LastName = @LastName WHERE Id = @Id";
-                using var command = new SqlCommand(sql, connection);
-                command.Parameters.AddWithValue("@Id", id);
-                command.Parameters.AddWithValue("@Username", username);
-                command.Parameters.AddWithValue("@Email", email);
-                command.Parameters.AddWithValue("@FirstName", firstName);
-                command.Parameters.AddWithValue("@LastName", lastName);
-                
-                int rowsAffected = command.ExecuteNonQuery();
-                
-                Console.WriteLine($"🔍 TestUpdate: Rows affected: {rowsAffected}");
-                
-                if (rowsAffected > 0)
-                {
-                    Console.WriteLine($"✅ TestUpdate: User updated successfully");
-                    return Ok("User updated successfully.");
-                }
-                else
-                {
-                    Console.WriteLine($"❌ TestUpdate: User update failed");
-                    return NotFound("User not found.");
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"❌ TestUpdate: Exception occurred: {ex.Message}");
-                Console.WriteLine($"❌ TestUpdate: Stack trace: {ex.StackTrace}");
-                return StatusCode(500, new { success = false, message = "Error updating user: " + ex.Message });
-            }
-        }
+        
     }
 
     // ======================================

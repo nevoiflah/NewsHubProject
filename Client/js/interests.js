@@ -451,7 +451,7 @@ const InterestsManager = {
             // Save profile data using the test-update endpoint
             const profileResult = await $.ajax({
                 type: 'PUT',
-                url: `http://localhost:5121/api/users/test-update/${userId}`,
+                url: `https://localhost:5121/api/Users/Update/${userId}`,
                 contentType: 'application/json',
                 data: JSON.stringify({
                     username: profileData.username,
@@ -460,7 +460,7 @@ const InterestsManager = {
                     lastName: profileData.lastName,
                     passwordHash: isPasswordUpdate ? profileData.newPassword : null
                 }),
-                dataType: "json"
+                dataType: "text"
             });
             
             // Save notification preferences

@@ -49,7 +49,7 @@ namespace Server.BL
             NotifyOnFollow = notifyOnFollow;
             NotifyOnShare = notifyOnShare;
         }
-
+        public Users() {}
         // --- Properties ---
         public int Id { get => id; set => id = value; }
         public string Username { get => username; set => username = value; }
@@ -109,13 +109,14 @@ namespace Server.BL
             return null;
         }
 
-        public static bool Update(int id, Users user)
+       public static bool Update(int id, Users user)
         {
             if (!string.IsNullOrEmpty(user.PasswordHash))
             {
-                user.PasswordHash = user.HashPassword(user.PasswordHash);
+                // הצפנת הסיסמה החדשה
+                var tempUser = new Users(0, "", "", "", "", user.PasswordHash, DateTime.Now, null, false, false, "", 0, 0, true, true, true, true);
+                user.PasswordHash = tempUser.HashPassword(user.PasswordHash);
             }
-
             try
             {
                 UsersDBservices dbs = new UsersDBservices();
@@ -124,27 +125,6 @@ namespace Server.BL
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
-                return false;
-            }
-        }
-
-        public static bool UpdateSimple(int id, string username, string email, string firstName, string lastName, string passwordHash = null)
-        {
-            if (!string.IsNullOrEmpty(passwordHash))
-            {
-                // Hash the password if provided
-                var tempUser = new Users(0, "", "", "", "", passwordHash, DateTime.Now, null, false, false, "", 0, 0, true, true, true, true);
-                passwordHash = tempUser.HashPassword(passwordHash);
-            }
-
-            try
-            {
-                UsersDBservices dbs = new UsersDBservices();
-                return dbs.UpdateUserSimple(id, username, email, firstName, lastName, passwordHash) == 1;
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine($"❌ UpdateSimple error: {e.Message}");
                 return false;
             }
         }

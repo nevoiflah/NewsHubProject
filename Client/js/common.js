@@ -131,45 +131,63 @@
                 },
 
                 // Update profile method 
-                updateProfile: async (profileData) => {
-                    return new Promise((resolve) => {
-                        $.ajax({
-                            type: 'PUT',
-                            url: `${API_CONFIG.baseUrl}/Users/profile`,
-                            data: JSON.stringify(profileData),
-                            cache: false,
-                            contentType: "application/json",
-                            dataType: "json",
-                            timeout: API_CONFIG.timeout,
-                            success: function(response) {
-                                if (response && response.success) {
-                                    // Update local storage
-                                    const currentUser = JSON.parse(localStorage.getItem('userInfo') || '{}');
-                                    currentUser.username = profileData.username;
-                                    currentUser.email = profileData.email;
-                                    localStorage.setItem('userInfo', JSON.stringify(currentUser));
-                                    resolve({ success: true, message: 'Profile updated successfully' });
-                                } else {
-                                    resolve({ success: false, error: 'Profile update failed' });
-                                }
-                            },
-                            error: function(xhr, status, error) {
-                                if (xhr.status === 401) {
-                                    window.Auth.logout();
-                                    return;
-                                }
-                                let errorMessage = 'Profile update failed';
-                                try {
-                                    const errorResponse = JSON.parse(xhr.responseText);
-                                    errorMessage = errorResponse.message || errorResponse.error || errorMessage;
-                                } catch (e) {
-                                    // Use default error message
-                                }
-                                resolve({ success: false, error: errorMessage });
-                            }
-                        });
-                    });
-                },
+               updateProfile: async (userId, profileData) => {
+    return new Promise((resolve) => {
+        // יצירת אובייקט Users מלא עם רק השדות שרוצים לעדכן
+        const updateData = {
+            username: profileData.username || "",
+            email: profileData.email || "",
+            firstName: profileData.firstName || "",
+            lastName: profileData.lastName || "",
+            passwordHash: profileData.passwordHash || "",
+            // שאר השדות יישארו ריקים - לא יתעדכנו
+            notifyOnLikes: profileData.notifyOnLikes !== undefined ? profileData.notifyOnLikes : true,
+            notifyOnComments: profileData.notifyOnComments !== undefined ? profileData.notifyOnComments : true,
+            notifyOnFollow: profileData.notifyOnFollow !== undefined ? profileData.notifyOnFollow : true,
+            notifyOnShare: profileData.notifyOnShare !== undefined ? profileData.notifyOnShare : true
+        };
+
+        $.ajax({
+            type: 'PUT',
+            url: `${API_CONFIG.baseUrl}/Users/Update/${userId}`, // הוספת userId ל-URL
+            data: JSON.stringify(updateData),
+            cache: false,
+            contentType: "application/json",
+            dataType: "text", // שינוי מ-json ל-text כי הסרבר מחזיר string
+            timeout: API_CONFIG.timeout,
+            success: function(response) {
+                // הסרבר מחזיר "User updated successfully." או "User not found."
+                if (response && response.includes("successfully")) {
+                    // Update local storage
+                    const currentUser = JSON.parse(localStorage.getItem('userInfo') || '{}');
+                    if (profileData.username) currentUser.username = profileData.username;
+                    if (profileData.email) currentUser.email = profileData.email;
+                    if (profileData.firstName) currentUser.firstName = profileData.firstName;
+                    if (profileData.lastName) currentUser.lastName = profileData.lastName;
+                    localStorage.setItem('userInfo', JSON.stringify(currentUser));
+                    
+                    resolve({ success: true, message: 'Profile updated successfully' });
+                } else {
+                    resolve({ success: false, error: response || 'Profile update failed' });
+                }
+            },
+            error: function(xhr, status, error) {
+                if (xhr.status === 401) {
+                    window.Auth.logout();
+                    return;
+                }
+                let errorMessage = 'Profile update failed';
+                try {
+                    // הסרבר עשוי להחזיר string בשגיאה גם
+                    errorMessage = xhr.responseText || errorMessage;
+                } catch (e) {
+                    // Use default error message
+                }
+                resolve({ success: false, error: errorMessage });
+            }
+        });
+    });
+},
 
                 // Check if user is admin
                 isAdmin: () => {

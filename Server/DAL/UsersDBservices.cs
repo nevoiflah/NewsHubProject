@@ -77,75 +77,28 @@ namespace Server.DAL
 
         public int UpdateUser(int id, Users user)
         {
-            SqlConnection con = null;
-
-            try
+            using (SqlConnection con = connect("myProjDB"))
             {
-                con = connect("myProjDB");
-
                 Dictionary<string, object> paramDic = new Dictionary<string, object>
                 {
-                    { "@Id", id },
-                    { "@Username", user.Username },
-                    { "@Email", user.Email },
-                    { "@FirstName", user.FirstName },
-                    { "@LastName", user.LastName },
-                    { "@PasswordHash", user.PasswordHash },
-                    { "@AvatarUrl", user.AvatarUrl },
-                    { "@NotifyOnLikes", user.NotifyOnLikes },
-                    { "@NotifyOnComments", user.NotifyOnComments },
-                    { "@NotifyOnFollow", user.NotifyOnFollow },
-                    { "@NotifyOnShare", user.NotifyOnShare }
+                    {"@Id", id},
+                    {"@Username", string.IsNullOrEmpty(user.Username) ? (object)DBNull.Value : user.Username},
+                    {"@Email", string.IsNullOrEmpty(user.Email) ? (object)DBNull.Value : user.Email},
+                    {"@FirstName", string.IsNullOrEmpty(user.FirstName) ? (object)DBNull.Value : user.FirstName},
+                    {"@LastName", string.IsNullOrEmpty(user.LastName) ? (object)DBNull.Value : user.LastName},
+                    {"@PasswordHash", string.IsNullOrEmpty(user.PasswordHash) ? (object)DBNull.Value : user.PasswordHash},
+                    {"@NotifyOnLikes", user.NotifyOnLikes},
+                    {"@NotifyOnComments", user.NotifyOnComments},
+                    {"@NotifyOnFollow", user.NotifyOnFollow},
+                    {"@NotifyOnShare", user.NotifyOnShare}
                 };
-
-                SqlCommand cmd = CreateCommandWithStoredProcedureGeneral("NLM_NewsHub_UpdateUser", con, paramDic);
-                return cmd.ExecuteNonQuery();
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-            finally
-            {
-                con?.Close();
-            }
-        }
-
-        public int UpdateUserSimple(int id, string username, string email, string firstName, string lastName, string passwordHash = null)
-        {
-            SqlConnection con = null;
-
-            try
-            {
-                con = connect("myProjDB");
-
-                Dictionary<string, object> paramDic = new Dictionary<string, object>
+                using (SqlCommand cmd = CreateCommandWithStoredProcedureGeneral("NLM_NewsHub_UpdateUser", con, paramDic))
                 {
-                    { "@Id", id },
-                    { "@Username", username },
-                    { "@Email", email },
-                    { "@FirstName", firstName },
-                    { "@LastName", lastName },
-                    { "@PasswordHash", passwordHash ?? "" },
-                    { "@AvatarUrl", "" },
-                    { "@NotifyOnLikes", true },
-                    { "@NotifyOnComments", true },
-                    { "@NotifyOnFollow", true },
-                    { "@NotifyOnShare", true }
-                };
-
-                SqlCommand cmd = CreateCommandWithStoredProcedureGeneral("NLM_NewsHub_UpdateUser", con, paramDic);
-                return cmd.ExecuteNonQuery();
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-            finally
-            {
-                con?.Close();
+                    return cmd.ExecuteNonQuery();
+                }
             }
         }
+        
 
         public int DeleteUser(int id)
         {
