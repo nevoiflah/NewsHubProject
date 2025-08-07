@@ -32,22 +32,93 @@ var FeaturesDemo = {
             }
         });
         
-        // Get article count with real-time updates
-        $.ajax({
-            type: 'GET',
-            url: 'http://localhost:5121/api/News/latest',
-            cache: false,
-            dataType: "json",
-            success: function(articlesResponse) {
-                var articleCount = articlesResponse && articlesResponse.length ? articlesResponse.length.toString() : '0';
-                document.getElementById('totalArticles').textContent = articleCount;
-                console.log('📊 Real-time article count updated:', articleCount);
-            },
-            error: function(xhr, status, error) {
-                document.getElementById('totalArticles').textContent = 'N/A';
-                console.error('❌ Failed to get article count:', error);
-            }
+        // Get article count using the same logic as news page
+        FeaturesDemo.fetchRealArticles().then(function(articles) {
+            var articleCount = articles && articles.length ? articles.length.toString() : '0';
+            document.getElementById('totalArticles').textContent = articleCount;
+            console.log('📊 Real-time article count updated:', articleCount);
+            
+            // Store articles for categories
+            FeaturesDemo.allArticlesData = articles;
+        }).catch(function(error) {
+            document.getElementById('totalArticles').textContent = 'N/A';
+            console.error('❌ Failed to get article count:', error);
         });
+    },
+
+    // Fetch real articles from NewsAPI (same as news page)
+    fetchRealArticles: async function() {
+        const API_KEY = '1c92222d21a84a7ab30168a35d967b22';
+        
+        // Try multiple endpoints to get ~100 articles
+        const endpoints = [
+            `https://newsapi.org/v2/everything?q=health&language=en&sortBy=publishedAt&pageSize=100&apiKey=${API_KEY}`,
+            `https://newsapi.org/v2/top-headlines?country=us&language=en&pageSize=100&apiKey=${API_KEY}`,
+            `https://newsapi.org/v2/everything?q=technology&language=en&sortBy=popularity&pageSize=50&apiKey=${API_KEY}`,
+            `https://newsapi.org/v2/everything?q=business&language=en&sortBy=popularity&pageSize=50&apiKey=${API_KEY}`
+        ];
+
+        let allArticles = [];
+        
+        for (let endpoint of endpoints) {
+            try {
+                console.log('🔍 Trying NewsAPI endpoint...');
+                const response = await $.ajax({
+                    url: endpoint,
+                    method: 'GET',
+                    dataType: 'json',
+                    timeout: 10000
+                });
+
+                if (response.status === 'ok' && response.articles) {
+                    const validArticles = response.articles.filter(article => 
+                        article.title && 
+                        article.title !== '[Removed]' && 
+                        article.description &&
+                        article.description !== '[Removed]' &&
+                        article.title.trim().length > 0
+                    );
+                    
+                    // Add to collection, avoiding duplicates
+                    validArticles.forEach(article => {
+                        const exists = allArticles.some(existing => existing.url === article.url);
+                        if (!exists) {
+                            allArticles.push(article);
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('❌ NewsAPI endpoint failed:', error);
+            }
+        }
+        
+        // Enrich articles with categories (same as news page)
+        const enrichedArticles = allArticles.map(article => {
+            return {
+                ...article,
+                category: FeaturesDemo.detectCategory(article),
+                source: article.source || { name: 'Unknown' }
+            };
+        });
+        
+        // Limit to 100 articles
+        return enrichedArticles.slice(0, 100);
+    },
+
+    // Detect article category (same as news page)
+    detectCategory: function(article) {
+        var text = ((article.title || '') + ' ' + (article.description || '') + ' ' + ((article.source && article.source.name) || '')).toLowerCase();
+        
+        if (text.includes('breaking') || text.includes('urgent')) return 'breaking';
+        if (text.includes('business') || text.includes('market') || text.includes('economy')) return 'business';
+        if (text.includes('technology') || text.includes('tech') || text.includes('ai')) return 'technology';
+        if (text.includes('health') || text.includes('medical')) return 'health';
+        if (text.includes('sports') || text.includes('football')) return 'sports';
+        if (text.includes('entertainment') || text.includes('celebrity')) return 'entertainment';
+        if (text.includes('science') || text.includes('research')) return 'science';
+        if (text.includes('politics') || text.includes('election')) return 'politics';
+        
+        return 'general';
     },
 
     // Real-time updates every 30 seconds
@@ -154,73 +225,62 @@ var FeaturesDemo = {
 
     loadCategories: function() {
         var categoriesList = document.getElementById('categoriesList');
-        categoriesList.innerHTML = '<div class="text-muted">Loading categories...</div>';
+        categoriesList.innerHTML = '<option value="">Loading categories...</option>';
         
-        console.log('🔍 Attempting to load categories from API...');
+        console.log('🔍 Loading categories from articles...');
         
-        $.ajax({
-            type: 'GET',
-            url: 'http://localhost:5121/api/News/latest',
-            cache: false,
-            dataType: "json",
-            success: function(response) {
-                console.log('✅ API Response received:', response);
-                
-                if (response && response.length > 0) {
-                    console.log('📊 Found', response.length, 'articles');
-                    
-                    var categories = [];
-                    var categorySet = {};
-                    
-                    // Extract unique categories
-                    for (var i = 0; i < response.length; i++) {
-                        var category = response[i].category || 'general';
-                        if (!categorySet[category]) {
-                            categorySet[category] = true;
-                            categories.push(category);
-                        }
-                    }
-                    
-                    console.log('🏷️ Unique categories found:', categories);
-                    
-                    // Count articles per category
-                    var categoryCounts = {};
-                    response.forEach(function(article) {
-                        var category = article.category || 'general';
-                        categoryCounts[category] = (categoryCounts[category] || 0) + 1;
-                    });
-                    
-                    console.log('📈 Category counts:', categoryCounts);
-                    
-                    // Display categories as list with counts
-                    var categoriesHtml = '';
-                    categories.forEach(function(category) {
-                        var count = categoryCounts[category] || 0;
-                        categoriesHtml += '<div class="mb-1">' + category + ' (' + count + ')</div>';
-                    });
-                    
-                    categoriesList.innerHTML = categoriesHtml || '<div class="text-muted">No categories found</div>';
-                } else {
-                    console.log('⚠️ No articles found in response');
-                    categoriesList.innerHTML = '<div class="text-muted">No categories found</div>';
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error('❌ API Error:', xhr.status, status, error);
-                console.error('❌ Response Text:', xhr.responseText);
-                
-                var errorMessage = 'Failed to load categories';
-                if (xhr.status === 0) {
-                    errorMessage = 'Server not running. Please start your C# server.';
-                } else if (xhr.status === 404) {
-                    errorMessage = 'API endpoint not found. Check server configuration.';
-                } else if (xhr.status === 500) {
-                    errorMessage = 'Server error. Check server logs.';
-                }
-                
-                categoriesList.innerHTML = '<div class="text-danger">' + errorMessage + '</div>';
-            }
-        });
+        // Use the same logic as news page
+        if (FeaturesDemo.allArticlesData && FeaturesDemo.allArticlesData.length > 0) {
+            console.log('📊 Found', FeaturesDemo.allArticlesData.length, 'articles');
+            
+            var categoriesWithCount = {};
+            FeaturesDemo.allArticlesData.forEach(article => {
+                const category = article.category || 'general';
+                categoriesWithCount[category] = (categoriesWithCount[category] || 0) + 1;
+            });
+            
+            console.log('🏷️ Categories with counts:', categoriesWithCount);
+            
+            // Display categories as select options (sorted by count)
+            var sortedCategories = Object.keys(categoriesWithCount).sort((a, b) => 
+                categoriesWithCount[b] - categoriesWithCount[a]
+            );
+            
+            var categoriesHtml = '<option value="">All Categories</option>';
+            sortedCategories.forEach(category => {
+                const count = categoriesWithCount[category];
+                const displayName = FeaturesDemo.formatCategoryName(category);
+                categoriesHtml += '<option value="' + category + '">' + displayName + ' (' + count + ')</option>';
+            });
+            
+            categoriesList.innerHTML = categoriesHtml || '<option value="">No categories found</option>';
+        } else {
+            console.log('⚠️ No articles available, fetching fresh data...');
+            
+            // Fetch fresh articles if not available
+            FeaturesDemo.fetchRealArticles().then(function(articles) {
+                FeaturesDemo.allArticlesData = articles;
+                FeaturesDemo.loadCategories(); // Recursive call with fresh data
+            }).catch(function(error) {
+                console.error('❌ Failed to fetch articles:', error);
+                categoriesList.innerHTML = '<option value="">Failed to load categories</option>';
+            });
+        }
+    },
+
+    // Format category name (same as news page)
+    formatCategoryName: function(category) {
+        const categoryMap = {
+            'general': 'General',
+            'technology': 'Technology',
+            'business': 'Business',
+            'health': 'Health',
+            'science': 'Science',
+            'sports': 'Sports',
+            'entertainment': 'Entertainment',
+            'politics': 'Politics'
+        };
+        return categoryMap[category] || category.charAt(0).toUpperCase() + category.slice(1);
     },
 
     // NOTIFICATION METHODS
