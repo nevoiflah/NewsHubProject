@@ -26,10 +26,10 @@ const InterestsManager = {
         InterestsManager.loadUserInterests();
         InterestsManager.loadFollowingStats();
         
-        // Refresh activity level every 30 seconds
+        // Refresh activity level every 15 seconds for more responsive updates
         setInterval(function() {
             InterestsManager.refreshActivityLevel();
-        }, 30000);
+        }, 15000);
     },
 
     // Refresh activity level from database
@@ -43,11 +43,62 @@ const InterestsManager = {
             cache: false,
             dataType: "json",
             success: function(userData) {
-                InterestsManager.updateUserAvatar(userData.activityLevel || 0);
-                InterestsManager.updateActivityProgress(userData.activityLevel || 0);
+                const newActivityLevel = userData.activityLevel || 0;
+                console.log('🔄 Refreshing activity level:', newActivityLevel);
+                
+                // Update interests page avatar and progress
+                InterestsManager.updateUserAvatar(newActivityLevel);
+                InterestsManager.updateActivityProgress(newActivityLevel);
+                
+                // Update all avatars using centralized system
+                if (window.updateAllAvatars) {
+                    window.updateAllAvatars(newActivityLevel);
+                }
+                
+                // Update localStorage with new activity level
+                const currentUser = JSON.parse(localStorage.getItem('userInfo') || '{}');
+                currentUser.activityLevel = newActivityLevel;
+                localStorage.setItem('userInfo', JSON.stringify(currentUser));
             },
             error: function(xhr, status, error) {
                 console.warn('Failed to refresh activity level:', error);
+                // Try to update with localStorage data as fallback
+                const currentUser = JSON.parse(localStorage.getItem('userInfo') || '{}');
+                if (currentUser.activityLevel !== undefined) {
+                    InterestsManager.updateUserAvatar(currentUser.activityLevel);
+                    InterestsManager.updateActivityProgress(currentUser.activityLevel);
+                    if (window.updateAllAvatars) {
+                        window.updateAllAvatars(currentUser.activityLevel);
+                    }
+                }
+            }
+        });
+    },
+
+    // Update navbar avatar after activity changes
+    updateNavbarAfterActivity: function() {
+        const userId = getUserIdFromStorage();
+        if (!userId) return;
+
+        // Fetch updated user data to get new activity level
+        $.ajax({
+            type: 'GET',
+            url: `http://localhost:5121/api/users/GetById/${userId}`,
+            cache: false,
+            dataType: "json",
+            success: function(userData) {
+                // Update localStorage with new activity level
+                const currentUser = JSON.parse(localStorage.getItem('userInfo') || '{}');
+                currentUser.activityLevel = userData.activityLevel || 0;
+                localStorage.setItem('userInfo', JSON.stringify(currentUser));
+                
+                // Update navbar if function exists
+                if (window.updateNavbarForUser) {
+                    window.updateNavbarForUser();
+                }
+            },
+            error: function(xhr, status, error) {
+                console.warn('Failed to update navbar after activity change:', error);
             }
         });
     },
@@ -218,32 +269,44 @@ const InterestsManager = {
 
     // Update user avatar based on activity level
     updateUserAvatar: function(activityLevel) {
-        let avatarSrc = '../assets/default-avatar.png';
-        let tierName = 'Member';
-        
-        if (activityLevel >= 50) {
-            avatarSrc = '../assets/avatar-legend.png';
-            tierName = 'Legend';
-        } else if (activityLevel >= 30) {
-            avatarSrc = '../assets/avatar-master.png';
-            tierName = 'Master';
-        } else if (activityLevel >= 20) {
-            avatarSrc = '../assets/avatar-expert.png';
-            tierName = 'Expert';
-        } else if (activityLevel >= 10) {
-            avatarSrc = '../assets/avatar-active.png';
-            tierName = 'Active';
-        } else if (activityLevel >= 5) {
-            avatarSrc = '../assets/avatar-reader.png';
-            tierName = 'Reader';
+        // Use centralized avatar system
+        if (window.getAvatarSource && window.getTierName) {
+            const avatarSrc = window.getAvatarSource(activityLevel);
+            const tierName = window.getTierName(activityLevel);
+            
+            $('#userAvatar').attr('src', avatarSrc);
+            $('#tierName').text(tierName);
+        } else {
+            // Fallback to local implementation
+            let avatarSrc = '../assets/default-avatar.png';
+            let tierName = 'Member';
+            
+            if (activityLevel >= 50) {
+                avatarSrc = '../assets/avatar-legend.png';
+                tierName = 'Legend';
+            } else if (activityLevel >= 30) {
+                avatarSrc = '../assets/avatar-master.png';
+                tierName = 'Master';
+            } else if (activityLevel >= 20) {
+                avatarSrc = '../assets/avatar-expert.png';
+                tierName = 'Expert';
+            } else if (activityLevel >= 10) {
+                avatarSrc = '../assets/avatar-active.png';
+                tierName = 'Active';
+            } else {
+                avatarSrc = '../assets/avatar-reader.png';
+                tierName = 'Reader';
+            }
+            
+            $('#userAvatar').attr('src', avatarSrc);
+            $('#tierName').text(tierName);
         }
-        
-        $('#userAvatar').attr('src', avatarSrc);
-        $('#tierName').text(tierName);
     },
 
-    // Update activity progress bar
+    // Update activity progress bar with more detailed information
     updateActivityProgress: function(activityLevel) {
+        console.log('📊 Updating activity progress:', activityLevel);
+        
         const currentLevel = Math.floor(activityLevel / 10);
         const nextLevel = currentLevel + 1;
         const pointsInCurrentLevel = activityLevel % 10;
@@ -257,6 +320,24 @@ const InterestsManager = {
             const pointsToNext = 10 - pointsInCurrentLevel;
             $('#activityText').text(`${activityLevel} points (${pointsToNext} to next level)`);
         }
+        
+        // Update the progress bar color based on level
+        const $progressBar = $('#activityBar');
+        $progressBar.removeClass('bg-primary bg-success bg-warning bg-info');
+        
+        if (activityLevel >= 50) {
+            $progressBar.addClass('bg-success'); // Legend - Green
+        } else if (activityLevel >= 30) {
+            $progressBar.addClass('bg-primary'); // Master - Blue
+        } else if (activityLevel >= 20) {
+            $progressBar.addClass('bg-info'); // Expert - Light Blue
+        } else if (activityLevel >= 10) {
+            $progressBar.addClass('bg-warning'); // Active - Yellow
+        } else {
+            $progressBar.addClass('bg-primary'); // Reader - Blue
+        }
+        
+        console.log('✅ Activity progress updated successfully');
     },
 
 

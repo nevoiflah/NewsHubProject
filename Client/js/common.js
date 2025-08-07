@@ -542,21 +542,8 @@ function updateNavbarForUser() {
             </a></li>`;
         }
         
-        // Get user avatar - use activity level to determine avatar
-        let avatarSrc = '../assets/default-avatar.png';
-        if (user.activityLevel !== undefined) {
-            if (user.activityLevel >= 50) {
-                avatarSrc = '../assets/avatar-legend.png';
-            } else if (user.activityLevel >= 30) {
-                avatarSrc = '../assets/avatar-master.png';
-            } else if (user.activityLevel >= 20) {
-                avatarSrc = '../assets/avatar-expert.png';
-            } else if (user.activityLevel >= 10) {
-                avatarSrc = '../assets/avatar-active.png';
-            } else {
-                avatarSrc = '../assets/avatar-reader.png';
-            }
-        }
+        // Get avatar using centralized function
+        const avatarSrc = getAvatarSource(user.activityLevel);
         
         $authNav.html(`
             <li class="nav-item dropdown">
@@ -589,6 +576,56 @@ function updateNavbarForUser() {
             </li>
         `);
     }
+}
+
+// Fallback function to update navbar with localStorage data
+function updateNavbarWithLocalData(user) {
+    const $authNav = $('#authNav');
+    let adminLink = '';
+    
+    if (user.isAdmin) {
+        adminLink = `<li><a class="dropdown-item" href="${window.getPageUrl('admin.html')}">
+            <i class="fas fa-cog me-2"></i>Admin Dashboard
+        </a></li>`;
+    }
+    
+    // Get user avatar - use activity level to determine avatar
+    let avatarSrc = '../assets/default-avatar.png';
+    if (user.activityLevel !== undefined) {
+        if (user.activityLevel >= 50) {
+            avatarSrc = '../assets/avatar-legend.png';
+        } else if (user.activityLevel >= 30) {
+            avatarSrc = '../assets/avatar-master.png';
+        } else if (user.activityLevel >= 20) {
+            avatarSrc = '../assets/avatar-expert.png';
+        } else if (user.activityLevel >= 10) {
+            avatarSrc = '../assets/avatar-active.png';
+        } else {
+            avatarSrc = '../assets/avatar-reader.png';
+        }
+    }
+    
+    $authNav.html(`
+        <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
+                <img src="${avatarSrc}" alt="User Avatar" class="rounded-circle me-2" style="width: 32px; height: 32px; object-fit: cover;">
+                <span>${user.username || 'User'}</span>
+            </a>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="${window.getPageUrl('saved.html')}">
+                    <i class="fas fa-bookmark me-2"></i>Saved Articles
+                </a></li>
+                <li><a class="dropdown-item" href="${window.getPageUrl('interests.html')}">
+                    <i class="fas fa-heart me-2"></i>My Interests
+                </a></li>
+                <li><hr class="dropdown-divider"></li>
+                ${adminLink}
+                <li><a class="dropdown-item" href="#" onclick="window.Auth.logout()">
+                    <i class="fas fa-sign-out-alt me-2"></i>Logout
+                </a></li>
+            </ul>
+        </li>
+    `);
 }
 
 // ============================================================================
@@ -920,6 +957,151 @@ window.openCommunityShareModal = function(article) {
     const modal = new bootstrap.Modal(document.getElementById('shareModal'));
     modal.show();
 };
+
+// ============================================================================
+// CENTRALIZED AVATAR MANAGEMENT SYSTEM
+// ============================================================================
+
+// Centralized function to get avatar source based on activity level
+function getAvatarSource(activityLevel) {
+    let avatarSrc = '../assets/default-avatar.png';
+    
+    if (activityLevel !== undefined) {
+        if (activityLevel >= 50) {
+            avatarSrc = '../assets/avatar-legend.png';
+        } else if (activityLevel >= 30) {
+            avatarSrc = '../assets/avatar-master.png';
+        } else if (activityLevel >= 20) {
+            avatarSrc = '../assets/avatar-expert.png';
+        } else if (activityLevel >= 10) {
+            avatarSrc = '../assets/avatar-active.png';
+        } else {
+            avatarSrc = '../assets/avatar-reader.png';
+        }
+    }
+    
+    return avatarSrc;
+}
+
+// Centralized function to get tier name based on activity level
+function getTierName(activityLevel) {
+    if (activityLevel >= 50) {
+        return 'Legend';
+    } else if (activityLevel >= 30) {
+        return 'Master';
+    } else if (activityLevel >= 20) {
+        return 'Expert';
+    } else if (activityLevel >= 10) {
+        return 'Active';
+    } else {
+        return 'Reader';
+    }
+}
+
+// Centralized function to update all avatars on the page
+function updateAllAvatars(activityLevel) {
+    const avatarSrc = getAvatarSource(activityLevel);
+    
+    // Update navbar avatar
+    const $navbarAvatar = $('#authNav img[alt="User Avatar"]');
+    if ($navbarAvatar.length) {
+        $navbarAvatar.attr('src', avatarSrc);
+    }
+    
+    // Update interests page avatar
+    const $interestsAvatar = $('#userAvatar');
+    if ($interestsAvatar.length) {
+        $interestsAvatar.attr('src', avatarSrc);
+    }
+    
+    // Update tier name in interests page
+    const $tierName = $('#tierName');
+    if ($tierName.length) {
+        $tierName.text(getTierName(activityLevel));
+    }
+    
+    // Update shared articles avatars (if on shared page)
+    const $sharedAvatars = $('.card img[alt="User Avatar"]');
+    if ($sharedAvatars.length) {
+        $sharedAvatars.attr('src', avatarSrc);
+    }
+    
+    console.log('🔄 All avatars updated to:', avatarSrc);
+}
+
+// Centralized function to refresh user data and update all avatars
+function refreshUserDataAndAvatars() {
+    if (!window.Auth || !window.Auth.isLoggedIn()) return;
+    
+    const user = window.Auth.getCurrentUser();
+    if (!user || !user.id) return;
+    
+    $.ajax({
+        type: 'GET',
+        url: `http://localhost:5121/api/users/GetById/${user.id}`,
+        cache: false,
+        dataType: "json",
+        success: function(userData) {
+            const newActivityLevel = userData.activityLevel || 0;
+            console.log('🔄 Refreshing user data, activity level:', newActivityLevel);
+            
+            // Update localStorage with fresh data
+            const updatedUser = {
+                ...user,
+                activityLevel: newActivityLevel
+            };
+            localStorage.setItem('userInfo', JSON.stringify(updatedUser));
+            
+            // Update all avatars on the page
+            updateAllAvatars(newActivityLevel);
+            
+            // Update progress meter if on interests page
+            if (window.InterestsManager && window.InterestsManager.updateActivityProgress) {
+                window.InterestsManager.updateActivityProgress(newActivityLevel);
+            }
+            
+            // Update navbar if function exists
+            if (window.updateNavbarForUser) {
+                window.updateNavbarForUser();
+            }
+        },
+        error: function(xhr, status, error) {
+            console.warn('Failed to refresh user data:', error);
+            // Fallback to localStorage data
+            const currentUser = JSON.parse(localStorage.getItem('userInfo') || '{}');
+            if (currentUser.activityLevel !== undefined) {
+                updateAllAvatars(currentUser.activityLevel);
+            }
+        }
+    });
+}
+
+// Set up periodic avatar synchronization
+function setupAvatarSynchronization() {
+    // Refresh avatars every 30 seconds to keep them synchronized
+    setInterval(function() {
+        if (window.Auth && window.Auth.isLoggedIn()) {
+            refreshUserDataAndAvatars();
+        }
+    }, 30000);
+    
+    console.log('🔄 Avatar synchronization setup complete');
+}
+
+// Initialize avatar synchronization when the page loads
+$(document).ready(function() {
+    setupAvatarSynchronization();
+});
+
+// Manual trigger for avatar updates after user actions
+function triggerAvatarUpdate() {
+    if (window.Auth && window.Auth.isLoggedIn()) {
+        // Small delay to ensure backend has processed the action
+        setTimeout(function() {
+            refreshUserDataAndAvatars();
+        }, 1000);
+    }
+}
 
 // ============================================================================
 // GLOBAL EXPORTS

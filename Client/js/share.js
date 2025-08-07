@@ -186,7 +186,13 @@ const ShareManager = {
                             type: 'POST',
                             url: `http://localhost:5121/api/users/activity/${userId}`,
                             cache: false,
-                            dataType: "json"
+                            dataType: "json",
+                            success: function() {
+                                // Trigger avatar update after activity change
+                                if (window.triggerAvatarUpdate) {
+                                    window.triggerAvatarUpdate();
+                                }
+                            }
                         });
                     }
                     
@@ -333,7 +339,13 @@ const ShareManager = {
                             type: 'POST',
                             url: `http://localhost:5121/api/users/activity/${userId}`,
                             cache: false,
-                            dataType: "json"
+                            dataType: "json",
+                            success: function() {
+                                // Trigger avatar update after activity change
+                                if (window.triggerAvatarUpdate) {
+                                    window.triggerAvatarUpdate();
+                                }
+                            }
                         });
                     }
                     // Refresh the page after successful like/unlike
@@ -510,7 +522,13 @@ const ShareManager = {
                             type: 'POST',
                             url: `http://localhost:5121/api/users/activity/${userId}`,
                             cache: false,
-                            dataType: "json"
+                            dataType: "json",
+                            success: function() {
+                                // Trigger avatar update after activity change
+                                if (window.triggerAvatarUpdate) {
+                                    window.triggerAvatarUpdate();
+                                }
+                            }
                         });
                     }
                     
@@ -877,17 +895,22 @@ const ShareManager = {
             
             // Get user avatar based on activity level
             let avatarSrc = '../assets/default-avatar.png';
-            if (item.activityLevel !== undefined) {
-                if (item.activityLevel >= 50) {
-                    avatarSrc = '../assets/avatar-legend.png';
-                } else if (item.activityLevel >= 30) {
-                    avatarSrc = '../assets/avatar-master.png';
-                } else if (item.activityLevel >= 20) {
-                    avatarSrc = '../assets/avatar-expert.png';
-                } else if (item.activityLevel >= 10) {
-                    avatarSrc = '../assets/avatar-active.png';
-                } else {
-                    avatarSrc = '../assets/avatar-reader.png';
+            if (window.getAvatarSource) {
+                avatarSrc = window.getAvatarSource(item.activityLevel);
+            } else {
+                // Fallback to local implementation
+                if (item.activityLevel !== undefined) {
+                    if (item.activityLevel >= 50) {
+                        avatarSrc = '../assets/avatar-legend.png';
+                    } else if (item.activityLevel >= 30) {
+                        avatarSrc = '../assets/avatar-master.png';
+                    } else if (item.activityLevel >= 20) {
+                        avatarSrc = '../assets/avatar-expert.png';
+                    } else if (item.activityLevel >= 10) {
+                        avatarSrc = '../assets/avatar-active.png';
+                    } else {
+                        avatarSrc = '../assets/avatar-reader.png';
+                    }
                 }
             }
             
@@ -1217,6 +1240,34 @@ const ShareManager = {
         } catch (error) {
             return 'Invalid date';
         }
+    },
+
+    // Update navbar avatar after activity changes
+    updateNavbarAfterActivity: function() {
+        const userId = localStorage.getItem('userId');
+        if (!userId) return;
+
+        // Fetch updated user data to get new activity level
+        $.ajax({
+            type: 'GET',
+            url: `http://localhost:5121/api/users/GetById/${userId}`,
+            cache: false,
+            dataType: "json",
+            success: function(userData) {
+                // Update localStorage with new activity level
+                const currentUser = JSON.parse(localStorage.getItem('userInfo') || '{}');
+                currentUser.activityLevel = userData.activityLevel || 0;
+                localStorage.setItem('userInfo', JSON.stringify(currentUser));
+                
+                // Update all avatars using centralized system
+                if (window.updateAllAvatars) {
+                    window.updateAllAvatars(userData.activityLevel || 0);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.warn('Failed to update navbar after activity change:', error);
+            }
+        });
     }
 };
 

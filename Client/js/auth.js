@@ -80,7 +80,8 @@ const Auth = {
                             id: response.user.id,
                             username: response.user.username,
                             email: response.user.email,
-                            isAdmin: response.user.isAdmin === true || response.user.isAdmin === 1 || response.user.isAdmin === "true"
+                            isAdmin: response.user.isAdmin === true || response.user.isAdmin === 1 || response.user.isAdmin === "true",
+                            activityLevel: response.user.activityLevel || 0
                         }));
 
                         // Store userId directly for backward compatibility
