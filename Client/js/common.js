@@ -1002,31 +1002,41 @@ function getTierName(activityLevel) {
 function updateAllAvatars(activityLevel) {
     const avatarSrc = getAvatarSource(activityLevel);
     
-    // Update navbar avatar
+    // Update navbar avatar (current user)
     const $navbarAvatar = $('#authNav img[alt="User Avatar"]');
     if ($navbarAvatar.length) {
         $navbarAvatar.attr('src', avatarSrc);
     }
     
-    // Update interests page avatar
+    // Update interests page avatar (current user)
     const $interestsAvatar = $('#userAvatar');
     if ($interestsAvatar.length) {
         $interestsAvatar.attr('src', avatarSrc);
     }
     
-    // Update tier name in interests page
+    // Update tier name in interests page (current user)
     const $tierName = $('#tierName');
     if ($tierName.length) {
         $tierName.text(getTierName(activityLevel));
     }
     
-    // Update shared articles avatars (if on shared page)
-    const $sharedAvatars = $('.card img[alt="User Avatar"]');
-    if ($sharedAvatars.length) {
-        $sharedAvatars.attr('src', avatarSrc);
+    // Note: Shared articles avatars are updated individually based on each user's activity level
+    // They are handled in the displaySharedContent function in share.js
+    
+    console.log('🔄 Current user avatars updated to:', avatarSrc);
+}
+
+// Function to update avatar for a specific user (for shared articles)
+function updateUserAvatar(userId, activityLevel) {
+    const avatarSrc = getAvatarSource(activityLevel);
+    
+    // Update avatar for specific user in shared articles
+    const $userAvatar = $(`.card[data-user-id="${userId}"] img[alt="User Avatar"]`);
+    if ($userAvatar.length) {
+        $userAvatar.attr('src', avatarSrc);
     }
     
-    console.log('🔄 All avatars updated to:', avatarSrc);
+    console.log(`🔄 Avatar updated for user ${userId} to:`, avatarSrc);
 }
 
 // Centralized function to refresh user data and update all avatars

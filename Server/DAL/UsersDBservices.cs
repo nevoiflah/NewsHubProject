@@ -296,8 +296,8 @@ namespace Server.DAL
                 con = connect("myProjDB");
                 Dictionary<string, object> paramDic = new Dictionary<string, object>
                 {
-                    { "@Id", id },
-                    { "@LastLoginDate", DateTime.UtcNow }
+                    { "@UserId", id },
+                    { "@LoginTime", DateTime.UtcNow }
                 };
 
                 SqlCommand cmd = CreateCommandWithStoredProcedureGeneral("NLM_NewsHub_UpdateLastLogin", con, paramDic);

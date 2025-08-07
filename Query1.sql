@@ -243,6 +243,28 @@ END
 GO
 
 -- ================================================
+-- FCM TOKENS TABLE
+-- ================================================
+
+-- Create FCM Tokens table
+CREATE OR ALTER TABLE NLM_NewsHub_FCMTokens (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    UserId INT NOT NULL,
+    Token NVARCHAR(500) NOT NULL,
+    DeviceType NVARCHAR(50) DEFAULT 'web',
+    UserAgent NVARCHAR(500) NULL,
+    CreatedAt DATETIME2 DEFAULT GETDATE(),
+    LastUsedAt DATETIME2 DEFAULT GETDATE(),
+    IsActive BIT DEFAULT 1,
+    FOREIGN KEY (UserId) REFERENCES NLM_NewsHub_Users(Id) ON DELETE CASCADE
+);
+
+-- Create index for faster lookups
+CREATE INDEX IX_FCMTokens_UserId ON NLM_NewsHub_FCMTokens(UserId);
+CREATE INDEX IX_FCMTokens_Token ON NLM_NewsHub_FCMTokens(Token);
+CREATE INDEX IX_FCMTokens_Active ON NLM_NewsHub_FCMTokens(IsActive);
+
+-- ================================================
 -- FCM TOKEN MANAGEMENT STORED PROCEDURES
 -- ================================================
 
@@ -287,24 +309,33 @@ AS
 BEGIN
     SET NOCOUNT ON;
     
-    SELECT Token
+    SELECT Token, DeviceType, UserAgent, LastUsedAt
     FROM NLM_NewsHub_FCMTokens
-    WHERE UserId = @UserId 
-      AND IsActive = 1
-      AND LastUsedAt > DATEADD(DAY, -30, GETDATE());
+    WHERE UserId = @UserId AND IsActive = 1
+    ORDER BY LastUsedAt DESC;
 END
 GO
 
--- Deactivate FCM Token
-CREATE OR ALTER PROCEDURE NLM_NewsHub_DeactivateFCMToken
-    @Token NVARCHAR(500)
+-- Deactivate User FCM Tokens
+CREATE OR ALTER PROCEDURE NLM_NewsHub_DeactivateUserFCMTokens
+    @UserId INT,
+    @DeviceType NVARCHAR(50) = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
     
-    UPDATE NLM_NewsHub_FCMTokens 
-    SET IsActive = 0 
-    WHERE Token = @Token;
+    IF @DeviceType IS NULL
+    BEGIN
+        UPDATE NLM_NewsHub_FCMTokens 
+        SET IsActive = 0 
+        WHERE UserId = @UserId;
+    END
+    ELSE
+    BEGIN
+        UPDATE NLM_NewsHub_FCMTokens 
+        SET IsActive = 0 
+        WHERE UserId = @UserId AND DeviceType = @DeviceType;
+    END
 END
 GO
 

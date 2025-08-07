@@ -101,7 +101,7 @@ namespace Server.Controllers
         // Like/Unlike endpoints
         [HttpPost("{articleId}/like")]
         [HttpDelete("{articleId}/like")]
-        public IActionResult LikeArticle(int articleId, [FromQuery] int userId)
+        public async Task<IActionResult> LikeArticle(int articleId, [FromQuery] int userId)
         {
             try
             {
@@ -110,11 +110,33 @@ namespace Server.Controllers
                     return BadRequest(new { success = false, message = "Invalid user ID" });
                 }
 
+                // Get article details for notification
+                var article = SharedArticle.GetSharedArticleById(articleId);
+                if (article == null)
+                {
+                    return NotFound(new { success = false, message = "Article not found" });
+                }
+
                 // The procedure handles both like and unlike logic
                 bool success = SharedArticle.LikeSharedArticle(articleId, userId);
                 
                 if (success)
                 {
+                    // Send notification to article owner (if not the same user)
+                    if (article.UserId != userId)
+                    {
+                        var liker = Users.GetUserById(userId);
+                        if (liker != null)
+                        {
+                            await Server.BL.NotificationService.SendLikeNotification(
+                                article.UserId, 
+                                userId, 
+                                liker.Username, 
+                                article.ArticleTitle ?? "Your article"
+                            );
+                        }
+                    }
+                    
                     return Ok(new { success = true, message = "Like added successfully" });
                 }
                 else
@@ -150,7 +172,7 @@ namespace Server.Controllers
         }
 
         [HttpPost("{articleId}/comments")]
-        public IActionResult AddComment(int articleId, [FromBody] AddCommentRequest request, [FromQuery] int userId)
+        public async Task<IActionResult> AddComment(int articleId, [FromBody] AddCommentRequest request, [FromQuery] int userId)
         {
             try
             {
@@ -166,6 +188,22 @@ namespace Server.Controllers
                 int commentId = SharedArticleComment.CreateComment(comment);
                 if (commentId > 0)
                 {
+                    // Send notification to article owner (if not the same user)
+                    var article = SharedArticle.GetSharedArticleById(articleId);
+                    if (article != null && article.UserId != userId)
+                    {
+                        var commenter = Users.GetUserById(userId);
+                        if (commenter != null)
+                        {
+                            await Server.BL.NotificationService.SendCommentNotification(
+                                article.UserId,
+                                userId,
+                                commenter.Username,
+                                article.ArticleTitle ?? "Your article"
+                            );
+                        }
+                    }
+                    
                     return Ok(new { success = true, commentId = commentId, message = "Comment added successfully" });
                 }
                 return BadRequest(new { success = false, message = "Failed to add comment" });

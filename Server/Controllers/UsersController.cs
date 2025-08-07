@@ -465,13 +465,24 @@ namespace Server.Controllers
         }
 
         [HttpPost("{targetUserId}/follow")]
-        public IActionResult FollowUser(int targetUserId, [FromQuery] int userId)
+        public async Task<IActionResult> FollowUser(int targetUserId, [FromQuery] int userId)
         {
             try
             {
                 bool success = UserFollow.FollowUser(userId, targetUserId);
                 if (success)
                 {
+                    // Send notification to the user being followed
+                    var follower = Users.GetUserById(userId);
+                    if (follower != null)
+                    {
+                        await Server.BL.NotificationService.SendFollowNotification(
+                            targetUserId,
+                            userId,
+                            follower.Username
+                        );
+                    }
+                    
                     return Ok(new { success = true, message = "User followed successfully" });
                 }
                 return BadRequest(new { success = false, message = "Failed to follow user" });
