@@ -35,6 +35,9 @@
                         <a href="#users" class="list-group-item list-group-item-action" data-section="users">
                             <i class="fas fa-users me-2"></i>User Management
                         </a>
+                        <a href="#shared-articles" class="list-group-item list-group-item-action" data-section="shared-articles">
+                            <i class="fas fa-share-alt me-2"></i>Shared Articles
+                        </a>
                         <a href="#reports" class="list-group-item list-group-item-action" data-section="reports">
                             <i class="fas fa-flag me-2"></i>Reports
                         </a>
@@ -68,10 +71,10 @@
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between">
                                         <div>
-                                            <h6>Daily Logins</h6>
-                                            <h4 id="dailyLogins">0</h4>
+                                            <h6>Active Users</h6>
+                                            <h4 id="activeUsers">0</h4>
                                         </div>
-                                        <i class="fas fa-sign-in-alt fa-2x"></i>
+                                        <i class="fas fa-user-check fa-2x"></i>
                                     </div>
                                 </div>
                             </div>
@@ -81,10 +84,10 @@
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between">
                                         <div>
-                                            <h6>News Fetched</h6>
-                                            <h4 id="newsFetched">0</h4>
+                                            <h6>Shared Articles</h6>
+                                            <h4 id="sharedArticles">0</h4>
                                         </div>
-                                        <i class="fas fa-newspaper fa-2x"></i>
+                                        <i class="fas fa-share-alt fa-2x"></i>
                                     </div>
                                 </div>
                             </div>
@@ -94,10 +97,10 @@
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between">
                                         <div>
-                                            <h6>Articles Saved</h6>
-                                            <h4 id="articlesSaved">0</h4>
+                                            <h6>Pending Reports</h6>
+                                            <h4 id="pendingReports">0</h4>
                                         </div>
-                                        <i class="fas fa-bookmark fa-2x"></i>
+                                        <i class="fas fa-exclamation-triangle fa-2x"></i>
                                     </div>
                                 </div>
                             </div>
@@ -122,21 +125,24 @@
                     <!-- Bulk Operations Panel -->
                     <div class="row mb-3">
                         <div class="col-12">
-                            <div id="bulkOperations" class="alert alert-info" style="display: none;">
+                            <div id="bulkOperationsPanel" class="alert alert-info" style="display: none;">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div>
                                         <i class="fas fa-users me-2"></i>
-                                        <strong><span id="selectedCount">0</span> users selected</strong>
+                                        <strong><span id="selectedUsersCount">0</span> users selected</strong>
                                     </div>
                                     <div class="btn-group" role="group">
-                                        <button id="bulkLockBtn" class="btn btn-warning btn-sm" onclick="AdminManager.bulkLockUsers()">
+                                        <button id="bulkLockBtn" class="btn btn-warning btn-sm" onclick="AdminManager.performBulkOperation('lock')">
                                             <i class="fas fa-lock me-1"></i>Lock
                                         </button>
-                                        <button id="bulkUnlockBtn" class="btn btn-success btn-sm" onclick="AdminManager.bulkUnlockUsers()">
+                                        <button id="bulkUnlockBtn" class="btn btn-success btn-sm" onclick="AdminManager.performBulkOperation('unlock')">
                                             <i class="fas fa-unlock me-1"></i>Unlock
                                         </button>
-                                        <button id="bulkDeleteBtn" class="btn btn-danger btn-sm" onclick="AdminManager.bulkDeleteUsers()">
+                                        <button id="bulkDeleteBtn" class="btn btn-danger btn-sm" onclick="AdminManager.performBulkOperation('delete')">
                                             <i class="fas fa-trash me-1"></i>Delete
+                                        </button>
+                                        <button class="btn btn-secondary btn-sm" onclick="AdminManager.clearSelection()">
+                                            <i class="fas fa-times me-1"></i>Clear
                                         </button>
                                     </div>
                                 </div>
@@ -150,7 +156,7 @@
                                 <tr>
                                     <th style="width: 50px;">
                                         <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" id="selectAllUsers" onchange="AdminManager.selectAllUsers()">
+                                            <input class="form-check-input" type="checkbox" id="selectAllUsers" onchange="AdminManager.selectAllUsers(this.checked)">
                                             <label class="form-check-label" for="selectAllUsers" title="Select All Users"></label>
                                         </div>
                                     </th>
@@ -174,21 +180,40 @@
                             </tbody>
                         </table>
                     </div>
+                </div>
+
+                <!-- Shared Articles Section -->
+                <div id="shared-articles" class="admin-section" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2>Shared Articles Management</h2>
+                        <button class="btn btn-outline-primary" onclick="AdminManager.loadSharedArticles()">
+                            <i class="fas fa-refresh me-1"></i>Refresh Articles
+                        </button>
+                    </div>
                     
-                    <!-- Additional Info -->
-                    <div class="row mt-3">
-                        <div class="col-md-6">
-                            <div class="text-muted small">
-                                <i class="fas fa-info-circle me-1"></i>
-                                <strong>Tip:</strong> Select multiple users using checkboxes for bulk operations
-                            </div>
-                        </div>
-                        <div class="col-md-6 text-end">
-                            <div class="text-muted small">
-                                <i class="fas fa-users me-1"></i>
-                                User management with bulk operations
-                            </div>
-                        </div>
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Title</th>
+                                    <th>Shared By</th>
+                                    <th>Comments</th>
+                                    <th>Share Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sharedArticlesTable">
+                                <tr>
+                                    <td colspan="6" class="text-center py-4">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Loading shared articles...</span>
+                                        </div>
+                                        <p class="mt-2 mb-0 text-muted">Loading shared articles...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
@@ -200,14 +225,30 @@
                             <i class="fas fa-refresh me-1"></i>Refresh Reports
                         </button>
                     </div>
-                    <div id="reportsContainer">
-                        <!-- Reports will be loaded here -->
-                        <div class="text-center py-4">
-                            <div class="spinner-border text-primary" role="status">
-                                <span class="visually-hidden">Loading reports...</span>
-                            </div>
-                            <p class="mt-2 mb-0 text-muted">Loading reports...</p>
-                        </div>
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Reporter</th>
+                                    <th>Content Type</th>
+                                    <th>Reason</th>
+                                    <th>Report Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reportsTable">
+                                <tr>
+                                    <td colspan="7" class="text-center py-4">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Loading reports...</span>
+                                        </div>
+                                        <p class="mt-2 mb-0 text-muted">Loading reports...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
@@ -252,25 +293,26 @@
                         <div class="col-12">
                             <div class="card">
                                 <div class="card-header">
-                                    <h6 class="mb-0">Backend Endpoints Needed for Full Analytics</h6>
+                                    <h6 class="mb-0">Backend Endpoints Status</h6>
                                 </div>
                                 <div class="card-body">
                                     <div class="row">
                                         <div class="col-md-6">
-                                            <h6>Current Available:</h6>
+                                            <h6>Currently Available:</h6>
                                             <ul class="small">
-                                                <li><code>GET /Admin/stats</code> - Basic system stats</li>
-                                                <li><code>GET /Admin/users</code> - User list</li>
-                                                <li><code>GET /Reports</code> - Content reports</li>
+                                                <li><code>GET /api/Admin/stats</code> - Basic system stats</li>
+                                                <li><code>GET /api/Admin/users</code> - User list</li>
+                                                <li><code>GET /api/Reports</code> - Content reports</li>
+                                                <li><code>GET /api/shared</code> - Shared articles</li>
                                             </ul>
                                         </div>
                                         <div class="col-md-6">
-                                            <h6>Needed for Analytics:</h6>
+                                            <h6>Needed for Full Analytics:</h6>
                                             <ul class="small">
-                                                <li><code>GET /Admin/analytics/logins</code> - Login trends</li>
-                                                <li><code>GET /Admin/analytics/activity</code> - User activity</li>
-                                                <li><code>GET /Admin/analytics/content</code> - Content stats</li>
-                                                <li><code>GET /Admin/analytics/performance</code> - System metrics</li>
+                                                <li><code>GET /api/Admin/analytics/logins</code> - Login trends</li>
+                                                <li><code>GET /api/Admin/analytics/activity</code> - User activity</li>
+                                                <li><code>GET /api/Admin/analytics/content</code> - Content stats</li>
+                                                <li><code>GET /api/Admin/analytics/performance</code> - System metrics</li>
                                             </ul>
                                         </div>
                                     </div>
@@ -278,6 +320,28 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Comments Modal for Shared Articles -->
+    <div class="modal fade" id="commentsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-comments me-2"></i>Article Comments
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="commentsContainer">
+                        <!-- Comments will be loaded here -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>

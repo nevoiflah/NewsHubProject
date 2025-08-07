@@ -76,5 +76,31 @@ namespace Server.Controllers
                 return StatusCode(500, "Error: " + ex.Message);
             }
         }
+
+        [HttpGet("analytics/logins")]
+        public IActionResult GetLoginAnalytics()
+        {
+            // Example: logins per day for the last 7 days
+            var labels = new List<string>();
+            var values = new List<int>();
+            for (int i = 6; i >= 0; i--)
+            {
+                var day = DateTime.Now.AddDays(-i);
+                labels.Add(day.ToString("ddd"));
+                // TODO: Replace with real data from DB
+                values.Add(new Random().Next(5, 25));
+            }
+            return Ok(new { labels, values });
+        }
+
+        [HttpGet("analytics/activity")]
+        public IActionResult GetUserActivityAnalytics()
+        {
+            // Example: user activity distribution
+            // TODO: Replace with real data from DB
+            var labels = new List<string> { "Active Users", "Locked Users", "New Users" };
+            var values = new List<int> { 65, 10, 25 };
+            return Ok(new { labels, values });
+        }
     }
 }
