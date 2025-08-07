@@ -131,63 +131,51 @@
                 },
 
                 // Update profile method 
-               updateProfile: async (userId, profileData) => {
-    return new Promise((resolve) => {
-        // יצירת אובייקט Users מלא עם רק השדות שרוצים לעדכן
-        const updateData = {
-            username: profileData.username || "",
-            email: profileData.email || "",
-            firstName: profileData.firstName || "",
-            lastName: profileData.lastName || "",
-            passwordHash: profileData.passwordHash || "",
-            // שאר השדות יישארו ריקים - לא יתעדכנו
-            notifyOnLikes: profileData.notifyOnLikes !== undefined ? profileData.notifyOnLikes : true,
-            notifyOnComments: profileData.notifyOnComments !== undefined ? profileData.notifyOnComments : true,
-            notifyOnFollow: profileData.notifyOnFollow !== undefined ? profileData.notifyOnFollow : true,
-            notifyOnShare: profileData.notifyOnShare !== undefined ? profileData.notifyOnShare : true
-        };
+                updateProfile: async (profileData) => {
+                    return new Promise((resolve) => {
+                        const user = window.Auth.getCurrentUser();
+                        if (!user || !user.id) {
+                            resolve({ success: false, error: 'User not found' });
+                            return;
+                        }
 
-        $.ajax({
-            type: 'PUT',
-            url: `${API_CONFIG.baseUrl}/Users/Update/${userId}`, // הוספת userId ל-URL
-            data: JSON.stringify(updateData),
-            cache: false,
-            contentType: "application/json",
-            dataType: "text", // שינוי מ-json ל-text כי הסרבר מחזיר string
-            timeout: API_CONFIG.timeout,
-            success: function(response) {
-                // הסרבר מחזיר "User updated successfully." או "User not found."
-                if (response && response.includes("successfully")) {
-                    // Update local storage
-                    const currentUser = JSON.parse(localStorage.getItem('userInfo') || '{}');
-                    if (profileData.username) currentUser.username = profileData.username;
-                    if (profileData.email) currentUser.email = profileData.email;
-                    if (profileData.firstName) currentUser.firstName = profileData.firstName;
-                    if (profileData.lastName) currentUser.lastName = profileData.lastName;
-                    localStorage.setItem('userInfo', JSON.stringify(currentUser));
-                    
-                    resolve({ success: true, message: 'Profile updated successfully' });
-                } else {
-                    resolve({ success: false, error: response || 'Profile update failed' });
-                }
-            },
-            error: function(xhr, status, error) {
-                if (xhr.status === 401) {
-                    window.Auth.logout();
-                    return;
-                }
-                let errorMessage = 'Profile update failed';
-                try {
-                    // הסרבר עשוי להחזיר string בשגיאה גם
-                    errorMessage = xhr.responseText || errorMessage;
-                } catch (e) {
-                    // Use default error message
-                }
-                resolve({ success: false, error: errorMessage });
-            }
-        });
-    });
-},
+                        $.ajax({
+                            type: 'PUT',
+                            url: `${API_CONFIG.baseUrl}/Users/Update/${user.id}`,
+                            data: JSON.stringify(profileData),
+                            cache: false,
+                            contentType: "application/json",
+                            dataType: "json",
+                            timeout: API_CONFIG.timeout,
+                            success: function(response) {
+                                if (response && response.success) {
+                                    // Update local storage
+                                    const currentUser = JSON.parse(localStorage.getItem('userInfo') || '{}');
+                                    currentUser.username = profileData.Username || profileData.username;
+                                    currentUser.email = profileData.Email || profileData.email;
+                                    localStorage.setItem('userInfo', JSON.stringify(currentUser));
+                                    resolve({ success: true, message: 'Profile updated successfully' });
+                                } else {
+                                    resolve({ success: false, error: 'Profile update failed' });
+                                }
+                            },
+                            error: function(xhr, status, error) {
+                                if (xhr.status === 401) {
+                                    window.Auth.logout();
+                                    return;
+                                }
+                                let errorMessage = 'Profile update failed';
+                                try {
+                                    const errorResponse = JSON.parse(xhr.responseText);
+                                    errorMessage = errorResponse.message || errorResponse.error || errorMessage;
+                                } catch (e) {
+                                    // Use default error message
+                                }
+                                resolve({ success: false, error: errorMessage });
+                            }
+                        });
+                    });
+                },
 
                 // Check if user is admin
                 isAdmin: () => {
@@ -1020,31 +1008,41 @@ function getTierName(activityLevel) {
 function updateAllAvatars(activityLevel) {
     const avatarSrc = getAvatarSource(activityLevel);
     
-    // Update navbar avatar
+    // Update navbar avatar (current user)
     const $navbarAvatar = $('#authNav img[alt="User Avatar"]');
     if ($navbarAvatar.length) {
         $navbarAvatar.attr('src', avatarSrc);
     }
     
-    // Update interests page avatar
+    // Update interests page avatar (current user)
     const $interestsAvatar = $('#userAvatar');
     if ($interestsAvatar.length) {
         $interestsAvatar.attr('src', avatarSrc);
     }
     
-    // Update tier name in interests page
+    // Update tier name in interests page (current user)
     const $tierName = $('#tierName');
     if ($tierName.length) {
         $tierName.text(getTierName(activityLevel));
     }
     
-    // Update shared articles avatars (if on shared page)
-    const $sharedAvatars = $('.card img[alt="User Avatar"]');
-    if ($sharedAvatars.length) {
-        $sharedAvatars.attr('src', avatarSrc);
+    // Note: Shared articles avatars are updated individually based on each user's activity level
+    // They are handled in the displaySharedContent function in share.js
+    
+    console.log('🔄 Current user avatars updated to:', avatarSrc);
+}
+
+// Function to update avatar for a specific user (for shared articles)
+function updateUserAvatar(userId, activityLevel) {
+    const avatarSrc = getAvatarSource(activityLevel);
+    
+    // Update avatar for specific user in shared articles
+    const $userAvatar = $(`.card[data-user-id="${userId}"] img[alt="User Avatar"]`);
+    if ($userAvatar.length) {
+        $userAvatar.attr('src', avatarSrc);
     }
     
-    console.log('🔄 All avatars updated to:', avatarSrc);
+    console.log(`🔄 Avatar updated for user ${userId} to:`, avatarSrc);
 }
 
 // Centralized function to refresh user data and update all avatars

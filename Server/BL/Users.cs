@@ -49,7 +49,7 @@ namespace Server.BL
             NotifyOnFollow = notifyOnFollow;
             NotifyOnShare = notifyOnShare;
         }
-        public Users() {}
+
         // --- Properties ---
         public int Id { get => id; set => id = value; }
         public string Username { get => username; set => username = value; }
@@ -109,22 +109,82 @@ namespace Server.BL
             return null;
         }
 
-       public static bool Update(int id, Users user)
+        public static bool Update(int id, Users user)
         {
-            if (!string.IsNullOrEmpty(user.PasswordHash))
+            // Don't hash the password here - it should already be hashed when passed to this method
+            // The controller is responsible for hashing new passwords before calling this method
+
+            try
             {
-                // הצפנת הסיסמה החדשה
-                var tempUser = new Users(0, "", "", "", "", user.PasswordHash, DateTime.Now, null, false, false, "", 0, 0, true, true, true, true);
-                user.PasswordHash = tempUser.HashPassword(user.PasswordHash);
+                Console.WriteLine($"🔍 Starting user update for ID: {id}");
+                Console.WriteLine($"🔍 User data: Username={user.Username}, Email={user.Email}");
+                
+                UsersDBservices dbs = new UsersDBservices();
+                int result = dbs.UpdateUser(id, user);
+                Console.WriteLine($"🔍 Update result from DB: {result}");
+                
+                // With SET NOCOUNT ON, ExecuteNonQuery returns -1 for successful operations
+                // Also accept 0 (no rows changed) and positive values (rows affected) as success
+                // This covers the case where data is unchanged but operation succeeded
+                bool isSuccess = (result == -1) || (result >= 0);
+                Console.WriteLine($"🔍 Update success determination: {isSuccess} (result was {result})");
+                
+                return isSuccess;
             }
+            catch (Exception e)
+            {
+                Console.WriteLine($"❌ Update error: {e.Message}");
+                Console.WriteLine($"❌ Update stack trace: {e.StackTrace}");
+                return false;
+            }
+        }
+
+        public static int ValidateUserUpdate(int id, string email, string username)
+        {
             try
             {
                 UsersDBservices dbs = new UsersDBservices();
-                return dbs.UpdateUser(id, user) == 1;
+                
+                // Check if email exists for another user
+                var existingUserByEmail = dbs.GetUserByEmail(email);
+                if (existingUserByEmail != null && existingUserByEmail.Id != id)
+                {
+                    return -2; // Email already exists
+                }
+
+                // Check if username exists for another user
+                var existingUserByUsername = dbs.GetUserByUsername(username);
+                if (existingUserByUsername != null && existingUserByUsername.Id != id)
+                {
+                    return -1; // Username already exists
+                }
+
+                return 1; // Valid
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
+                return 0; // Error
+            }
+        }
+
+        public static bool UpdateSimple(int id, string username, string email, string firstName, string lastName, string passwordHash = null)
+        {
+            if (!string.IsNullOrEmpty(passwordHash))
+            {
+                // Hash the password if provided
+                var tempUser = new Users(0, "", "", "", "", passwordHash, DateTime.Now, null, false, false, "", 0, 0, true, true, true, true);
+                passwordHash = tempUser.HashPassword(passwordHash);
+            }
+
+            try
+            {
+                UsersDBservices dbs = new UsersDBservices();
+                return dbs.UpdateUserSimple(id, username, email, firstName, lastName, passwordHash) == 1;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"❌ UpdateSimple error: {e.Message}");
                 return false;
             }
         }

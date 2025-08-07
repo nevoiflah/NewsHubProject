@@ -344,7 +344,9 @@ const InterestsManager = {
     // Save profile changes
     saveProfile: async function(e) {
         e.preventDefault();
-        
+    
+        console.log('🚀 STARTING COMPLETELY NEW SAVE PROFILE FUNCTION');
+    
         const profileData = {
             username: $('#editUsername').val().trim(),
             email: $('#editEmail').val().trim(),
@@ -363,19 +365,19 @@ const InterestsManager = {
             showAlert('warning', 'Please fill in all required fields!');
             return;
         }
-        
+    
         if (profileData.username.length < 3) {
             showAlert('warning', 'Username must be at least 3 characters long!');
             return;
         }
-        
+    
         // Email validation
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(profileData.email)) {
             showAlert('warning', 'Please enter a valid email address!');
             return;
         }
-        
+    
         // Password validation
         if (profileData.newPassword || profileData.confirmPassword) {
             if (!profileData.newPassword) {
@@ -396,124 +398,146 @@ const InterestsManager = {
                 return;
             }
         }
-        
+    
         // Clear any previous password errors
         $('#passwordError').hide();
         $('#confirmPassword').removeClass('is-invalid');
-        
+    
+        const button = $('#saveProfile');
+        button.prop('disabled', true);
+        button.html('<i class="fas fa-spinner fa-spin me-2"></i>Saving...');
+    
         try {
-            const button = $('#saveProfile');
-            button.prop('disabled', true);
-            button.html('<i class="fas fa-spinner fa-spin me-2"></i>Saving...');
-            
             const userId = getUserIdFromStorage();
-            
-            // Check if password is being updated
+            console.log('🔍 User ID:', userId);
+        
+            const currentUser = JSON.parse(localStorage.getItem('userInfo') || '{}');
+            console.log('🔍 Current user:', currentUser);
+        
             const isPasswordUpdate = profileData.newPassword && profileData.confirmPassword;
-            
-            // If password is being updated, show confirmation dialog
-            if (isPasswordUpdate) {
-                const confirmPassword = prompt('Please enter your current password to confirm the changes:');
-                if (!confirmPassword) {
-                    showAlert('warning', 'Password confirmation required to update your password!');
-                    button.prop('disabled', false);
-                    button.html('<i class="fas fa-save me-2"></i>Save Changes');
-                    return;
-                }
-                
-                // Verify current password first
-                try {
-                    const verifyResult = await $.ajax({
-                        type: 'POST',
-                        url: 'http://localhost:5121/api/users/verify-password',
-                        contentType: 'application/json',
-                        data: JSON.stringify({
-                            userId: parseInt(userId),
-                            password: confirmPassword
-                        }),
-                        dataType: "json"
-                    });
-                    
-                    if (!verifyResult.success) {
-                        showAlert('danger', 'Current password is incorrect!');
-                        button.prop('disabled', false);
-                        button.html('<i class="fas fa-save me-2"></i>Save Changes');
-                        return;
-                    }
-                } catch (error) {
-                    showAlert('danger', 'Failed to verify current password. Please try again.');
-                    button.prop('disabled', false);
-                    button.html('<i class="fas fa-save me-2"></i>Save Changes');
-                    return;
-                }
+        
+            // Get current password for verification
+            const currentPassword = prompt('Please enter your current password to confirm the changes:');
+            if (!currentPassword || currentPassword.trim() === '') {
+                showAlert('warning', 'Password confirmation required to update your profile.');
+                button.prop('disabled', false);
+                button.html('<i class="fas fa-save me-2"></i>Save Changes');
+                return;
             }
+        
+            // Build the update request object according to the API specification
+            const updateRequest = {
+                CurrentPassword: currentPassword,
+                Username: profileData.username,
+                Email: profileData.email,
+                FirstName: profileData.firstName,
+                LastName: profileData.lastName,
+                NewPassword: isPasswordUpdate ? profileData.newPassword : null,
+                NotifyOnLikes: profileData.notifyOnLikes,
+                NotifyOnComments: profileData.notifyOnComments,
+                NotifyOnFollow: profileData.notifyOnFollow,
+                NotifyOnShare: profileData.notifyOnShare
+            };
+        
+            console.log('🔍 Update request to send:', updateRequest);
+        
+            // Make the profile update API call using the correct endpoint
+            console.log('🚀 Making profile update API call...');
+            const profileApiUrl = `http://localhost:5121/api/Users/Update/${userId}`;
+            console.log('🌐 Profile API URL:', profileApiUrl);
+        
+            try {
+                const profileResult = await $.ajax({
+                    type: 'PUT',
+                    url: profileApiUrl,
+                    contentType: 'application/json',
+                    data: JSON.stringify(updateRequest),
+                    dataType: "json",
+                    cache: false,
+                    timeout: 30000,
+                    beforeSend: function(xhr) {
+                        console.log('📤 Sending profile update request to:', profileApiUrl);
+                        console.log('📤 Request data:', JSON.stringify(updateRequest));
+                    }
+                });
             
-            // Save profile data using the test-update endpoint
-            const profileResult = await $.ajax({
-                type: 'PUT',
-                url: `https://localhost:5121/api/Users/Update/${userId}`,
-                contentType: 'application/json',
-                data: JSON.stringify({
+                console.log('✅ Profile update response:', profileResult);
+            
+                // Success handling
+                console.log('🎉 Profile update completed successfully!');
+            
+                // Update localStorage with new user data
+                const updatedUser = { 
+                    ...currentUser, 
                     username: profileData.username,
                     email: profileData.email,
                     firstName: profileData.firstName,
                     lastName: profileData.lastName,
-                    passwordHash: isPasswordUpdate ? profileData.newPassword : null
-                }),
-                dataType: "text"
-            });
-            
-            // Save notification preferences
-            const notificationResult = await $.ajax({
-                type: 'PUT',
-                url: 'http://localhost:5121/api/users/notification-preferences',
-                contentType: 'application/json',
-                data: JSON.stringify({
-                    userId: parseInt(userId),
                     notifyOnLikes: profileData.notifyOnLikes,
                     notifyOnComments: profileData.notifyOnComments,
                     notifyOnFollow: profileData.notifyOnFollow,
                     notifyOnShare: profileData.notifyOnShare
-                }),
-                dataType: "json"
-            });
+                };
+                localStorage.setItem('userInfo', JSON.stringify(updatedUser));
+                console.log('💾 Local storage updated');
             
-            if (profileResult && notificationResult) {
-                showAlert('success', 'Profile updated successfully!');
-                
                 // Clear password fields
                 $('#newPassword').val('');
                 $('#confirmPassword').val('');
-                
+            
                 // Update navbar if needed
                 if (typeof updateNavbarForUser === 'function') {
                     updateNavbarForUser();
                 }
-            } else {
-                showAlert('danger', 'Failed to update profile');
-            }
-        } catch (error) {
-            console.error('Error saving profile:', error);
-            if (error.responseJSON && error.responseJSON.message) {
-                const errorMessage = error.responseJSON.message;
+            
+                showAlert('success', 'Profile updated successfully!');
+            
+            } catch (profileError) {
+                console.error('❌ Profile update failed:', profileError);
+                console.error('❌ Error details:', {
+                    status: profileError.status,
+                    statusText: profileError.statusText,
+                    responseText: profileError.responseText
+                });
+            
+                let errorMessage = 'Failed to update profile. Please try again.';
                 
-                // Check for specific validation errors
-                if (errorMessage.toLowerCase().includes('username')) {
-                    $('#usernameError').show();
-                    $('#editUsername').addClass('is-invalid');
-                } else if (errorMessage.toLowerCase().includes('email')) {
-                    $('#emailError').show();
-                    $('#editEmail').addClass('is-invalid');
-                } else {
-                    showAlert('danger', errorMessage);
+                // Handle specific error cases
+                if (profileError.status === 400) {
+                    // Try to parse error response for more specific messages
+                    if (profileError.responseJSON && profileError.responseJSON.message) {
+                        errorMessage = profileError.responseJSON.message;
+                    } else if (profileError.responseText) {
+                        try {
+                            const errorResponse = JSON.parse(profileError.responseText);
+                            if (errorResponse.message) {
+                                errorMessage = errorResponse.message;
+                            }
+                        } catch (e) {
+                            errorMessage = 'Invalid request. Please check your input and try again.';
+                        }
+                    } else {
+                        errorMessage = 'Invalid request. Please check your input and try again.';
+                    }
+                } else if (profileError.status === 401) {
+                    errorMessage = 'Current password is incorrect.';
+                } else if (profileError.status === 404) {
+                    errorMessage = 'User not found.';
+                } else if (profileError.status === 500) {
+                    errorMessage = 'Server error. Please try again later.';
                 }
-            } else {
-                showAlert('danger', 'Error updating profile. Please try again.');
+            
+                showAlert('danger', errorMessage);
             }
+        
+        } catch (generalError) {
+            console.error('❌ General error in saveProfile:', generalError);
+            showAlert('danger', 'An unexpected error occurred. Please try again.');
+        
         } finally {
-            const button = $('#saveProfile');
             button.prop('disabled', false);
             button.html('<i class="fas fa-save me-2"></i>Save Changes');
+            console.log('🏁 Save profile function completed');
         }
     },
 

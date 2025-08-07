@@ -89,23 +89,102 @@ namespace Server.Controllers
             }
         }
 
+        /// <summary>
+        /// Updates user profile information with password confirmation.
+        /// Allows partial updates - only the fields provided will be updated.
+        /// Requires current password for any changes.
+        /// If changing password, the current password must be provided as confirmation.
+        /// </summary>
+        /// <param name="id">User ID</param>
+        /// <param name="request">Update request containing fields to update and current password</param>
+        /// <returns>Success or error response</returns>
         [HttpPut("Update/{id}")]
-        public IActionResult UpdateProfile([FromRoute] int id, [FromBody] Users user)
+        public IActionResult UpdateProfile([FromRoute] int id, [FromBody] UserUpdateRequest request)
         {
             try
             {
-                if (Users.Update(id, user))
+                // Get the current user to verify password and get existing data
+                var currentUser = Users.GetUserById(id);
+                if (currentUser == null)
                 {
-                    return Ok("User updated successfully.");
+                    return NotFound(new { success = false, message = "User not found." });
+                }
+
+                // Verify current password for any changes
+                if (!currentUser.VerifyPassword(request.CurrentPassword))
+                {
+                    return BadRequest(new { success = false, message = "Current password is incorrect." });
+                }
+
+                // If trying to change password, verify old password
+                if (!string.IsNullOrEmpty(request.NewPassword))
+                {
+                    if (!currentUser.VerifyPassword(request.CurrentPassword))
+                    {
+                        return BadRequest(new { success = false, message = "Current password is incorrect for password change." });
+                    }
+                }
+
+                // Validate email and username uniqueness if they're being changed
+                string newEmail = !string.IsNullOrEmpty(request.Email) ? request.Email : currentUser.Email;
+                string newUsername = !string.IsNullOrEmpty(request.Username) ? request.Username : currentUser.Username;
+                
+                int validationResult = Users.ValidateUserUpdate(id, newEmail, newUsername);
+                if (validationResult == -1)
+                {
+                    return BadRequest(new { success = false, message = "Username already exists." });
+                }
+                else if (validationResult == -2)
+                {
+                    return BadRequest(new { success = false, message = "Email already exists." });
+                }
+                else if (validationResult == 0)
+                {
+                    return BadRequest(new { success = false, message = "Validation error occurred." });
+                }
+
+                // Create updated user object with partial updates
+                // Handle password properly - only hash if we're changing it
+                string passwordToUse = currentUser.PasswordHash; // Keep existing hash by default
+                if (!string.IsNullOrEmpty(request.NewPassword))
+                {
+                    // Create a temporary user to hash the new password
+                    var tempUser = new Users(0, "", "", "", "", request.NewPassword, DateTime.Now, null, false, false, "", 0, 0, true, true, true, true);
+                    passwordToUse = tempUser.HashPassword(request.NewPassword);
+                }
+                
+                var updatedUser = new Users(
+                    currentUser.Id,
+                    newUsername,
+                    newEmail,
+                    !string.IsNullOrEmpty(request.FirstName) ? request.FirstName : currentUser.FirstName,
+                    !string.IsNullOrEmpty(request.LastName) ? request.LastName : currentUser.LastName,
+                    passwordToUse,
+                    currentUser.RegistrationDate,
+                    currentUser.LastLoginDate,
+                    currentUser.IsLocked,
+                    currentUser.IsAdmin,
+                    !string.IsNullOrEmpty(request.AvatarUrl) ? request.AvatarUrl : currentUser.AvatarUrl,
+                    currentUser.ActivityLevel,
+                    currentUser.LikesReceived,
+                    request.NotifyOnLikes.HasValue ? request.NotifyOnLikes.Value : currentUser.NotifyOnLikes,
+                    request.NotifyOnComments.HasValue ? request.NotifyOnComments.Value : currentUser.NotifyOnComments,
+                    request.NotifyOnFollow.HasValue ? request.NotifyOnFollow.Value : currentUser.NotifyOnFollow,
+                    request.NotifyOnShare.HasValue ? request.NotifyOnShare.Value : currentUser.NotifyOnShare
+                );
+
+                if (Users.Update(id, updatedUser))
+                {
+                    return Ok(new { success = true, message = "User updated successfully." });
                 }
                 else
                 {
-                    return NotFound("User not found.");
+                    return BadRequest(new { success = false, message = "Failed to update user." });
                 }
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "An error occurred while updating the user: " + ex.Message);
+                return StatusCode(500, new { success = false, message = "An error occurred while updating the user: " + ex.Message });
             }
         }
 
@@ -221,6 +300,11 @@ namespace Server.Controllers
             }
         }
 
+        /// <summary>
+        /// Updates notification preferences without password confirmation (for convenience)
+        /// </summary>
+        /// <param name="request">Notification preferences request</param>
+        /// <returns>Success or error response</returns>
         [HttpPut("notification-preferences")]
         public IActionResult UpdateNotificationPreferences([FromBody] NotificationPreferencesRequest request)
         {
@@ -228,12 +312,46 @@ namespace Server.Controllers
             {
                 bool success = Users.UpdateNotificationPreferences(request.UserId, request.NotifyOnLikes, 
                     request.NotifyOnComments, request.NotifyOnFollow, request.NotifyOnShare);
-                return success ? Ok(new { success = true }) : BadRequest("Failed to update notification preferences.");
+                return success ? Ok(new { success = true, message = "Notification preferences updated successfully." }) : BadRequest(new { success = false, message = "Failed to update notification preferences." });
             }
             catch (Exception ex)
             {
                 Console.WriteLine("⚠️ Error in UpdateNotificationPreferences: " + ex.Message);
-                return BadRequest("Error updating notification preferences: " + ex.Message);
+                return BadRequest(new { success = false, message = "Error updating notification preferences: " + ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Updates notification preferences with password confirmation for security
+        /// </summary>
+        /// <param name="request">Secure notification preferences request with password</param>
+        /// <returns>Success or error response</returns>
+        [HttpPut("notification-preferences-secure")]
+        public IActionResult UpdateNotificationPreferencesSecure([FromBody] NotificationPreferencesSecureRequest request)
+        {
+            try
+            {
+                // Get the current user to verify password
+                var currentUser = Users.GetUserById(request.UserId);
+                if (currentUser == null)
+                {
+                    return NotFound(new { success = false, message = "User not found." });
+                }
+
+                // Verify current password
+                if (!currentUser.VerifyPassword(request.CurrentPassword))
+                {
+                    return BadRequest(new { success = false, message = "Current password is incorrect." });
+                }
+
+                bool success = Users.UpdateNotificationPreferences(request.UserId, request.NotifyOnLikes, 
+                    request.NotifyOnComments, request.NotifyOnFollow, request.NotifyOnShare);
+                return success ? Ok(new { success = true, message = "Notification preferences updated successfully." }) : BadRequest(new { success = false, message = "Failed to update notification preferences." });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("⚠️ Error in UpdateNotificationPreferencesSecure: " + ex.Message);
+                return BadRequest(new { success = false, message = "Error updating notification preferences: " + ex.Message });
             }
         }
 
@@ -462,13 +580,29 @@ namespace Server.Controllers
         public bool NotifyOnShare { get; set; }
     }
 
+    public class NotificationPreferencesSecureRequest
+    {
+        public int UserId { get; set; }
+        public string CurrentPassword { get; set; } = string.Empty;
+        public bool NotifyOnLikes { get; set; }
+        public bool NotifyOnComments { get; set; }
+        public bool NotifyOnFollow { get; set; }
+        public bool NotifyOnShare { get; set; }
+    }
+
     public class UserUpdateRequest
     {
+        public string CurrentPassword { get; set; } = string.Empty;
         public string? Username { get; set; }
         public string? Email { get; set; }
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
-        public string? PasswordHash { get; set; }
+        public string? NewPassword { get; set; }
+        public string? AvatarUrl { get; set; }
+        public bool? NotifyOnLikes { get; set; }
+        public bool? NotifyOnComments { get; set; }
+        public bool? NotifyOnFollow { get; set; }
+        public bool? NotifyOnShare { get; set; }
     }
 
     public class PasswordVerificationRequest
