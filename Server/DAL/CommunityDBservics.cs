@@ -306,7 +306,8 @@ namespace Server.DAL
             };
 
             SqlCommand cmd = CreateCommandWithStoredProcedureGeneral("NLM_NewsHub_ReportContent", con, paramDic);
-            return cmd.ExecuteNonQuery() > 0;
+            object result = cmd.ExecuteScalar();
+            return result != null && Convert.ToInt32(result) == 1;
         }
 
         public List<Report> GetReports(bool? resolved = null)

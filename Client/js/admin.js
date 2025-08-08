@@ -141,31 +141,43 @@ const AdminManager = {
             console.log('🔄 Loading dashboard data...');
             
             // Load system stats
-            const statsPromise = new Promise((resolve) => {
-                ajaxCall('GET', 'http://localhost:5121/api/Admin/stats', null, resolve, () => resolve({}));
+            const statsPromise = $.ajax({
+                type: 'GET',
+                url: 'http://localhost:5121/api/Admin/stats',
+                cache: false,
+                dataType: "json"
             });
 
             // Load users count
-            const usersPromise = new Promise((resolve) => {
-                ajaxCall('GET', 'http://localhost:5121/api/Admin/users', null, resolve, () => resolve([]));
+            const usersPromise = $.ajax({
+                type: 'GET',
+                url: 'http://localhost:5121/api/Admin/users',
+                cache: false,
+                dataType: "json"
             });
 
             // Load shared articles count
-            const sharedPromise = new Promise((resolve) => {
-                ajaxCall('GET', 'http://localhost:5121/api/shared', null, resolve, () => resolve([]));
+            const sharedPromise = $.ajax({
+                type: 'GET',
+                url: 'http://localhost:5121/api/shared',
+                cache: false,
+                dataType: "json"
             });
 
             // Load reports count
-            const reportsPromise = new Promise((resolve) => {
-                ajaxCall('GET', 'http://localhost:5121/api/Reports', null, resolve, () => resolve([]));
+            const reportsPromise = $.ajax({
+                type: 'GET',
+                url: 'http://localhost:5121/api/Reports',
+                cache: false,
+                dataType: "json"
             });
 
             // Wait for all promises to resolve
             const [stats, users, shared, reports] = await Promise.all([
-                statsPromise,
-                usersPromise,
-                sharedPromise,
-                reportsPromise
+                statsPromise.catch(() => ({})),
+                usersPromise.catch(() => []),
+                sharedPromise.catch(() => []),
+                reportsPromise.catch(() => [])
             ]);
 
             // Update dashboard stats - ensure arrays are valid and handle API response structure
@@ -204,8 +216,11 @@ const AdminManager = {
         try {
             console.log('🔄 Loading users data...');
             
-            const users = await new Promise((resolve) => {
-                ajaxCall('GET', 'http://localhost:5121/api/Admin/users', null, resolve, () => resolve([]));
+            const users = await $.ajax({
+                type: 'GET',
+                url: 'http://localhost:5121/api/Admin/users',
+                cache: false,
+                dataType: "json"
             });
 
             const $tbody = $('#usersTable');
@@ -231,7 +246,7 @@ const AdminManager = {
                         </td>
                         <td>${Utils.sanitizeHtml(user.username)}${adminBadge}</td>
                         <td>${Utils.sanitizeHtml(user.email)}</td>
-                        <td>${Utils.formatDate(user.createdAt)}</td>
+                        <td>${Utils.formatDate(user.registrationDate)}</td>
                         <td>${statusBadge}</td>
                         <td>
                             <div class="btn-group btn-group-sm">
@@ -267,14 +282,12 @@ const AdminManager = {
         if (!confirm(confirmMessage)) return;
         
         try {
-            const response = await new Promise((resolve, reject) => {
-                ajaxCall(
-                    'POST',
-                    `http://localhost:5121/api/Admin/${action}/${userId}`,
-                    null,
-                    resolve,
-                    reject
-                );
+            const response = await $.ajax({
+                type: 'POST',
+                url: `http://localhost:5121/api/Admin/${action}/${userId}`,
+                cache: false,
+                contentType: "application/json",
+                dataType: "text"
             });
 
             if (response && response.includes('successfully')) {
@@ -295,14 +308,12 @@ const AdminManager = {
         if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) return;
         
         try {
-            const response = await new Promise((resolve, reject) => {
-                ajaxCall(
-                    'DELETE',
-                    `http://localhost:5121/api/Admin/${userId}`,
-                    null,
-                    resolve,
-                    reject
-                );
+            const response = await $.ajax({
+                type: 'DELETE',
+                url: `http://localhost:5121/api/Admin/${userId}`,
+                cache: false,
+                contentType: "application/json",
+                dataType: "text"
             });
 
             if (response && response.includes('successfully')) {
@@ -406,14 +417,12 @@ const AdminManager = {
                             throw new Error('Invalid operation');
                     }
 
-                    await new Promise((resolve, reject) => {
-                        ajaxCall(
-                            method,
-                            endpoint,
-                            null,
-                            resolve,
-                            reject
-                        );
+                    await $.ajax({
+                        type: method,
+                        url: endpoint,
+                        cache: false,
+                        contentType: "application/json",
+                        dataType: "text"
                     });
 
                     successCount++;
@@ -452,14 +461,11 @@ const AdminManager = {
         try {
             console.log('🔄 Loading shared articles...');
             
-            const response = await new Promise((resolve, reject) => {
-                ajaxCall(
-                    'GET',
-                    'http://localhost:5121/api/shared',
-                    null,
-                    resolve,
-                    reject
-                );
+            const response = await $.ajax({
+                type: 'GET',
+                url: 'http://localhost:5121/api/shared',
+                cache: false,
+                dataType: "json"
             });
 
             const $tbody = $('#sharedArticlesTable');
@@ -529,14 +535,11 @@ const AdminManager = {
     // View shared article details
     viewSharedArticle: async (articleId) => {
         try {
-            const article = await new Promise((resolve, reject) => {
-                ajaxCall(
-                    'GET',
-                    `http://localhost:5121/api/shared/${articleId}`,
-                    null,
-                    resolve,
-                    reject
-                );
+            const article = await $.ajax({
+                type: 'GET',
+                url: `http://localhost:5121/api/shared/${articleId}`,
+                cache: false,
+                dataType: "json"
             });
 
             if (article && article.url) {
@@ -555,14 +558,12 @@ const AdminManager = {
         if (!confirm('Are you sure you want to delete this shared article? This will also delete all comments.')) return;
         
         try {
-            const response = await new Promise((resolve, reject) => {
-                ajaxCall(
-                    'DELETE',
-                    `http://localhost:5121/api/shared/${articleId}`,
-                    null,
-                    resolve,
-                    reject
-                );
+            const response = await $.ajax({
+                type: 'DELETE',
+                url: `http://localhost:5121/api/shared/${articleId}`,
+                cache: false,
+                contentType: "application/json",
+                dataType: "text"
             });
 
             if (response && response.includes('successfully')) {
@@ -581,14 +582,11 @@ const AdminManager = {
     // View comments for shared article
     viewComments: async (articleId) => {
         try {
-            const response = await new Promise((resolve, reject) => {
-                ajaxCall(
-                    'GET',
-                    `http://localhost:5121/api/shared/${articleId}/comments`,
-                    null,
-                    resolve,
-                    reject
-                );
+            const response = await $.ajax({
+                type: 'GET',
+                url: `http://localhost:5121/api/shared/${articleId}/comments`,
+                cache: false,
+                dataType: "json"
             });
 
             const $container = $('#commentsContainer');
@@ -629,6 +627,8 @@ const AdminManager = {
 
     // Delete comment
     deleteComment: async (commentId, articleId) => {
+        if (!confirm('Are you sure you want to delete this comment?')) return;
+        
         try {
             // Get current user ID (admin should be logged in)
             const currentUser = Auth.getCurrentUser();
@@ -637,14 +637,12 @@ const AdminManager = {
                 return;
             }
 
-            const response = await new Promise((resolve, reject) => {
-                ajaxCall(
-                    'DELETE',
-                    `http://localhost:5121/api/shared/${articleId}/comments/${commentId}?userId=${currentUser.id}`,
-                    null,
-                    resolve,
-                    reject
-                );
+            const response = await $.ajax({
+                type: 'DELETE',
+                url: `http://localhost:5121/api/shared/${articleId}/comments/${commentId}?userId=${currentUser.id}`,
+                cache: false,
+                contentType: "application/json",
+                dataType: "json"
             });
 
             // Refresh the page after any response to ensure clean state
@@ -665,14 +663,11 @@ const AdminManager = {
         try {
             console.log('🔄 Loading reports data...');
             
-            const response = await new Promise((resolve, reject) => {
-                ajaxCall(
-                    'GET',
-                    'http://localhost:5121/api/Reports',
-                    null,
-                    resolve,
-                    reject
-                );
+            const response = await $.ajax({
+                type: 'GET',
+                url: 'http://localhost:5121/api/Reports',
+                cache: false,
+                dataType: "json"
             });
 
             const $tbody = $('#reportsTable');
@@ -750,14 +745,11 @@ const AdminManager = {
         try {
             console.log('👁️ Viewing report ID:', reportId);
             
-            const response = await new Promise((resolve, reject) => {
-                ajaxCall(
-                    'GET',
-                    `http://localhost:5121/api/Reports/${reportId}`,
-                    null,
-                    resolve,
-                    reject
-                );
+            const response = await $.ajax({
+                type: 'GET',
+                url: `http://localhost:5121/api/Reports/${reportId}`,
+                cache: false,
+                dataType: "json"
             });
 
             console.log('👁️ Report API response:', response);
@@ -814,22 +806,24 @@ Status: ${isResolved ? 'Resolved' : 'Pending'}`;
                 return;
             }
 
-            const response = await new Promise((resolve, reject) => {
-                ajaxCall(
-                    'PUT',
-                    `http://localhost:5121/api/Reports/${reportId}/resolve?adminUserId=${currentUser.id}`,
-                    JSON.stringify({
-                        IsResolved: true
-                    }),
-                    resolve,
-                    reject
-                );
+            const response = await $.ajax({
+                type: 'PUT',
+                url: `http://localhost:5121/api/Reports/${reportId}/resolve?adminUserId=${currentUser.id}`,
+                data: JSON.stringify({
+                    IsResolved: true
+                }),
+                cache: false,
+                contentType: "application/json",
+                dataType: "json"
             });
 
             if (response && response.success) {
+                // Show success message briefly before refreshing
                 showAlert('success', response.message || 'Report resolved successfully');
-                AdminManager.loadReportsData();
-                AdminManager.loadDashboardData();
+                // Refresh page after a brief moment to show the success message
+                setTimeout(() => {
+                    window.location.reload();
+                }, 500); // Half a second delay
             } else {
                 showAlert('danger', response.message || 'Failed to resolve report');
             }
@@ -844,14 +838,12 @@ Status: ${isResolved ? 'Resolved' : 'Pending'}`;
         if (!confirm('Are you sure you want to delete this report?')) return;
         
         try {
-            const response = await new Promise((resolve, reject) => {
-                ajaxCall(
-                    'DELETE',
-                    `http://localhost:5121/api/Reports/${reportId}`,
-                    null,
-                    resolve,
-                    reject
-                );
+            const response = await $.ajax({
+                type: 'DELETE',
+                url: `http://localhost:5121/api/Reports/${reportId}`,
+                cache: false,
+                contentType: "application/json",
+                dataType: "text"
             });
 
             if (response && response.includes('successfully')) {
@@ -893,14 +885,11 @@ Status: ${isResolved ? 'Resolved' : 'Pending'}`;
 
     loadLoginChart: async () => {
         try {
-            const data = await new Promise((resolve, reject) => {
-                ajaxCall(
-                    'GET',
-                    'http://localhost:5121/api/Admin/analytics/logins',
-                    null,
-                    resolve,
-                    reject
-                );
+            const data = await $.ajax({
+                type: 'GET',
+                url: 'http://localhost:5121/api/Admin/analytics/logins',
+                cache: false,
+                dataType: "json"
             });
             AdminManager.renderLoginChart(data);
         } catch (error) {
@@ -910,14 +899,11 @@ Status: ${isResolved ? 'Resolved' : 'Pending'}`;
 
     loadActivityChart: async () => {
         try {
-            const data = await new Promise((resolve, reject) => {
-                ajaxCall(
-                    'GET',
-                    'http://localhost:5121/api/Admin/analytics/activity',
-                    null,
-                    resolve,
-                    reject
-                );
+            const data = await $.ajax({
+                type: 'GET',
+                url: 'http://localhost:5121/api/Admin/analytics/activity',
+                cache: false,
+                dataType: "json"
             });
             AdminManager.renderActivityChart(data);
         } catch (error) {
@@ -932,14 +918,11 @@ Status: ${isResolved ? 'Resolved' : 'Pending'}`;
 
     loadRegistrationChart: async () => {
         try {
-            const data = await new Promise((resolve, reject) => {
-                ajaxCall(
-                    'GET',
-                    'http://localhost:5121/api/Admin/analytics/registrations?days=14',
-                    null,
-                    resolve,
-                    reject
-                );
+            const data = await $.ajax({
+                type: 'GET',
+                url: 'http://localhost:5121/api/Admin/analytics/registrations?days=14',
+                cache: false,
+                dataType: "json"
             });
             AdminManager.renderRegistrationChart(data);
         } catch (error) {
@@ -954,14 +937,11 @@ Status: ${isResolved ? 'Resolved' : 'Pending'}`;
 
     loadContentChart: async () => {
         try {
-            const data = await new Promise((resolve, reject) => {
-                ajaxCall(
-                    'GET',
-                    'http://localhost:5121/api/Admin/analytics/content?days=7',
-                    null,
-                    resolve,
-                    reject
-                );
+            const data = await $.ajax({
+                type: 'GET',
+                url: 'http://localhost:5121/api/Admin/analytics/content?days=7',
+                cache: false,
+                dataType: "json"
             });
             AdminManager.renderContentChart(data);
         } catch (error) {
@@ -1219,21 +1199,33 @@ Status: ${isResolved ? 'Resolved' : 'Pending'}`;
             const promises = [];
             
             // Create promises for each API call with error handling
-            promises.push(new Promise((resolve) => {
-                ajaxCall('GET', 'http://localhost:5121/api/Admin/stats', null, resolve, () => resolve({}));
-            }));
+            promises.push($.ajax({
+                type: 'GET',
+                url: 'http://localhost:5121/api/Admin/stats',
+                cache: false,
+                dataType: "json"
+            }).catch(() => ({})));
             
-            promises.push(new Promise((resolve) => {
-                ajaxCall('GET', 'http://localhost:5121/api/Admin/users', null, resolve, () => resolve([]));
-            }));
+            promises.push($.ajax({
+                type: 'GET',
+                url: 'http://localhost:5121/api/Admin/users',
+                cache: false,
+                dataType: "json"
+            }).catch(() => []));
             
-            promises.push(new Promise((resolve) => {
-                ajaxCall('GET', 'http://localhost:5121/api/Reports', null, resolve, () => resolve([]));
-            }));
+            promises.push($.ajax({
+                type: 'GET',
+                url: 'http://localhost:5121/api/Reports',
+                cache: false,
+                dataType: "json"
+            }).catch(() => []));
 
-            promises.push(new Promise((resolve) => {
-                ajaxCall('GET', 'http://localhost:5121/api/shared', null, resolve, () => resolve([]));
-            }));
+            promises.push($.ajax({
+                type: 'GET',
+                url: 'http://localhost:5121/api/shared',
+                cache: false,
+                dataType: "json"
+            }).catch(() => []));
 
             const [stats, users, reports, shared] = await Promise.all(promises);
 
@@ -1266,7 +1258,7 @@ Status: ${isResolved ? 'Resolved' : 'Pending'}`;
                 systemStats: stats,
                 userBreakdown: {
                     byRegistrationMonth: AdminManager.groupUsersByMonth(usersArray),
-                    recentUsers: usersArray.filter(u => new Date(u.createdAt) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)).length
+                    recentUsers: usersArray.filter(u => new Date(u.registrationDate) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)).length
                 },
                 contentStats: {
                     sharedArticlesCount: sharedArray.length,
@@ -1299,8 +1291,8 @@ Status: ${isResolved ? 'Resolved' : 'Pending'}`;
     groupUsersByMonth: (users) => {
         const monthGroups = {};
         users.forEach(user => {
-            if (user.createdAt) {
-                const date = new Date(user.createdAt);
+            if (user.registrationDate) {
+                const date = new Date(user.registrationDate);
                 const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
                 monthGroups[monthKey] = (monthGroups[monthKey] || 0) + 1;
             }

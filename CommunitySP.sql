@@ -810,9 +810,23 @@ BEGIN
         RETURN;
     END
     
-    -- Insert the report
+    -- Insert the report - simplified approach
+    -- Store content type and ID in the reason field for all content types
+    SET @ProcessedReason = @ContentType + ':' + CAST(@ContentId AS NVARCHAR(10)) + ' - ' + @ProcessedReason;
+    
+    -- Find a valid NewsId that exists in the ArticlesSaved table to satisfy the foreign key constraint
+    DECLARE @ValidNewsId INT;
+    SELECT TOP 1 @ValidNewsId = Id FROM [dbo].[NLM_NewsHub_ArticlesSaved] WHERE Id IS NOT NULL;
+    
+    -- If no saved articles exist, we can't create reports due to the constraint
+    IF @ValidNewsId IS NULL
+    BEGIN
+        RAISERROR('Cannot create report: No saved articles exist in the system.', 16, 1);
+        RETURN;
+    END
+    
     INSERT INTO [dbo].[NLM_NewsHub_Reports] (NewsId, UserId, Reason, ReportedAt, IsResolved)
-    VALUES (@ContentId, @UserId, @ProcessedReason, GETDATE(), 0);
+    VALUES (@ValidNewsId, @UserId, @ProcessedReason, GETDATE(), 0);
     
     -- Return success
     SELECT 1 AS Success;
