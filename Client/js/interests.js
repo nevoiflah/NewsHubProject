@@ -30,6 +30,14 @@ const InterestsManager = {
         setInterval(function() {
             InterestsManager.refreshActivityLevel();
         }, 15000);
+        
+        // Refresh likes count every 30 seconds for dynamic updates
+        setInterval(function() {
+            const userId = getUserIdFromStorage();
+            if (userId) {
+                InterestsManager.loadLikesReceivedCount(userId);
+            }
+        }, 30000);
     },
 
     // Refresh activity level from database
@@ -182,8 +190,8 @@ const InterestsManager = {
                     $('#notifyOnFollows').prop('checked', userData.notifyOnFollow !== false);
                     $('#notifyOnShares').prop('checked', userData.notifyOnShare !== false);
 
-                    // Update likes received count
-                    $('#likesReceived').text(userData.likesReceived || 0);
+                    // Update likes received count - calculate dynamically from shared articles
+                    InterestsManager.loadLikesReceivedCount(userData.id);
                     
                     // Update member since date
                     if (userData.registrationDate) {
@@ -351,6 +359,45 @@ const InterestsManager = {
         }
         
         console.log('✅ Activity progress updated successfully');
+    },
+
+    // Load likes received count dynamically from shared articles
+    loadLikesReceivedCount: function(userId) {
+        if (!userId) return;
+
+        console.log('🔍 Loading likes received count for userId:', userId);
+
+        ajaxCall(
+            'GET',
+            `http://localhost:5121/api/shared?userId=${userId}`,
+            null,
+            function(response) {
+                console.log('📊 Shared articles response:', response);
+                
+                if (response && response.success && response.articles) {
+                    // Calculate total likes received from all user's shared articles
+                    let totalLikes = 0;
+                    const currentUserId = parseInt(userId);
+                    
+                    response.articles.forEach(article => {
+                        console.log('📝 Article:', article.id, 'userId:', article.userId, 'likes:', article.likes);
+                        if (article.userId === currentUserId) {
+                            totalLikes += article.likes || 0;
+                        }
+                    });
+                    
+                    $('#likesReceived').text(totalLikes);
+                    console.log('✅ Likes received count loaded:', totalLikes);
+                } else {
+                    $('#likesReceived').text('0');
+                    console.log('📝 No shared articles found for likes count');
+                }
+            },
+            function(xhr, status, error) {
+                console.error('❌ Error loading likes received count:', error);
+                $('#likesReceived').text('0');
+            }
+        );
     },
 
 
