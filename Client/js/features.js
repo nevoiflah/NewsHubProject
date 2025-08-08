@@ -19,18 +19,17 @@ var FeaturesDemo = {
 
     updateUserStats: function() {
         // Get user count
-        $.ajax({
-            type: 'GET',
-            url: 'http://localhost:5121/api/Users/GetAllUsers',
-            cache: false,
-            dataType: "json",
-            success: function(usersResponse) {
+        ajaxCall(
+            'GET',
+            'http://localhost:5121/api/Users/GetAllUsers',
+            null,
+            function(usersResponse) {
                 document.getElementById('totalUsers').textContent = usersResponse && usersResponse.length ? usersResponse.length.toString() : '0';
             },
-            error: function() {
+            function() {
                 document.getElementById('totalUsers').textContent = 'N/A';
             }
-        });
+        );
         
         // Get article count using the same logic as news page
         FeaturesDemo.fetchRealArticles().then(function(articles) {
@@ -347,18 +346,17 @@ var FeaturesDemo = {
             return;
         }
         
-        $.ajax({
-            type: 'GET',
-            url: 'http://localhost:5121/api/Admin/stats',
-            cache: false,
-            dataType: "json",
-            success: function(response) {
+        ajaxCall(
+            'GET',
+            'http://localhost:5121/api/Admin/stats',
+            null,
+            function(response) {
                 showAlert('success', '✅ Admin API working! Found ' + (response.totalUsers || 0) + ' users');
             },
-            error: function() {
+            function() {
                 showAlert('danger', 'Failed to connect to admin API');
             }
-        });
+        );
     },
 
     testMapping: function() {
@@ -399,22 +397,21 @@ var FeaturesDemo = {
         for (var i = 0; i < endpoints.length; i++) {
             var endpoint = endpoints[i];
             
-            $.ajax({
-                type: 'GET',
-                url: endpoint.url,
-                cache: false,
-                dataType: "json",
-                success: function(data, textStatus, xhr) {
+            ajaxCall(
+                'GET',
+                endpoint.url,
+                null,
+                function(data, textStatus, xhr) {
                     var endpointName = xhr.responseURL.includes('News') ? 'News API' : 'Users API';
                     results.push('✅ ' + endpointName + ': Connected');
                     checkCompletion();
                 },
-                error: function(xhr, status, error) {
+                function(xhr, status, error) {
                     var endpointName = xhr.responseURL && xhr.responseURL.includes('News') ? 'News API' : 'Users API';
                     results.push('❌ ' + endpointName + ': Failed');
                     checkCompletion();
                 }
-            });
+            );
         }
     },
 

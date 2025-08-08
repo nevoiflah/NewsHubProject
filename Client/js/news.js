@@ -112,13 +112,11 @@ var NewsManager = {
                 return;
             }
 
-            $.ajax({
-                type: 'GET',
-                url: `http://localhost:5121/api/users/interests/${userId}`,
-                cache: false,
-                dataType: "json",
-                timeout: 3000,
-                success: function (interests) {
+            ajaxCall(
+                'GET',
+                `http://localhost:5121/api/users/interests/${userId}`,
+                null,
+                function (interests) {
                     console.log('👤 Loaded user interests:', interests);
 
                     if (Array.isArray(interests) && interests.length > 0) {
@@ -135,11 +133,11 @@ var NewsManager = {
 
                     resolve();
                 },
-                error: function (xhr, status, error) {
+                function (xhr, status, error) {
                     console.warn('⚠️ Failed to load interests:', error);
                     resolve(); // Continue even if this fails
                 }
-            });
+            );
         });
     },
 
@@ -878,10 +876,10 @@ var NewsManager = {
         }
 
         // API call to save article to user's saved list
-        $.ajax({
-            type: 'POST',
-            url: `http://localhost:5121/api/news/save?userId=${userId}`,
-            data: JSON.stringify({
+        ajaxCall(
+            'POST',
+            `http://localhost:5121/api/news/save?userId=${userId}`,
+            JSON.stringify({
                 title: article.title,
                 content: article.description,
                 url: article.url,
@@ -893,10 +891,7 @@ var NewsManager = {
                 sentiment: article.sentiment || null,
                 country: article.country || null
             }),
-            cache: false,
-            contentType: "application/json",
-            dataType: "json",
-            success: function (response) {
+            function (response) {
                 if (response && response.newsId) {
                     if (typeof showAlert === 'function') {
                         showAlert('success', 'Article saved successfully!');
@@ -907,13 +902,13 @@ var NewsManager = {
                     }
                 }
             },
-            error: function (xhr, status, error) {
+            function (xhr, status, error) {
                 console.error('Save failed:', xhr.responseText);
                 if (typeof showAlert === 'function') {
                     showAlert('danger', 'Failed to save article: ' + (xhr.responseJSON?.message || error));
                 }
             }
-        });
+        );
     },
     
     // Share article

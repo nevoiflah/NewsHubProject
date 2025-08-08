@@ -97,13 +97,11 @@ var SavedNewsManager = {
         const apiUrl = `http://localhost:5121/api/News/saved?userId=${userId}`;
         console.log('🌐 API URL:', apiUrl);
 
-        $.ajax({
-            type: 'GET',
-            url: apiUrl,
-            cache: false,
-            dataType: "json",
-            timeout: 10000, // 10 second timeout
-            success: function (response) {
+        ajaxCall(
+            'GET',
+            apiUrl,
+            null,
+            function (response) {
                 console.log('✅ Raw API response:', response);
                 console.log('📊 Response type:', typeof response);
                 console.log('📊 Response structure:', Object.keys(response || {}));
@@ -154,7 +152,7 @@ var SavedNewsManager = {
                     SavedNewsManager.showNoArticlesMessage();
                 }
             },
-            error: function (xhr, status, error) {
+            function (xhr, status, error) {
                 console.error('❌ AJAX Error details:', {
                     status: xhr.status,
                     statusText: xhr.statusText,
@@ -183,7 +181,7 @@ var SavedNewsManager = {
                     showAlert('danger', `Failed to load saved articles (${xhr.status})`);
                 }
             }
-        });
+        );
     },
 
     // Display articles in the UI with grid/list toggle
@@ -496,20 +494,19 @@ var SavedNewsManager = {
         // Test API connectivity
         if (userId) {
             console.log('🧪 Testing API connectivity...');
-            $.ajax({
-                type: 'GET',
-                url: `http://localhost:5121/api/News/debug/user/${userId}`,
-                cache: false,
-                dataType: "json",
-                success: function(response) {
+            ajaxCall(
+                'GET',
+                `http://localhost:5121/api/News/debug/user/${userId}`,
+                null,
+                function(response) {
                     console.log('✅ Debug API response:', response);
                     alert(`DEBUG INFO:\nUser ID: ${userId}\nSaved Articles in DB: ${response.savedCount}\nAPI Response: ${JSON.stringify(response, null, 2)}`);
                 },
-                error: function(xhr) {
+                function(xhr) {
                     console.log('❌ Debug API failed:', xhr);
                     alert(`DEBUG INFO:\nUser ID: ${userId}\nAPI Test Failed: ${xhr.status} ${xhr.statusText}\nResponse: ${xhr.responseText}`);
                 }
-            });
+            );
         } else {
             alert('DEBUG INFO:\nNo user ID found in localStorage\nPlease log in first');
         }
@@ -620,11 +617,17 @@ var SavedNewsManager = {
             return;
         }
         // Fire AJAX call in background
-        $.ajax({
-            type: 'DELETE',
-            url: `http://localhost:5121/api/News/saved/${articleId}?userId=${userId}`,
-            cache: false
-        });
+        ajaxCall(
+            'DELETE',
+            `http://localhost:5121/api/News/saved/${articleId}?userId=${userId}`,
+            null,
+            function() {
+                console.log('✅ Article deleted successfully');
+            },
+            function(xhr, status, error) {
+                console.error('❌ Failed to delete article:', error);
+            }
+        );
         // Immediately refresh the page
         location.reload();
     },
@@ -823,14 +826,18 @@ var SavedNewsManager = {
         }
 
         const promises = SavedNewsManager.savedArticles.map(article =>
-            $.ajax({
-                type: 'DELETE',
-                url: `http://localhost:5121/api/News/saved/${article.id || article.Id || article.newsId}?userId=${userId}`, // ✅ Fixed URL case
-                cache: false
+            new Promise((resolve, reject) => {
+                ajaxCall(
+                    'DELETE',
+                    `http://localhost:5121/api/News/saved/${article.id || article.Id || article.newsId}?userId=${userId}`,
+                    null,
+                    resolve,
+                    reject
+                );
             })
         );
 
-        $.when.apply($, promises).done(function () {
+        Promise.all(promises).then(function () {
             SavedNewsManager.savedArticles = [];
             SavedNewsManager.filteredArticles = [];
             SavedNewsManager.showNoArticlesMessage();
@@ -838,7 +845,7 @@ var SavedNewsManager = {
             if (typeof showAlert === 'function') {
                 showAlert('success', 'All saved articles have been removed');
             }
-        }).fail(function () {
+        }).catch(function () {
             if (typeof showAlert === 'function') {
                 showAlert('danger', 'Failed to clear saved articles');
             }

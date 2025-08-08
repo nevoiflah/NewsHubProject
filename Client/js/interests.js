@@ -37,12 +37,11 @@ const InterestsManager = {
         const userId = getUserIdFromStorage();
         if (!userId) return;
 
-        $.ajax({
-            type: 'GET',
-            url: `http://localhost:5121/api/users/GetById/${userId}`,
-            cache: false,
-            dataType: "json",
-            success: function(userData) {
+        ajaxCall(
+            'GET',
+            `http://localhost:5121/api/users/GetById/${userId}`,
+            null,
+            function(userData) {
                 const newActivityLevel = userData.activityLevel || 0;
                 console.log('🔄 Refreshing activity level:', newActivityLevel);
                 
@@ -60,7 +59,7 @@ const InterestsManager = {
                 currentUser.activityLevel = newActivityLevel;
                 localStorage.setItem('userInfo', JSON.stringify(currentUser));
             },
-            error: function(xhr, status, error) {
+            function(xhr, status, error) {
                 console.warn('Failed to refresh activity level:', error);
                 // Try to update with localStorage data as fallback
                 const currentUser = JSON.parse(localStorage.getItem('userInfo') || '{}');
@@ -72,7 +71,7 @@ const InterestsManager = {
                     }
                 }
             }
-        });
+        );
     },
 
     // Update navbar avatar after activity changes
@@ -81,12 +80,11 @@ const InterestsManager = {
         if (!userId) return;
 
         // Fetch updated user data to get new activity level
-        $.ajax({
-            type: 'GET',
-            url: `http://localhost:5121/api/users/GetById/${userId}`,
-            cache: false,
-            dataType: "json",
-            success: function(userData) {
+        ajaxCall(
+            'GET',
+            `http://localhost:5121/api/users/GetById/${userId}`,
+            null,
+            function(userData) {
                 // Update localStorage with new activity level
                 const currentUser = JSON.parse(localStorage.getItem('userInfo') || '{}');
                 currentUser.activityLevel = userData.activityLevel || 0;
@@ -97,10 +95,10 @@ const InterestsManager = {
                     window.updateNavbarForUser();
                 }
             },
-            error: function(xhr, status, error) {
+            function(xhr, status, error) {
                 console.warn('Failed to update navbar after activity change:', error);
             }
-        });
+        );
     },
 
     // Setup event listeners
@@ -164,12 +162,11 @@ const InterestsManager = {
             }
 
             // Load user data from database
-            $.ajax({
-                type: 'GET',
-                url: `http://localhost:5121/api/users/GetById/${userId}`,
-                cache: false,
-                dataType: "json",
-                success: function(userData) {
+            ajaxCall(
+                'GET',
+                `http://localhost:5121/api/users/GetById/${userId}`,
+                null,
+                function(userData) {
                     // Populate form with current user data
                     $('#editUsername').val(userData.username || '');
                     $('#editEmail').val(userData.email || '');
@@ -188,18 +185,18 @@ const InterestsManager = {
 
                     console.log('✅ User profile loaded successfully');
                 },
-                error: function(xhr, status, error) {
+                function(xhr, status, error) {
                     console.error('Error loading user profile:', error);
                     showAlert('danger', 'Failed to load user profile');
                 }
-            });
+            );
         } catch (error) {
             console.error('Error loading user profile:', error);
             showAlert('danger', 'Failed to load user profile');
         }
     },
 
-    // Load user interests - Using direct $.ajax
+    // Load user interests - Using ajaxCall
     loadUserInterests: function () {
         const userId = getUserIdFromStorage();
         if (!userId) {
@@ -207,12 +204,11 @@ const InterestsManager = {
             return;
         }
 
-        $.ajax({
-            type: 'GET',
-            url: `http://localhost:5121/api/users/interests/${userId}`,
-            cache: false,
-            dataType: "json",
-            success: function (tags) {
+        ajaxCall(
+            'GET',
+            `http://localhost:5121/api/users/interests/${userId}`,
+            null,
+            function (tags) {
                 InterestsManager.currentInterests = Array.isArray(tags) ? tags : [];
 
                 if (InterestsManager.currentInterests.length > 0) {
@@ -229,10 +225,10 @@ const InterestsManager = {
                     $('#resetInterests').prop('disabled', true);
                 }
             },
-            error: function (xhr, status, error) {
+            function (xhr, status, error) {
                 console.warn("⚠️ Failed to load user interests:", error);
             }
-        });
+        );
     },
 
     // Load following stats
@@ -243,12 +239,11 @@ const InterestsManager = {
             return;
         }
 
-        $.ajax({
-            type: 'GET',
-            url: `http://localhost:5121/api/users/following-stats?userId=${userId}`,
-            cache: false,
-            dataType: "json",
-            success: function(response) {
+        ajaxCall(
+            'GET',
+            `http://localhost:5121/api/users/following-stats?userId=${userId}`,
+            null,
+            function(response) {
                 if (response && response.success && response.stats) {
                     $('#followingCount').text(response.stats.following || 0);
                     $('#followersCount').text(response.stats.followers || 0);
@@ -259,12 +254,12 @@ const InterestsManager = {
                     $('#followersCount').text('0');
                 }
             },
-            error: function(xhr, status, error) {
+            function(xhr, status, error) {
                 console.warn("⚠️ Failed to load following stats:", error);
                 $('#followingCount').text('0');
                 $('#followersCount').text('0');
             }
-        });
+        );
     },
 
     // Update user avatar based on activity level
@@ -447,18 +442,14 @@ const InterestsManager = {
             console.log('🌐 Profile API URL:', profileApiUrl);
         
             try {
-                const profileResult = await $.ajax({
-                    type: 'PUT',
-                    url: profileApiUrl,
-                    contentType: 'application/json',
-                    data: JSON.stringify(updateRequest),
-                    dataType: "json",
-                    cache: false,
-                    timeout: 30000,
-                    beforeSend: function(xhr) {
-                        console.log('📤 Sending profile update request to:', profileApiUrl);
-                        console.log('📤 Request data:', JSON.stringify(updateRequest));
-                    }
+                const profileResult = await new Promise((resolve, reject) => {
+                    ajaxCall(
+                        'PUT',
+                        profileApiUrl,
+                        JSON.stringify(updateRequest),
+                        resolve,
+                        reject
+                    );
                 });
             
                 console.log('✅ Profile update response:', profileResult);
@@ -572,24 +563,22 @@ const InterestsManager = {
             return;
         }
 
-        $.ajax({
-            type: 'POST',
-            url: 'http://localhost:5121/api/users/interests',
-            contentType: "application/json",
-            dataType: "json",
-            data: JSON.stringify({
+        ajaxCall(
+            'POST',
+            'http://localhost:5121/api/users/interests',
+            JSON.stringify({
                 userId: parseInt(userId),
                 categories: selectedInterests
             }),
-            success: function (response) {
+            function (response) {
                 showAlert('success', 'Interests saved!');
                 console.log("✅ Interests saved:", selectedInterests);
             },
-            error: function (xhr, status, error) {
+            function (xhr, status, error) {
                 console.error('❌ Error saving interests:', error);
                 showAlert('danger', 'Failed to save interests');
             }
-        });
+        );
     },
 
     // Reset user interests
@@ -605,11 +594,11 @@ const InterestsManager = {
             return;
         }
 
-        $.ajax({
-            type: 'DELETE',
-            url: `http://localhost:5121/api/users/interests/${userId}`,
-            cache: false,
-            success: function () {
+        ajaxCall(
+            'DELETE',
+            `http://localhost:5121/api/users/interests/${userId}`,
+            null,
+            function () {
                 InterestsManager.currentInterests = [];
 
                 // Clear form UI
@@ -623,11 +612,11 @@ const InterestsManager = {
                 showAlert("success", "Your interest preference has been cleared.");
                 console.log("✅ User interests cleared.");
             },
-            error: function (xhr, status, error) {
+            function (xhr, status, error) {
                 console.error("❌ Failed to clear interests:", error);
                 showAlert("danger", "Could not clear your interest preference.");
             }
-        });
+        );
     },
 
 

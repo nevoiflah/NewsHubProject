@@ -3,22 +3,16 @@ $(document).ready(function() {
     console.log('🔐 Auth module loaded with jQuery');
 });
 
-
 const baseUrl = 'http://localhost:5121/api';
 
 // Helper function to get user interests 
 async function getUserInterests(userId) {
     return new Promise((resolve) => {
-        
-        $.ajax({
-            type: 'GET',
-            url: `${baseUrl}/users/interests`,
-            cache: false,
-            dataType: "json",
-            data: {
-                userId: Auth.getCurrentUser().id
-            },
-            success: function(response) {
+        ajaxCall(
+            'GET',
+            `${baseUrl}/users/interests`,
+            { userId: Auth.getCurrentUser().id },
+            function(response) {
                 if (response && response.categories) {
                     console.log('📝 User interests:', response.categories);
                     resolve(response.categories);
@@ -26,11 +20,11 @@ async function getUserInterests(userId) {
                     resolve(['general']); // Default interest
                 }
             },
-            error: function(xhr, status, error) {
+            function(xhr, status, error) {
                 console.warn('⚠️ Could not load user interests:', error);
                 resolve(['general']);
             }
-        });
+        );
     });
 }
 
@@ -52,23 +46,19 @@ const Auth = {
         return JSON.parse(localStorage.getItem('userInfo') || '{}');
     },
 
-    // Login user - Using direct $.ajax
+    // Login user - Using ajaxCall
     login: async (username, password) => {
         return new Promise((resolve) => {
             console.log('🌐 Frontend: Starting login request...');
             
-            $.ajax({
-                type: 'POST',
-                url: `${baseUrl}/Users/login`,
-                data: JSON.stringify({ 
+            ajaxCall(
+                'POST',
+                `${baseUrl}/Users/login`,
+                JSON.stringify({ 
                     Username: username, 
                     Password: password
                 }),
-                cache: false,
-                contentType: "application/json",
-                dataType: "json",
-                timeout: 30000,
-                success: function(response) {
+                function(response) {
                     console.log('📥 Frontend: Raw API response:', response);
 
                     // ✅ FIXED: Check for response.user.id instead of response.id
@@ -94,7 +84,7 @@ const Auth = {
                         resolve({ success: false, error: 'Invalid response from server' });
                     }
                 },
-                error: function(xhr, status, error) {
+                function(xhr, status, error) {
                     console.error('❌ Frontend: Login failed:', {
                         status: xhr.status,
                         statusText: xhr.statusText,
@@ -112,58 +102,54 @@ const Auth = {
 
                     resolve({ success: false, error: errorMessage });
                 }
-            });
+            );
         });
     },
 
     // Register user 
     register: (username, email, password, onSuccess, onError) => {
-    const firstName = $('#firstName').val().trim();
-    const lastName = $('#lastName').val().trim();
+        const firstName = $('#firstName').val().trim();
+        const lastName = $('#lastName').val().trim();
 
-    const userPayload = JSON.stringify({
-        Username: username,
-        Email: email,
-        PasswordHash: password,
-        FirstName: firstName,
-        LastName: lastName
-    });
+        const userPayload = JSON.stringify({
+            Username: username,
+            Email: email,
+            PasswordHash: password,
+            FirstName: firstName,
+            LastName: lastName
+        });
 
-    ajaxCall(
-        'POST',
-        `${baseUrl}/Users/register`,
-        userPayload,
-        function (response) {
-            const isSuccess =
-                response === "User registered successfully." ||
-                (response && response.success);
+        ajaxCall(
+            'POST',
+            `${baseUrl}/Users/register`,
+            userPayload,
+            function (response) {
+                const isSuccess =
+                    response === "User registered successfully." ||
+                    (response && response.success);
 
-            if (isSuccess) {
-                onSuccess("Registration successful");
-            } else {
+                if (isSuccess) {
+                    onSuccess("Registration successful");
+                } else {
+                    onError("Registration failed");
+                }
+            },
+            function () {
                 onError("Registration failed");
             }
-        },
-        function () {
-            onError("Registration failed");
-        }
-    );
-}
-,
+        );
+    },
 
     // Update profile 
     updateProfile: async (profileData) => {
         return new Promise((resolve) => {
             const user = Auth.getCurrentUser();
 
-            $.ajax({
-                type: 'PUT',
-                url: `${baseUrl}/Users/Update/${user.id}`,
-                data: JSON.stringify(profileData),
-                cache: false,
-                contentType: "application/json",
-                dataType: "json",
-                success: function (response) {
+            ajaxCall(
+                'PUT',
+                `${baseUrl}/Users/Update/${user.id}`,
+                JSON.stringify(profileData),
+                function (response) {
                     console.log('📥 Profile update response:', response);
 
                     if (response && response === "User updated successfully.") {
@@ -178,7 +164,7 @@ const Auth = {
                         resolve({ success: false, error: 'Profile update failed' });
                     }
                 },
-                error: function (xhr, status, error) {
+                function (xhr, status, error) {
                     console.error('❌ Profile update error:', {
                         status: xhr.status,
                         statusText: xhr.statusText,
@@ -196,7 +182,7 @@ const Auth = {
 
                     resolve({ success: false, error: errorMessage });
                 }
-            });
+            );
         });
     },
 
@@ -205,14 +191,11 @@ const Auth = {
         return new Promise((resolve) => {
             const userId = Auth.getCurrentUser().id;
 
-            $.ajax({
-                type: 'POST',
-                url: `${baseUrl}/tags/save/${userId}`,
-                data: JSON.stringify(categories), // רק מערך של IDs
-                cache: false,
-                contentType: "application/json",
-                dataType: "json",
-                success: function (response) {
+            ajaxCall(
+                'POST',
+                `${baseUrl}/tags/save/${userId}`,
+                JSON.stringify(categories), // רק מערך של IDs
+                function (response) {
                     if (response && response.success) {
                         console.log('✅ Interests saved successfully');
                         resolve({ success: true, message: 'Interests saved successfully' });
@@ -220,7 +203,7 @@ const Auth = {
                         resolve({ success: false, error: 'Failed to save interests' });
                     }
                 },
-                error: function (xhr, status, error) {
+                function (xhr, status, error) {
                     console.error('❌ Error saving interests:', error);
 
                     let errorMessage = 'Failed to save interests';
@@ -228,12 +211,12 @@ const Auth = {
                         const errorResponse = JSON.parse(xhr.responseText);
                         errorMessage = errorResponse.message || errorResponse.error || errorMessage;
                     } catch (e) {
-                        // Default message
+                        // Use default error message
                     }
 
                     resolve({ success: false, error: errorMessage });
                 }
-            });
+            );
         });
     },
 
@@ -242,23 +225,22 @@ const Auth = {
         return new Promise((resolve) => {
             const userId = Auth.getCurrentUser().id;
 
-            $.ajax({
-                type: 'GET',
-                url: `${baseUrl}/tags/${userId}`,
-                cache: false,
-                dataType: "json",
-                success: function (response) {
+            ajaxCall(
+                'GET',
+                `${baseUrl}/tags/${userId}`,
+                {},
+                function (response) {
                     if (Array.isArray(response)) {
                         resolve({ success: true, categories: response });
                     } else {
                         resolve({ success: true, categories: ['general'] });
                     }
                 },
-                error: function (xhr, status, error) {
+                function (xhr, status, error) {
                     console.error('❌ Error loading interests:', error);
                     resolve({ success: false, error: 'Failed to load interests' });
                 }
-            });
+            );
         });
     },
 

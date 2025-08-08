@@ -169,31 +169,31 @@ const ShareManager = {
             articleImageUrl: $('#articleImage').val().trim() || null
         };
 
-        $.ajax({
-            type: 'POST',
-            url: `${this.baseUrl}/shared?userId=${userId}`,
-            data: JSON.stringify(shareData),
-            contentType: "application/json",
-            dataType: "json",
-            success: function(response) {
+        ajaxCall(
+            'POST',
+            `${this.baseUrl}/shared?userId=${userId}`,
+            JSON.stringify(shareData),
+            function(response) {
                 if (response && response.success) {
                     showAlert('success', 'Article shared successfully!');
                     
                     // Track activity for sharing
                     const userId = localStorage.getItem('userId');
                     if (userId) {
-                        $.ajax({
-                            type: 'POST',
-                            url: `http://localhost:5121/api/users/activity/${userId}`,
-                            cache: false,
-                            dataType: "json",
-                            success: function() {
+                        ajaxCall(
+                            'POST',
+                            `http://localhost:5121/api/users/activity/${userId}`,
+                            null,
+                            function() {
                                 // Trigger avatar update after activity change
                                 if (window.triggerAvatarUpdate) {
                                     window.triggerAvatarUpdate();
                                 }
+                            },
+                            function(xhr, status, error) {
+                                console.warn('Failed to track activity:', error);
                             }
-                        });
+                        );
                     }
                     
                     // Reset form
@@ -207,26 +207,22 @@ const ShareManager = {
                     showAlert('danger', response.message || 'Failed to share article');
                 }
             },
-            error: function(xhr, status, error) {
+            function(xhr, status, error) {
                 console.error('❌ Share submission error:', error);
                 showAlert('danger', 'Failed to share article. Please try again.');
-            },
-            complete: function() {
-                $btn.html(originalText).prop('disabled', false);
             }
-        });
+        );
     },
 
     // Load shared content
     loadSharedContent: function() {
         console.log('📰 Loading shared content...');
 
-        $.ajax({
-            type: 'GET',
-            url: `${this.baseUrl}/shared`,
-            cache: false,
-            dataType: "json",
-            success: function(response) {
+        ajaxCall(
+            'GET',
+            `${this.baseUrl}/shared`,
+            null,
+            function(response) {
                 if (response && response.success) {
                     ShareManager.sharedContent = response.articles || [];
                     ShareManager.filteredContent = [...ShareManager.sharedContent];
@@ -236,11 +232,11 @@ const ShareManager = {
                     ShareManager.showErrorMessage('Failed to load shared content');
                 }
             },
-            error: function(xhr, status, error) {
+            function(xhr, status, error) {
                 console.error('❌ Error loading shared content:', error);
                 ShareManager.showErrorMessage('Failed to load shared content');
             }
-        });
+        );
     },
 
     // Load blocked users
@@ -248,21 +244,20 @@ const ShareManager = {
         const userId = localStorage.getItem('userId');
         if (!userId) return;
 
-        $.ajax({
-            type: 'GET',
-            url: `${this.baseUrl}/users/blocked?userId=${userId}`,
-            cache: false,
-            dataType: "json",
-            success: function(response) {
+        ajaxCall(
+            'GET',
+            `${this.baseUrl}/users/blocked?userId=${userId}`,
+            null,
+            function(response) {
                 if (response && response.success) {
                     ShareManager.blockedUsers = response.blockedUsers || [];
                     ShareManager.displayBlockedUsers();
                 }
             },
-            error: function(xhr, status, error) {
+            function(xhr, status, error) {
                 console.error('❌ Error loading blocked users:', error);
             }
-        });
+        );
     },
 
     // Load following users
@@ -270,20 +265,19 @@ const ShareManager = {
         const userId = localStorage.getItem('userId');
         if (!userId) return;
 
-        $.ajax({
-            type: 'GET',
-            url: `${this.baseUrl}/users/following?userId=${userId}`,
-            cache: false,
-            dataType: "json",
-            success: function(response) {
+        ajaxCall(
+            'GET',
+            `${this.baseUrl}/users/following?userId=${userId}`,
+            null,
+            function(response) {
                 if (response && response.success) {
                     ShareManager.followingUsers = response.following || [];
                 }
             },
-            error: function(xhr, status, error) {
+            function(xhr, status, error) {
                 console.error('❌ Error loading following users:', error);
             }
-        });
+        );
     },
 
     // Load following stats
@@ -291,20 +285,19 @@ const ShareManager = {
         const userId = localStorage.getItem('userId');
         if (!userId) return;
 
-        $.ajax({
-            type: 'GET',
-            url: `${this.baseUrl}/users/following-stats?userId=${userId}`,
-            cache: false,
-            dataType: "json",
-            success: function(response) {
+        ajaxCall(
+            'GET',
+            `${this.baseUrl}/users/following-stats?userId=${userId}`,
+            null,
+            function(response) {
                 if (response && response.success) {
                     ShareManager.displayFollowingStats(response.stats);
                 }
             },
-            error: function(xhr, status, error) {
+            function(xhr, status, error) {
                 console.error('❌ Error loading following stats:', error);
             }
-        });
+        );
     },
 
     // Handle like article
@@ -323,12 +316,11 @@ const ShareManager = {
         $btn.prop('disabled', true);
         $btn.html('<i class="fas fa-spinner fa-spin"></i>');
 
-        $.ajax({
-            type: 'POST',
-            url: `${this.baseUrl}/shared/${shareId}/like?userId=${userId}`,
-            cache: false,
-            dataType: "json",
-            success: (response) => {
+        ajaxCall(
+            'POST',
+            `${this.baseUrl}/shared/${shareId}/like?userId=${userId}`,
+            null,
+            function(response) {
                 if (response && response.success) {
                     // Show notification
                     if (window.SimpleNotificationService) {
@@ -344,14 +336,11 @@ const ShareManager = {
                     showAlert('error', response?.message || 'Failed to like article');
                 }
             },
-            error: (xhr, status, error) => {
+            function(xhr, status, error) {
                 console.error('❌ Error updating like:', error);
                 showAlert('error', 'Failed to like article');
-            },
-            complete: () => {
-                $btn.prop('disabled', false);
             }
-        });
+        );
     },
 
     // UPDATED: Show comments - now inline instead of modal
@@ -389,23 +378,22 @@ const ShareManager = {
         `);
         $card.find('.card-body').append($loadingHtml);
         
-        $.ajax({
-            type: 'GET',
-            url: `${this.baseUrl}/shared/${articleId}/comments?userId=${userId}`,
-            cache: false,
-            dataType: "json",
-            success: function(response) {
+        ajaxCall(
+            'GET',
+            `${this.baseUrl}/shared/${articleId}/comments?userId=${userId}`,
+            null,
+            function(response) {
                 if (response && response.success) {
                     ShareManager.showCommentsInline(articleId, response.comments || [], $card);
                 } else {
                     $loadingHtml.html('<div class="alert alert-warning">Failed to load comments</div>');
                 }
             },
-            error: function(xhr, status, error) {
+            function(xhr, status, error) {
                 console.error('❌ Error loading comments:', error);
                 $loadingHtml.html('<div class="alert alert-danger">Error loading comments</div>');
             }
-        });
+        );
     },
 
     // NEW: Show comments inline under the article card
@@ -497,29 +485,29 @@ const ShareManager = {
         $btn.html('<i class="fas fa-spinner fa-spin"></i>').prop('disabled', true);
         $textarea.prop('disabled', true);
 
-        $.ajax({
-            type: 'POST',
-            url: `${this.baseUrl}/shared/${articleId}/comments?userId=${userId}`,
-            data: JSON.stringify({ content: content }),
-            contentType: "application/json",
-            dataType: "json",
-            success: function(response) {
+        ajaxCall(
+            'POST',
+            `${this.baseUrl}/shared/${articleId}/comments?userId=${userId}`,
+            JSON.stringify({ content: content }),
+            function(response) {
                 if (response && response.success) {
                     // Track activity for commenting
                     const userId = localStorage.getItem('userId');
                     if (userId) {
-                        $.ajax({
-                            type: 'POST',
-                            url: `http://localhost:5121/api/users/activity/${userId}`,
-                            cache: false,
-                            dataType: "json",
-                            success: function() {
+                        ajaxCall(
+                            'POST',
+                            `http://localhost:5121/api/users/activity/${userId}`,
+                            null,
+                            function() {
                                 // Trigger avatar update after activity change
                                 if (window.triggerAvatarUpdate) {
                                     window.triggerAvatarUpdate();
                                 }
+                            },
+                            function(xhr, status, error) {
+                                console.warn('Failed to track activity:', error);
                             }
-                        });
+                        );
                     }
                     
                     // Refresh the page to show the new comment
@@ -530,13 +518,13 @@ const ShareManager = {
                     $textarea.prop('disabled', false);
                 }
             },
-            error: function(xhr, status, error) {
+            function(xhr, status, error) {
                 console.error('❌ Error adding comment:', error);
                 showAlert('danger', 'Error adding comment');
                 $btn.html(originalText).prop('disabled', false);
                 $textarea.prop('disabled', false);
             }
-        });
+        );
     },
 
     // NEW: Handle delete comment inline
@@ -549,12 +537,11 @@ const ShareManager = {
         if (!confirm('Are you sure you want to delete this comment?')) return;
 
         // Fire AJAX call in background
-        $.ajax({
-            type: 'DELETE',
-            url: `${this.baseUrl}/shared/${articleId}/comments/${commentId}?userId=${userId}`,
-            cache: false,
-            dataType: "json"
-        });
+        ajaxCall(
+            'DELETE',
+            `${this.baseUrl}/shared/${articleId}/comments/${commentId}?userId=${userId}`,
+            null
+        );
         
         // Immediately refresh the page
         location.reload();
@@ -573,12 +560,11 @@ const ShareManager = {
         }
 
         // Fire AJAX call in background
-        $.ajax({
-            type: 'POST',
-            url: `${this.baseUrl}/users/${targetUserId}/follow?userId=${userId}`,
-            cache: false,
-            dataType: "json"
-        });
+        ajaxCall(
+            'POST',
+            `${this.baseUrl}/users/${targetUserId}/follow?userId=${userId}`,
+            null
+        );
 
         // Immediately refresh the page
         location.reload();
@@ -599,12 +585,11 @@ const ShareManager = {
         if (!confirm(`Are you sure you want to unfollow ${username}?`)) return;
 
         // Fire AJAX call in background
-        $.ajax({
-            type: 'DELETE',
-            url: `${this.baseUrl}/users/${targetUserId}/follow?userId=${userId}`,
-            cache: false,
-            dataType: "json"
-        });
+        ajaxCall(
+            'DELETE',
+            `${this.baseUrl}/users/${targetUserId}/follow?userId=${userId}`,
+            null
+        );
 
         // Immediately refresh the page
         location.reload();
@@ -627,14 +612,15 @@ const ShareManager = {
         }
 
         // Fire AJAX call in background
-        $.ajax({
-            type: 'POST',
-            url: `${this.baseUrl}/users/${targetUserId}/block?userId=${userId}`,
-            contentType: 'application/json',
-            data: JSON.stringify({ reason: 'User blocked via shared articles page' }),
-            cache: false,
-            dataType: "json"
-        });
+        ajaxCall(
+            'POST',
+            `${this.baseUrl}/users/${targetUserId}/block?userId=${userId}`,
+            JSON.stringify({ reason: 'User blocked via shared articles page' }),
+            null,
+            function(xhr, status, error) {
+                console.warn('Failed to block user:', error);
+            }
+        );
 
         // Immediately refresh the page
         location.reload();
@@ -774,20 +760,18 @@ const ShareManager = {
         console.log('📤 Request JSON:', JSON.stringify(requestData));
         console.log('📤 URL:', `${this.baseUrl}/reports?userId=${userId}`);
 
-        $.ajax({
-            type: 'POST',
-            url: `${this.baseUrl}/reports?userId=${userId}`,
-            data: JSON.stringify(requestData),
-            contentType: "application/json",
-            dataType: "json",
-            success: function(response) {
+        ajaxCall(
+            'POST',
+            `${this.baseUrl}/reports?userId=${userId}`,
+            JSON.stringify(requestData),
+            function(response) {
                 if (response && response.success) {
                     showAlert('success', 'Report submitted successfully. Thank you for helping keep our community safe.');
                 } else {
                     showAlert('danger', response.message || 'Failed to submit report');
                 }
             },
-            error: function(xhr, status, error) {
+            function(xhr, status, error) {
                 console.error('❌ Error submitting report:', error);
                 console.error('❌ Response status:', xhr.status);
                 console.error('❌ Response text:', xhr.responseText);
@@ -806,7 +790,7 @@ const ShareManager = {
                     showAlert('danger', 'Error submitting report');
                 }
             }
-        });
+        );
     },
 
     // Handle delete shared article
@@ -817,12 +801,11 @@ const ShareManager = {
         if (!confirm('Are you sure you want to delete this shared article?')) return;
 
         // Fire AJAX call in background
-        $.ajax({
-            type: 'DELETE',
-            url: `${this.baseUrl}/shared/${shareId}?userId=${userId}`,
-            cache: false,
-            dataType: "json"
-        });
+        ajaxCall(
+            'DELETE',
+            `${this.baseUrl}/shared/${shareId}?userId=${userId}`,
+            null
+        );
         
         // Immediately refresh the page
         location.reload();
@@ -833,10 +816,10 @@ const ShareManager = {
         const articleData = JSON.parse($(e.currentTarget).attr('data-article').replace(/&apos;/g, "'"));
         const userId = localStorage.getItem('userId');
 
-        $.ajax({
-            type: 'POST',
-            url: `${this.baseUrl}/news/save?userId=${userId}`,
-            data: JSON.stringify({
+        ajaxCall(
+            'POST',
+            `${this.baseUrl}/news/save?userId=${userId}`,
+            JSON.stringify({
                 title: articleData.articleTitle || 'Shared Article',
                 content: articleData.articleDescription || articleData.comment,
                 url: articleData.url,
@@ -845,20 +828,18 @@ const ShareManager = {
                 source: articleData.articleSource || 'Shared Content',
                 category: 'general'
             }),
-            contentType: "application/json",
-            dataType: "json",
-            success: function(response) {
+            function(response) {
                 if (response && response.newsId) {
                     showAlert('success', 'Article saved successfully!');
                 } else {
                     showAlert('warning', 'Article may already be saved');
                 }
             },
-            error: function(xhr, status, error) {
+            function(xhr, status, error) {
                 console.error('❌ Error saving article:', error);
                 showAlert('danger', 'Failed to save article');
             }
-        });
+        );
     },
 
     // Apply filters to shared content
@@ -1152,12 +1133,11 @@ const ShareManager = {
         if (!confirm(`Are you sure you want to unblock ${username}?`)) return;
 
         // Fire AJAX call in background
-        $.ajax({
-            type: 'DELETE',
-            url: `${this.baseUrl}/users/${targetUserId}/block?userId=${userId}`,
-            cache: false,
-            dataType: "json"
-        });
+        ajaxCall(
+            'DELETE',
+            `${this.baseUrl}/users/${targetUserId}/block?userId=${userId}`,
+            null
+        );
 
         // Immediately refresh the page
         location.reload();
@@ -1294,12 +1274,11 @@ const ShareManager = {
         if (!userId) return;
 
         // Fetch updated user data to get new activity level
-        $.ajax({
-            type: 'GET',
-            url: `http://localhost:5121/api/users/GetById/${userId}`,
-            cache: false,
-            dataType: "json",
-            success: function(userData) {
+        ajaxCall(
+            'GET',
+            `http://localhost:5121/api/users/GetById/${userId}`,
+            null,
+            function(userData) {
                 // Update localStorage with new activity level
                 const currentUser = JSON.parse(localStorage.getItem('userInfo') || '{}');
                 currentUser.activityLevel = userData.activityLevel || 0;
@@ -1310,10 +1289,10 @@ const ShareManager = {
                     window.updateAllAvatars(userData.activityLevel || 0);
                 }
             },
-            error: function(xhr, status, error) {
+            function(xhr, status, error) {
                 console.warn('Failed to update navbar after activity change:', error);
             }
-        });
+        );
     }
 };
 

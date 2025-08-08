@@ -6,7 +6,7 @@
     
     // API Configuration
     const API_CONFIG = {
-        baseUrl: 'https://localhost:5121/api',
+        baseUrl: 'http://localhost:5121/api',
         timeout: 30000
     };
 
@@ -60,15 +60,11 @@
                 // Login method 
                 login: async (username, password) => {
                     return new Promise((resolve) => {
-                        $.ajax({
-                            type: 'POST',
-                            url: `${API_CONFIG.baseUrl}/Users/login`,
-                            data: JSON.stringify({ username, passwordHash: password }),
-                            cache: false,
-                            contentType: "application/json",
-                            dataType: "json",
-                            timeout: API_CONFIG.timeout,
-                            success: function(response) {
+                        ajaxCall(
+                            'POST',
+                            `${API_CONFIG.baseUrl}/Users/login`,
+                            JSON.stringify({ username, passwordHash: password }),
+                            function(response) {
                                 console.log('📥 Backend login response:', response);
                                 if (response && response.id) {
                                     localStorage.setItem('userInfo', JSON.stringify({
@@ -83,7 +79,7 @@
                                     resolve({ success: false, error: 'Login failed' });
                                 }
                             },
-                            error: function(xhr, status, error) {
+                            function(xhr, status, error) {
                                 console.error('❌ Login error:', error);
                                 let errorMessage = 'Login failed';
                                 try {
@@ -94,29 +90,25 @@
                                 }
                                 resolve({ success: false, error: errorMessage });
                             }
-                        });
+                        );
                     });
                 },
 
                 // Register method 
                 register: async (username, email, password) => {
                     return new Promise((resolve) => {
-                        $.ajax({
-                            type: 'POST',
-                            url: `${API_CONFIG.baseUrl}/Users/register`,
-                            data: JSON.stringify({ username, email, passwordHash: password }),
-                            cache: false,
-                            contentType: "application/json",
-                            dataType: "json",
-                            timeout: API_CONFIG.timeout,
-                            success: function(response) {
+                        ajaxCall(
+                            'POST',
+                            `${API_CONFIG.baseUrl}/Users/register`,
+                            JSON.stringify({ username, email, passwordHash: password }),
+                            function(response) {
                                 if (response && response.id) {
                                     resolve({ success: true, message: 'Registration successful' });
                                 } else {
                                     resolve({ success: false, error: 'Registration failed' });
                                 }
                             },
-                            error: function(xhr, status, error) {
+                            function(xhr, status, error) {
                                 let errorMessage = 'Registration failed';
                                 try {
                                     const errorResponse = JSON.parse(xhr.responseText);
@@ -126,7 +118,7 @@
                                 }
                                 resolve({ success: false, error: errorMessage });
                             }
-                        });
+                        );
                     });
                 },
 
@@ -139,15 +131,11 @@
                             return;
                         }
 
-                        $.ajax({
-                            type: 'PUT',
-                            url: `${API_CONFIG.baseUrl}/Users/Update/${user.id}`,
-                            data: JSON.stringify(profileData),
-                            cache: false,
-                            contentType: "application/json",
-                            dataType: "json",
-                            timeout: API_CONFIG.timeout,
-                            success: function(response) {
+                        ajaxCall(
+                            'PUT',
+                            `${API_CONFIG.baseUrl}/Users/Update/${user.id}`,
+                            JSON.stringify(profileData),
+                            function(response) {
                                 if (response && response.success) {
                                     // Update local storage
                                     const currentUser = JSON.parse(localStorage.getItem('userInfo') || '{}');
@@ -159,11 +147,7 @@
                                     resolve({ success: false, error: 'Profile update failed' });
                                 }
                             },
-                            error: function(xhr, status, error) {
-                                if (xhr.status === 401) {
-                                    window.Auth.logout();
-                                    return;
-                                }
+                            function(xhr, status, error) {
                                 let errorMessage = 'Profile update failed';
                                 try {
                                     const errorResponse = JSON.parse(xhr.responseText);
@@ -173,7 +157,7 @@
                                 }
                                 resolve({ success: false, error: errorMessage });
                             }
-                        });
+                        );
                     });
                 },
 
@@ -212,32 +196,21 @@
                 apiCall: (endpoint, options = {}) => {
                     return new Promise((resolve, reject) => {
                         const url = `${API_CONFIG.baseUrl}${endpoint.startsWith('/') ? endpoint : '/' + endpoint}`;
-                        
-                        // Prepare data
                         let data = null;
+                        
                         if (options.data) {
-                            if (options.method === 'GET') {
-                                data = options.data;
-                            } else {
-                                data = JSON.stringify(options.data);
-                            }
-                        } else if (options.body) {
-                            data = options.body;
+                            data = typeof options.data === 'string' ? options.data : JSON.stringify(options.data);
                         }
 
-                        $.ajax({
-                            type: options.method || 'GET',
-                            url: url,
-                            data: data,
-                            cache: false,
-                            contentType: options.method === 'GET' ? undefined : "application/json",
-                            dataType: "json",
-                            timeout: API_CONFIG.timeout,
-                            success: function(response) {
+                        ajaxCall(
+                            options.method || 'GET',
+                            url,
+                            data,
+                            function(response) {
                                 console.log(`✅ API Success: ${endpoint}`, response);
                                 resolve(response);
                             },
-                            error: function(xhr, status, error) {
+                            function(xhr, status, error) {
                                 console.error(`❌ API Error: ${endpoint}`, {
                                     status: xhr.status,
                                     statusText: xhr.statusText,
@@ -266,7 +239,7 @@
                                 
                                 reject(new Error(errorMessage));
                             }
-                        });
+                        );
                     });
                 },
                 
@@ -641,48 +614,44 @@ function updateNavbarWithLocalData(user) {
 // Follow a user 
 async function followUser(userId) {
     return new Promise((resolve) => {
-        $.ajax({
-            type: 'POST',
-            url: `https://localhost:5121/api/users/${userId}/follow`,
-            cache: false,
-            contentType: "application/json",
-            dataType: "json",
-            success: function(response) {
+        ajaxCall(
+            'POST',
+            `https://localhost:5121/api/users/${userId}/follow`,
+            null,
+            function(response) {
                 if (response && response.success) {
                     resolve({ success: true, message: response.message });
                 } else {
                     resolve({ success: false, error: response?.message || 'Failed to follow user' });
                 }
             },
-            error: function(xhr, status, error) {
+            function(xhr, status, error) {
                 console.error('Error following user:', error);
                 resolve({ success: false, error: 'Network error' });
             }
-        });
+        );
     });
 }
 
 // Unfollow a user 
 async function unfollowUser(userId) {
     return new Promise((resolve) => {
-        $.ajax({
-            type: 'DELETE',
-            url: `https://localhost:5121/api/users/${userId}/follow`,
-            cache: false,
-            contentType: "application/json",
-            dataType: "json",
-            success: function(response) {
+        ajaxCall(
+            'DELETE',
+            `https://localhost:5121/api/users/${userId}/follow`,
+            null,
+            function(response) {
                 if (response && response.success) {
                     resolve({ success: true, message: response.message });
                 } else {
                     resolve({ success: false, error: response?.message || 'Failed to unfollow user' });
                 }
             },
-            error: function(xhr, status, error) {
+            function(xhr, status, error) {
                 console.error('Error unfollowing user:', error);
                 resolve({ success: false, error: 'Network error' });
             }
-        });
+        );
     });
 }
 
@@ -917,13 +886,11 @@ window.openCommunityShareModal = function(article) {
             }
 
             // Submit to API (using the same URL as in share.js)
-            $.ajax({
-                type: 'POST',
-                url: `http://localhost:5121/api/shared?userId=${userId}`,
-                data: JSON.stringify(formData),
-                contentType: 'application/json',
-                dataType: 'json',
-                success: function(response) {
+            ajaxCall(
+                'POST',
+                `http://localhost:5121/api/shared?userId=${userId}`,
+                JSON.stringify(formData),
+                function(response) {
                     if (response && response.success) {
                         if (typeof showAlert === 'function') {
                             showAlert('success', 'Article shared with community successfully!');
@@ -938,13 +905,13 @@ window.openCommunityShareModal = function(article) {
                         }
                     }
                 },
-                error: function(xhr, status, error) {
+                function(xhr, status, error) {
                     console.error('Share failed:', error);
                     if (typeof showAlert === 'function') {
                         showAlert('danger', 'Failed to share article. Please try again.');
                     }
                 }
-            });
+            );
         });
     }
 
@@ -1052,12 +1019,11 @@ function refreshUserDataAndAvatars() {
     const user = window.Auth.getCurrentUser();
     if (!user || !user.id) return;
     
-    $.ajax({
-        type: 'GET',
-        url: `http://localhost:5121/api/users/GetById/${user.id}`,
-        cache: false,
-        dataType: "json",
-        success: function(userData) {
+    ajaxCall(
+        'GET',
+        `http://localhost:5121/api/users/GetById/${user.id}`,
+        null,
+        function(userData) {
             const newActivityLevel = userData.activityLevel || 0;
             console.log('🔄 Refreshing user data, activity level:', newActivityLevel);
             
@@ -1081,7 +1047,7 @@ function refreshUserDataAndAvatars() {
                 window.updateNavbarForUser();
             }
         },
-        error: function(xhr, status, error) {
+        function(xhr, status, error) {
             console.warn('Failed to refresh user data:', error);
             // Fallback to localStorage data
             const currentUser = JSON.parse(localStorage.getItem('userInfo') || '{}');
@@ -1089,7 +1055,7 @@ function refreshUserDataAndAvatars() {
                 updateAllAvatars(currentUser.activityLevel);
             }
         }
-    });
+    );
 }
 
 // Set up periodic avatar synchronization

@@ -219,19 +219,19 @@ class NotificationService {
 
     async registerTokenWithBackend(token, userId) {
         try {
-            const response = await $.ajax({
-                type: 'POST',
-                url: 'https://localhost:5121/api/users/notifications/register-token',
-                data: JSON.stringify({
-                    token,
-                    userId,
-                    deviceType: 'web',
-                    userAgent: navigator.userAgent
-                }),
-                cache: false,
-                contentType: "application/json",
-                dataType: "json",
-                timeout: 30000
+            const response = await new Promise((resolve, reject) => {
+                ajaxCall(
+                    'POST',
+                    'https://localhost:5121/api/users/notifications/register-token',
+                    JSON.stringify({
+                        token,
+                        userId,
+                        deviceType: 'web',
+                        userAgent: navigator.userAgent
+                    }),
+                    resolve,
+                    reject
+                );
             });
 
             if (response && response.success) {
