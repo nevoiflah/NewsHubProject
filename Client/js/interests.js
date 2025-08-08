@@ -47,7 +47,7 @@ const InterestsManager = {
 
         $.ajax({
             type: 'GET',
-            url: `http://localhost:5121/api/users/GetById/${userId}`,
+            url: `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/users/GetById/${userId}`,
             cache: false,
             dataType: "json",
             success: function(userData) {
@@ -91,7 +91,7 @@ const InterestsManager = {
         // Fetch updated user data to get new activity level
         $.ajax({
             type: 'GET',
-            url: `http://localhost:5121/api/users/GetById/${userId}`,
+            url: `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/users/GetById/${userId}`,
             cache: false,
             dataType: "json",
             success: function(userData) {
@@ -174,7 +174,7 @@ const InterestsManager = {
             // Load user data from database
             $.ajax({
                 type: 'GET',
-                url: `http://localhost:5121/api/users/GetById/${userId}`,
+                url: `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/users/GetById/${userId}`,
                 cache: false,
                 dataType: "json",
                 success: function(userData) {
@@ -230,7 +230,7 @@ const InterestsManager = {
 
         $.ajax({
             type: 'GET',
-            url: `http://localhost:5121/api/users/interests/${userId}`,
+            url: `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/users/interests/${userId}`,
             cache: false,
             dataType: "json",
             success: function (tags) {
@@ -266,7 +266,7 @@ const InterestsManager = {
 
         $.ajax({
             type: 'GET',
-            url: `http://localhost:5121/api/users/following-stats?userId=${userId}`,
+            url: `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/users/following-stats?userId=${userId}`,
             cache: false,
             dataType: "json",
             success: function(response) {
@@ -369,7 +369,7 @@ const InterestsManager = {
 
         ajaxCall(
             'GET',
-            `http://localhost:5121/api/shared?userId=${userId}`,
+            `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/shared?userId=${userId}`,
             null,
             function(response) {
                 console.log('📊 Shared articles response:', response);
@@ -503,7 +503,7 @@ const InterestsManager = {
         
             // Make the profile update API call using the correct endpoint
             console.log('🚀 Making profile update API call...');
-            const profileApiUrl = `http://localhost:5121/api/Users/Update/${userId}`;
+            const profileApiUrl = `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Users/Update/${userId}`;
             console.log('🌐 Profile API URL:', profileApiUrl);
         
             try {
@@ -634,7 +634,7 @@ const InterestsManager = {
 
         $.ajax({
             type: 'POST',
-            url: 'http://localhost:5121/api/users/interests',
+            url: 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/users/interests',
             contentType: "application/json",
             dataType: "json",
             data: JSON.stringify({
@@ -667,7 +667,7 @@ const InterestsManager = {
 
         $.ajax({
             type: 'DELETE',
-            url: `http://localhost:5121/api/users/interests/${userId}`,
+            url: `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/users/interests/${userId}`,
             cache: false,
             success: function () {
                 InterestsManager.currentInterests = [];

@@ -6,7 +6,7 @@ const ShareManager = {
     followingUsers: [],
     currentPage: 1,
     itemsPerPage: 10,
-    baseUrl: 'http://localhost:5121/api',
+    baseUrl: 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api',
 
     // Initialize the shared content page
     init: function() {
@@ -182,7 +182,7 @@ const ShareManager = {
                     if (userId) {
                         ajaxCall(
                             'POST',
-                            `http://localhost:5121/api/users/activity/${userId}`,
+                            `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/users/activity/${userId}`,
                             null,
                             function() {
                                 // Trigger avatar update after activity change
@@ -477,7 +477,7 @@ const ShareManager = {
                     if (userId) {
                         ajaxCall(
                             'POST',
-                            `http://localhost:5121/api/users/activity/${userId}`,
+                            `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/users/activity/${userId}`,
                             null,
                             function() {
                                 // Trigger avatar update after activity change
@@ -1257,7 +1257,7 @@ const ShareManager = {
         // Fetch updated user data to get new activity level
         ajaxCall(
             'GET',
-            `http://localhost:5121/api/users/GetById/${userId}`,
+            `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/users/GetById/${userId}`,
             null,
             function(userData) {
                 // Update localStorage with new activity level

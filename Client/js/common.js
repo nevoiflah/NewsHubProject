@@ -6,7 +6,7 @@
     
     // API Configuration
     const API_CONFIG = {
-        baseUrl: 'http://localhost:5121/api',
+        baseUrl: 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api',
         timeout: 30000
     };
 
@@ -888,7 +888,7 @@ window.openCommunityShareModal = function(article) {
             // Submit to API (using the same URL as in share.js)
             ajaxCall(
                 'POST',
-                `http://localhost:5121/api/shared?userId=${userId}`,
+                `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/shared?userId=${userId}`,
                 JSON.stringify(formData),
                 function(response) {
                     if (response && response.success) {
@@ -1021,7 +1021,7 @@ function refreshUserDataAndAvatars() {
     
     ajaxCall(
         'GET',
-        `http://localhost:5121/api/users/GetById/${user.id}`,
+        `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/users/GetById/${user.id}`,
         null,
         function(userData) {
             const newActivityLevel = userData.activityLevel || 0;

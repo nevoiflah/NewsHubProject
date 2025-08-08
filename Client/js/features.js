@@ -21,7 +21,7 @@ var FeaturesDemo = {
         // Get user count
         ajaxCall(
             'GET',
-            'http://localhost:5121/api/Users/GetAllUsers',
+            'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Users/GetAllUsers',
             null,
             function(usersResponse) {
                 document.getElementById('totalUsers').textContent = usersResponse && usersResponse.length ? usersResponse.length.toString() : '0';
@@ -348,7 +348,7 @@ var FeaturesDemo = {
         
         ajaxCall(
             'GET',
-            'http://localhost:5121/api/Admin/stats',
+            'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Admin/stats',
             null,
             function(response) {
                 showAlert('success', '✅ Admin API working! Found ' + (response.totalUsers || 0) + ' users');
@@ -380,8 +380,8 @@ var FeaturesDemo = {
         apiStatus.innerHTML = '<div class="text-warning"><i class="fas fa-spinner fa-spin me-2"></i>Testing API endpoints...</div>';
         
         var endpoints = [
-            { name: 'News API', url: 'http://localhost:5121/api/News/latest' },
-            { name: 'Users API', url: 'http://localhost:5121/api/Users/GetAllUsers' }
+            { name: 'News API', url: 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/News/latest' },
+            { name: 'Users API', url: 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Users/GetAllUsers' }
         ];
         
         var results = [];

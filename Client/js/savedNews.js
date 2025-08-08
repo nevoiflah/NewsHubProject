@@ -94,7 +94,7 @@ var SavedNewsManager = {
         }
 
         // ✅ FIXED: Use capital 'N' in News to match controller route
-        const apiUrl = `http://localhost:5121/api/News/saved?userId=${userId}`;
+        const apiUrl = `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/News/saved?userId=${userId}`;
         console.log('🌐 API URL:', apiUrl);
 
         ajaxCall(
@@ -480,7 +480,7 @@ var SavedNewsManager = {
         const debugInfo = {
             userId: userId,
             currentPage: window.location.pathname,
-            apiUrl: `http://localhost:5121/api/News/saved?userId=${userId}`,
+            apiUrl: `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/News/saved?userId=${userId}`,
             savedArticlesCount: SavedNewsManager.savedArticles.length,
             filteredArticlesCount: SavedNewsManager.filteredArticles.length,
             localStorage: {
@@ -496,7 +496,7 @@ var SavedNewsManager = {
             console.log('🧪 Testing API connectivity...');
             ajaxCall(
                 'GET',
-                `http://localhost:5121/api/News/debug/user/${userId}`,
+                `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/News/debug/user/${userId}`,
                 null,
                 function(response) {
                     console.log('✅ Debug API response:', response);
@@ -619,7 +619,7 @@ var SavedNewsManager = {
         // Fire AJAX call in background
         ajaxCall(
             'DELETE',
-            `http://localhost:5121/api/News/saved/${articleId}?userId=${userId}`,
+            `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/News/saved/${articleId}?userId=${userId}`,
             null,
             function() {
                 console.log('✅ Article deleted successfully');
@@ -829,7 +829,7 @@ var SavedNewsManager = {
             new Promise((resolve, reject) => {
                 ajaxCall(
                     'DELETE',
-                    `http://localhost:5121/api/News/saved/${article.id || article.Id || article.newsId}?userId=${userId}`,
+                    `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/News/saved/${article.id || article.Id || article.newsId}?userId=${userId}`,
                     null,
                     resolve,
                     reject

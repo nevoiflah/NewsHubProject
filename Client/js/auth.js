@@ -3,7 +3,7 @@ $(document).ready(function() {
     console.log('🔐 Auth module loaded with jQuery');
 });
 
-const baseUrl = 'http://localhost:5121/api';
+const baseUrl = 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api';
 
 // Helper function to get user interests 
 async function getUserInterests(userId) {

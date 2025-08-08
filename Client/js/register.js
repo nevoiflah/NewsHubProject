@@ -1,7 +1,7 @@
 // register.js - תיקון פשוט
 document.addEventListener('DOMContentLoaded', initRegisterPage);
 
-const registerBaseUrl = 'http://localhost:5121/api';
+const registerBaseUrl = 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api';
 
 function initRegisterPage() {
     const elements = {

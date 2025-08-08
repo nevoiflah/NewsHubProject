@@ -114,7 +114,7 @@ var NewsManager = {
 
             ajaxCall(
                 'GET',
-                `http://localhost:5121/api/users/interests/${userId}`,
+                `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/users/interests/${userId}`,
                 null,
                 function (interests) {
                     console.log('👤 Loaded user interests:', interests);
@@ -878,7 +878,7 @@ var NewsManager = {
         // API call to save article to user's saved list
         ajaxCall(
             'POST',
-            `http://localhost:5121/api/news/save?userId=${userId}`,
+            `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/news/save?userId=${userId}`,
             JSON.stringify({
                 title: article.title,
                 content: article.description,
