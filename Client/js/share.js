@@ -217,10 +217,11 @@ const ShareManager = {
     // Load shared content
     loadSharedContent: function() {
         console.log('📰 Loading shared content...');
+        const userId = localStorage.getItem('userId');
 
         ajaxCall(
             'GET',
-            `${this.baseUrl}/shared`,
+            `${this.baseUrl}/shared?userId=${userId || ''}`,
             null,
             function(response) {
                 if (response && response.success) {
@@ -312,35 +313,15 @@ const ShareManager = {
             return;
         }
 
-        // Show immediate feedback
-        $btn.prop('disabled', true);
-        $btn.html('<i class="fas fa-spinner fa-spin"></i>');
-
+        // Fire AJAX call in background and refresh page immediately
         ajaxCall(
             'POST',
             `${this.baseUrl}/shared/${shareId}/like?userId=${userId}`,
-            null,
-            function(response) {
-                if (response && response.success) {
-                    // Show notification
-                    if (window.SimpleNotificationService) {
-                        window.SimpleNotificationService.showInAppNotification('Like', 'Article liked successfully!', 'success');
-                    }
-                    
-                    // Update activity level
-                    this.updateUserActivity(userId);
-                    
-                    // Refresh page to show updated like state
-                    location.reload();
-                } else {
-                    showAlert('error', response?.message || 'Failed to like article');
-                }
-            },
-            function(xhr, status, error) {
-                console.error('❌ Error updating like:', error);
-                showAlert('error', 'Failed to like article');
-            }
+            null
         );
+        
+        // Refresh page immediately
+        location.reload();
     },
 
     // UPDATED: Show comments - now inline instead of modal
