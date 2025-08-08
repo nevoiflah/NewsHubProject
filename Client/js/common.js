@@ -16,16 +16,17 @@
         return getPageUrl(targetPage);
     }
 
-    function getPageUrl(relativePath) {
-        const currentPath = window.location.pathname;
-        let basePath = '/';
-        if (currentPath.includes('/Client/')) {
-            basePath = '/Client/';
-        }
+    function getPageUrl(relativePath = 'news.html') {
+    // לוקח את הנתיב הנוכחי ומשאיר הכל עד לפני /pages/
+    const basePath = window.location.pathname.replace(/\/pages\/.*/, '/');
 
-        relativePath = relativePath.replace(/^pages\//, '');
-        return basePath + 'pages/' + relativePath;
-    }
+    // מנקה "pages/" אם המשתמש שלח כתובת עם זה
+    const cleaned = String(relativePath).replace(/^\/?pages\//, '');
+
+    // מחזיר את הכתובת עם ה־prefix המלא
+    return basePath + 'pages/' + cleaned;
+}
+
 
     // Ensure Auth service is always available
     function ensureAuthService() {
@@ -616,7 +617,7 @@ async function followUser(userId) {
     return new Promise((resolve) => {
         ajaxCall(
             'POST',
-            `https://localhost:5121/api/users/${userId}/follow`,
+            `${API_CONFIG.baseUrl}/Users/${userId}/follow`,
             null,
             function(response) {
                 if (response && response.success) {
@@ -638,7 +639,7 @@ async function unfollowUser(userId) {
     return new Promise((resolve) => {
         ajaxCall(
             'DELETE',
-            `https://localhost:5121/api/users/${userId}/follow`,
+            `${API_CONFIG.baseUrl}/Users/${userId}/follow`,
             null,
             function(response) {
                 if (response && response.success) {

@@ -222,7 +222,7 @@ class NotificationService {
             const response = await new Promise((resolve, reject) => {
                 ajaxCall(
                     'POST',
-                    'https://localhost:5121/api/users/notifications/register-token',
+                    'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Users/notifications/register-token',
                     JSON.stringify({
                         token,
                         userId,
