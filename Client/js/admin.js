@@ -182,24 +182,7 @@ const AdminManager = {
 
             // Update dashboard stats - ensure arrays are valid and handle API response structure
             const usersArray = Array.isArray(users) ? users : [];
-<<<<<<< HEAD
-=======
-            
-            // Handle shared articles API response structure
-            let sharedArray = [];
-            if (shared && shared.success && Array.isArray(shared.articles)) {
-                sharedArray = shared.articles;
-            } else if (Array.isArray(shared)) {
-                sharedArray = shared;
-            }
-            
-            const reportsArray = Array.isArray(reports) ? reports : (reports.reports || []);
-            
-            $('#totalUsers').text(usersArray.length || 0);
-            $('#activeUsers').text(usersArray.filter(u => !u.isLocked).length || 0);
-            $('#sharedArticles').text(sharedArray.length || 0);
-            $('#pendingReports').text(reportsArray.filter(r => !(r.isResolved || r.IsResolved)).length || 0);
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
+
 
             // Handle shared articles API response structure
             let sharedArray = [];
@@ -289,24 +272,7 @@ const AdminManager = {
         }
     },
 
-<<<<<<< HEAD
-=======
-    // Toggle user lock status 
-    toggleUserLock: async (userId, isCurrentlyLocked) => {
-        const action = isCurrentlyLocked ? 'unlock' : 'lock';
-        const confirmMessage = `Are you sure you want to ${action} this user?`;
-        
-        if (!confirm(confirmMessage)) return;
-        
-        try {
-            const response = await $.ajax({
-                type: 'POST',
-                url: `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Admin/${action}/${userId}`,
-                cache: false,
-                contentType: "application/json",
-                dataType: "text"
-            });
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
+
 
 
     // Delete user 
@@ -407,18 +373,7 @@ const AdminManager = {
                     let endpoint, method;
 
                     switch (operation) {
-<<<<<<< HEAD
 
-=======
-                        case 'lock':
-                            endpoint = `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Admin/lock/${userId}`;
-                            method = 'POST';
-                            break;
-                        case 'unlock':
-                            endpoint = `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Admin/unlock/${userId}`;
-                            method = 'POST';
-                            break;
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                         case 'delete':
                             endpoint = `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Admin/${userId}`;
                             method = 'DELETE';
@@ -469,13 +424,8 @@ const AdminManager = {
     // Load shared articles
     loadSharedArticles: async () => {
         try {
-<<<<<<< HEAD
             ('🔄 Loading shared articles...');
 
-=======
-            console.log('🔄 Loading shared articles...');
-            
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
             const response = await $.ajax({
                 type: 'GET',
                 url: 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/shared',
@@ -484,7 +434,6 @@ const AdminManager = {
             });
 
             const $tbody = $('#sharedArticlesTable');
-<<<<<<< HEAD
 
             // Handle the API response structure: { success: true, articles: [...], count: N }
             let articlesArray = [];
@@ -498,21 +447,6 @@ const AdminManager = {
                 (`📊 Found ${articlesArray.length} shared articles (direct array)`);
             }
 
-=======
-            
-            // Handle the API response structure: { success: true, articles: [...], count: N }
-            let articlesArray = [];
-            
-            if (response && response.success && Array.isArray(response.articles)) {
-                articlesArray = response.articles;
-                console.log(`📊 Found ${articlesArray.length} shared articles`);
-            } else if (Array.isArray(response)) {
-                // Fallback for direct array response
-                articlesArray = response;
-                console.log(`📊 Found ${articlesArray.length} shared articles (direct array)`);
-            }
-            
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
             if (!articlesArray || articlesArray.length === 0) {
                 $tbody.html('<tr><td colspan="6" class="text-center text-muted">No shared articles found</td></tr>');
                 return;
@@ -522,11 +456,7 @@ const AdminManager = {
                 const title = article.articleTitle || article.title || 'Untitled';
                 const username = article.username || article.sharedBy || 'Unknown';
                 const commentCount = article.commentsCount || article.commentCount || 0;
-<<<<<<< HEAD
 
-=======
-                
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 return `
                     <tr data-article-id="${article.id}">
                         <td>${article.id}</td>
@@ -625,17 +555,10 @@ const AdminManager = {
             });
 
             const $container = $('#commentsContainer');
-<<<<<<< HEAD
 
             // Handle both direct array and object response formats
             const comments = Array.isArray(response) ? response : (response.comments || []);
 
-=======
-            
-            // Handle both direct array and object response formats
-            const comments = Array.isArray(response) ? response : (response.comments || []);
-            
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
             if (!comments || comments.length === 0) {
                 $container.html('<p class="text-muted">No comments found for this article.</p>');
             } else {
@@ -681,11 +604,7 @@ const AdminManager = {
 
             const response = await $.ajax({
                 type: 'DELETE',
-<<<<<<< HEAD
                 url: `http://localhost:5121/api/shared/${articleId}/comments/${commentId}?userId=${currentUser.id}`,
-=======
-                url: `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/shared/${articleId}/comments/${commentId}?userId=${currentUser.id}`,
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 cache: false,
                 contentType: "application/json",
                 dataType: "json"
@@ -707,13 +626,8 @@ const AdminManager = {
     // Load reports data 
     loadReportsData: async () => {
         try {
-<<<<<<< HEAD
             ('🔄 Loading reports data...');
 
-=======
-            console.log('🔄 Loading reports data...');
-            
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
             const response = await $.ajax({
                 type: 'GET',
                 url: 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Reports',
@@ -722,7 +636,6 @@ const AdminManager = {
             });
 
             const $tbody = $('#reportsTable');
-<<<<<<< HEAD
 
             // Handle both direct array and object response formats
             const reportsArray = Array.isArray(response) ? response : (response.reports || []);
@@ -730,15 +643,6 @@ const AdminManager = {
             ('📋 Reports data received:', reportsArray);
             ('📋 First report structure:', reportsArray[0]);
 
-=======
-            
-            // Handle both direct array and object response formats
-            const reportsArray = Array.isArray(response) ? response : (response.reports || []);
-            
-            console.log('📋 Reports data received:', reportsArray);
-            console.log('📋 First report structure:', reportsArray[0]);
-            
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
             if (!reportsArray || reportsArray.length === 0) {
                 $tbody.html('<tr><td colspan="7" class="text-center text-muted">No reports found</td></tr>');
                 return;
@@ -752,19 +656,11 @@ const AdminManager = {
                 const reporterUsername = report.reporterUsername || report.ReporterUsername || 'Unknown';
                 const contentType = report.contentType || report.ContentType || 'Article';
                 const reportedAt = report.reportedAt || report.ReportedAt || report.createdAt;
-<<<<<<< HEAD
 
                 const statusBadge = isResolved ?
                     '<span class="badge bg-success">Resolved</span>' :
                     '<span class="badge bg-warning">Pending</span>';
 
-=======
-                
-                const statusBadge = isResolved ? 
-                    '<span class="badge bg-success">Resolved</span>' : 
-                    '<span class="badge bg-warning">Pending</span>';
-                
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 // Clean up the reason by removing prefixes
                 let cleanReason = reason;
                 if (cleanReason.startsWith('SharedArticle:')) {
@@ -772,11 +668,7 @@ const AdminManager = {
                 } else if (cleanReason.startsWith('Comment:')) {
                     cleanReason = cleanReason.substring('Comment:'.length);
                 }
-<<<<<<< HEAD
 
-=======
-                
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 return `
                     <tr data-report-id="${reportId}">
                         <td>${reportId}</td>
@@ -816,13 +708,8 @@ const AdminManager = {
     // View report details
     viewReport: async (reportId) => {
         try {
-<<<<<<< HEAD
             ('👁️ Viewing report ID:', reportId);
 
-=======
-            console.log('👁️ Viewing report ID:', reportId);
-            
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
             const response = await $.ajax({
                 type: 'GET',
                 url: `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Reports/${reportId}`,
@@ -830,19 +717,11 @@ const AdminManager = {
                 dataType: "json"
             });
 
-<<<<<<< HEAD
             ('👁️ Report API response:', response);
 
             // Handle response format - could be direct object or wrapped
             const report = response.report || response;
 
-=======
-            console.log('👁️ Report API response:', response);
-            
-            // Handle response format - could be direct object or wrapped
-            const report = response.report || response;
-            
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
             // Handle both PascalCase and camelCase property names
             const reportIdValue = report.id || report.Id || reportId;
             const reporterUsername = report.reporterUsername || report.ReporterUsername || 'Unknown';
@@ -880,13 +759,8 @@ Status: ${isResolved ? 'Resolved' : 'Pending'}`;
 
     // Resolve report 
     resolveReport: async (reportId) => {
-<<<<<<< HEAD
         ('🔧 Resolving report ID:', reportId, 'Type:', typeof reportId);
 
-=======
-        console.log('🔧 Resolving report ID:', reportId, 'Type:', typeof reportId);
-        
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
         if (!confirm('Mark this report as resolved?')) return;
 
         try {
@@ -899,11 +773,7 @@ Status: ${isResolved ? 'Resolved' : 'Pending'}`;
 
             const response = await $.ajax({
                 type: 'PUT',
-<<<<<<< HEAD
                 url: `http://localhost:5121/api/Reports/${reportId}/resolve?adminUserId=${currentUser.id}`,
-=======
-                url: `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Reports/${reportId}/resolve?adminUserId=${currentUser.id}`,
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 data: JSON.stringify({
                     IsResolved: true
                 }),
@@ -961,13 +831,8 @@ Status: ${isResolved ? 'Resolved' : 'Pending'}`;
     // Load analytics data 
     loadAnalyticsData: async () => {
         try {
-<<<<<<< HEAD
             ('🔄 Loading analytics data...');
 
-=======
-            console.log('🔄 Loading analytics data...');
-            
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
             // Load all analytics charts
             await Promise.all([
                 AdminManager.loadLoginChart(),
@@ -975,13 +840,8 @@ Status: ${isResolved ? 'Resolved' : 'Pending'}`;
                 AdminManager.loadRegistrationChart(),
                 AdminManager.loadContentChart()
             ]);
-<<<<<<< HEAD
 
             ('✅ All analytics data loaded successfully');
-=======
-            
-            console.log('✅ All analytics data loaded successfully');
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
         } catch (error) {
             console.error('❌ Error loading analytics:', error);
             AdminManager.renderSampleCharts();
@@ -1025,11 +885,7 @@ Status: ${isResolved ? 'Resolved' : 'Pending'}`;
         try {
             const data = await $.ajax({
                 type: 'GET',
-<<<<<<< HEAD
                 url: 'http://localhost:5121/api/Admin/analytics/registrations?days=14',
-=======
-                url: 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Admin/analytics/registrations?days=14',
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 cache: false,
                 dataType: "json"
             });
@@ -1048,11 +904,7 @@ Status: ${isResolved ? 'Resolved' : 'Pending'}`;
         try {
             const data = await $.ajax({
                 type: 'GET',
-<<<<<<< HEAD
                 url: 'http://localhost:5121/api/Admin/analytics/content?days=7',
-=======
-                url: 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Admin/analytics/content?days=7',
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 cache: false,
                 dataType: "json"
             });
@@ -1068,13 +920,8 @@ Status: ${isResolved ? 'Resolved' : 'Pending'}`;
     },
 
     renderSampleCharts: () => {
-<<<<<<< HEAD
         ('📊 Rendering sample charts as fallback...');
 
-=======
-        console.log('📊 Rendering sample charts as fallback...');
-        
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
         AdminManager.renderLoginChart({
             labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
             values: [0, 0, 0, 0, 0, 0, 0],
@@ -1272,11 +1119,7 @@ Status: ${isResolved ? 'Resolved' : 'Pending'}`;
         if (data.overallStats) {
             // Remove any existing stats before adding new ones
             $('#contentChart').parent().find('.content-stats').remove();
-<<<<<<< HEAD
 
-=======
-            
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
             const statsHtml = `
                 <div class="row mt-3 content-stats">
                     <div class="col-3">
@@ -1354,11 +1197,7 @@ Status: ${isResolved ? 'Resolved' : 'Pending'}`;
             // Ensure all data is arrays and handle API response structures
             const usersArray = Array.isArray(users) ? users : [];
             const reportsArray = Array.isArray(reports) ? reports : [];
-<<<<<<< HEAD
 
-=======
-            
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
             // Handle shared articles API response structure
             let sharedArray = [];
             if (shared && shared.success && Array.isArray(shared.articles)) {
@@ -1366,11 +1205,7 @@ Status: ${isResolved ? 'Resolved' : 'Pending'}`;
             } else if (Array.isArray(shared)) {
                 sharedArray = shared;
             }
-<<<<<<< HEAD
 
-=======
-            
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
             const currentUser = Auth.getCurrentUser();
             const reportData = {
                 generatedAt: new Date().toISOString(),

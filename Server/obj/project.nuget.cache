@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "10DjooSCl9w=",
+  "dgSpecHash": "5pniUs10+fk=",
   "success": true,
-  "projectFilePath": "/Users/nevoiflah/Documents/GitHub/NewsHubProject/Server/Server.csproj",
+  "projectFilePath": "/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/Server.csproj",
   "expectedPackageFiles": [
     "/Users/nevoiflah/.nuget/packages/firebaseadmin/3.2.0/firebaseadmin.3.2.0.nupkg.sha512",
     "/Users/nevoiflah/.nuget/packages/google.api.gax/4.8.0/google.api.gax.4.8.0.nupkg.sha512",

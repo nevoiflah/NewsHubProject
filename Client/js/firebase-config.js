@@ -43,10 +43,7 @@ class NotificationService {
             };
             
             this.isInitialized = true;
-<<<<<<< HEAD
             // console.log('✅ Firebase initialized successfully');
-=======
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
             return true;
             
         } catch (error) {
@@ -187,10 +184,7 @@ class NotificationService {
             });
         
             if (token) {
-<<<<<<< HEAD
                 // console.log('✅ FCM Token obtained:', token.substring(0, 20) + '...');
-=======
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 localStorage.setItem('fcmToken', token);
             
                 const registered = await this.registerTokenWithBackend(token, userId);
@@ -202,10 +196,7 @@ class NotificationService {
                         this.handleForegroundMessage(payload);
                     });
                 
-<<<<<<< HEAD
                     // console.log('✅ Notifications setup complete');
-=======
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                     return true;
                 }
             }
@@ -219,12 +210,8 @@ class NotificationService {
     async registerServiceWorker() {
         try {
             if ('serviceWorker' in navigator) {
-<<<<<<< HEAD
                 const registration = await navigator.serviceWorker.register('../firebase-messaging-sw.js');
                 // console.log('✅ Service Worker registered:', registration);
-=======
-                const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 return registration;
             } else {
                 throw new Error('Service Worker not supported');
@@ -252,10 +239,7 @@ class NotificationService {
             });
 
             if (response && response.success) {
-<<<<<<< HEAD
                 // console.log('✅ Token registered with backend');
-=======
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 return true;
             } else {
                 return false;
@@ -275,10 +259,7 @@ class NotificationService {
     }
 
     handleForegroundMessage(payload) {
-<<<<<<< HEAD
         // console.log('📱 Received foreground message:', payload);
-=======
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
         const { title, body } = payload.notification || {};
         if (title && body) {
             this.showInAppNotification(title, body, 'info');

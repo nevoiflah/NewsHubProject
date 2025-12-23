@@ -94,7 +94,6 @@ var SavedNewsManager = {
         }
 
         // ✅ FIXED: Use capital 'N' in News to match controller route
-<<<<<<< HEAD
         const apiUrl = `http://localhost:5121/api/News/saved?userId=${userId}`;
         // console.log('🌐 API URL:', apiUrl);
 
@@ -108,19 +107,6 @@ var SavedNewsManager = {
                 // console.log('✅ Raw API response:', response);
                 // console.log('📊 Response type:', typeof response);
                 // console.log('📊 Response structure:', Object.keys(response || {}));
-=======
-        const apiUrl = `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/News/saved?userId=${userId}`;
-        console.log('🌐 API URL:', apiUrl);
-
-        ajaxCall(
-            'GET',
-            apiUrl,
-            null,
-            function (response) {
-                console.log('✅ Raw API response:', response);
-                console.log('📊 Response type:', typeof response);
-                console.log('📊 Response structure:', Object.keys(response || {}));
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
 
                 let articles = [];
 
@@ -509,7 +495,6 @@ var SavedNewsManager = {
 
         // Test API connectivity
         if (userId) {
-<<<<<<< HEAD
             // console.log('🧪 Testing API connectivity...');
             $.ajax({
                 type: 'GET',
@@ -522,19 +507,6 @@ var SavedNewsManager = {
                 },
                 error: function (xhr) {
                     // console.log('❌ Debug API failed:', xhr);
-=======
-            console.log('🧪 Testing API connectivity...');
-            ajaxCall(
-                'GET',
-                `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/News/debug/user/${userId}`,
-                null,
-                function(response) {
-                    console.log('✅ Debug API response:', response);
-                    alert(`DEBUG INFO:\nUser ID: ${userId}\nSaved Articles in DB: ${response.savedCount}\nAPI Response: ${JSON.stringify(response, null, 2)}`);
-                },
-                function(xhr) {
-                    console.log('❌ Debug API failed:', xhr);
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                     alert(`DEBUG INFO:\nUser ID: ${userId}\nAPI Test Failed: ${xhr.status} ${xhr.statusText}\nResponse: ${xhr.responseText}`);
                 }
             );

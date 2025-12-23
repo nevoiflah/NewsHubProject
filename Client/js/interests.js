@@ -444,11 +444,7 @@ const InterestsManager = {
     saveProfile: async function(e) {
         e.preventDefault();
     
-<<<<<<< HEAD
         // console.log('🚀 STARTING COMPLETELY NEW SAVE PROFILE FUNCTION');
-=======
-        console.log('🚀 STARTING COMPLETELY NEW SAVE PROFILE FUNCTION');
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
     
         const profileData = {
             username: $('#editUsername').val().trim(),
@@ -512,17 +508,10 @@ const InterestsManager = {
     
         try {
             const userId = getUserIdFromStorage();
-<<<<<<< HEAD
             // console.log('🔍 User ID:', userId);
         
             const currentUser = JSON.parse(localStorage.getItem('userInfo') || '{}');
             // console.log('🔍 Current user:', currentUser);
-=======
-            console.log('🔍 User ID:', userId);
-        
-            const currentUser = JSON.parse(localStorage.getItem('userInfo') || '{}');
-            console.log('🔍 Current user:', currentUser);
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
         
             const isPasswordUpdate = profileData.newPassword && profileData.confirmPassword;
         
@@ -549,21 +538,12 @@ const InterestsManager = {
                 NotifyOnShare: profileData.notifyOnShare
             };
         
-<<<<<<< HEAD
             // console.log('🔍 Update request to send:', updateRequest);
         
             // Make the profile update API call using the correct endpoint
             // console.log('🚀 Making profile update API call...');
             const profileApiUrl = `http://localhost:5121/api/Users/Update/${userId}`;
             // console.log('🌐 Profile API URL:', profileApiUrl);
-=======
-            console.log('🔍 Update request to send:', updateRequest);
-        
-            // Make the profile update API call using the correct endpoint
-            console.log('🚀 Making profile update API call...');
-            const profileApiUrl = `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Users/Update/${userId}`;
-            console.log('🌐 Profile API URL:', profileApiUrl);
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
         
             try {
                 const profileResult = await $.ajax({
@@ -575,7 +555,6 @@ const InterestsManager = {
                     cache: false,
                     timeout: 30000,
                     beforeSend: function(xhr) {
-<<<<<<< HEAD
                         // console.log('📤 Sending profile update request to:', profileApiUrl);
                         // console.log('📤 Request data:', JSON.stringify(updateRequest));
                     }
@@ -585,17 +564,6 @@ const InterestsManager = {
             
                 // Success handling
                 // console.log('🎉 Profile update completed successfully!');
-=======
-                        console.log('📤 Sending profile update request to:', profileApiUrl);
-                        console.log('📤 Request data:', JSON.stringify(updateRequest));
-                    }
-                });
-            
-                console.log('✅ Profile update response:', profileResult);
-            
-                // Success handling
-                console.log('🎉 Profile update completed successfully!');
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
             
                 // Update localStorage with new user data
                 const updatedUser = { 
@@ -610,11 +578,7 @@ const InterestsManager = {
                     notifyOnShare: profileData.notifyOnShare
                 };
                 localStorage.setItem('userInfo', JSON.stringify(updatedUser));
-<<<<<<< HEAD
                 // console.log('💾 Local storage updated');
-=======
-                console.log('💾 Local storage updated');
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
             
                 // Clear password fields
                 $('#newPassword').val('');
@@ -672,11 +636,7 @@ const InterestsManager = {
         } finally {
             button.prop('disabled', false);
             button.html('<i class="fas fa-save me-2"></i>Save Changes');
-<<<<<<< HEAD
             // console.log('🏁 Save profile function completed');
-=======
-            console.log('🏁 Save profile function completed');
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
         }
     },
 

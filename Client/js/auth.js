@@ -58,17 +58,12 @@ const Auth = {
                     Username: username, 
                     Password: password
                 }),
-<<<<<<< HEAD
                 cache: false,
                 contentType: "application/json",
                 dataType: "json",
                 timeout: 30000,
                 success: function(response) {
                     // console.log('📥 Frontend: Raw API response:', response);
-=======
-                function(response) {
-                    console.log('📥 Frontend: Raw API response:', response);
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
 
                     // ✅ FIXED: Check for response.user.id instead of response.id
                     if (response && response.user && response.user.id) {
@@ -154,7 +149,6 @@ const Auth = {
         return new Promise((resolve) => {
             const user = Auth.getCurrentUser();
 
-<<<<<<< HEAD
             $.ajax({
                 type: 'PUT',
                 url: `${baseUrl}/Users/Update/${user.id}`,
@@ -164,14 +158,6 @@ const Auth = {
                 dataType: "json",
                 success: function (response) {
                     // console.log('📥 Profile update response:', response);
-=======
-            ajaxCall(
-                'PUT',
-                `${baseUrl}/Users/Update/${user.id}`,
-                JSON.stringify(profileData),
-                function (response) {
-                    console.log('📥 Profile update response:', response);
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
 
                     if (response && response === "User updated successfully.") {
                         // Update local storage

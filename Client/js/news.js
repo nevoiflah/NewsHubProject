@@ -96,7 +96,6 @@ var NewsManager = {
                 return;
             }
 
-<<<<<<< HEAD
             $.ajax({
                 type: 'GET',
                 url: `http://localhost:5121/api/users/interests/${userId}`,
@@ -105,14 +104,6 @@ var NewsManager = {
                 timeout: 3000,
                 success: function (interests) {
                     // console.log('👤 Loaded user interests:', interests);
-=======
-            ajaxCall(
-                'GET',
-                `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/users/interests/${userId}`,
-                null,
-                function (interests) {
-                    console.log('👤 Loaded user interests:', interests);
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
 
                     if (Array.isArray(interests) && interests.length > 0) {
                         const savedCategory = interests[0];

@@ -61,7 +61,6 @@
                 // Login method 
                 login: async (username, password) => {
                     return new Promise((resolve) => {
-<<<<<<< HEAD
                         $.ajax({
                             type: 'POST',
                             url: `${API_CONFIG.baseUrl}/Users/login`,
@@ -72,14 +71,6 @@
                             timeout: API_CONFIG.timeout,
                             success: function(response) {
                                 // console.log('📥 Backend login response:', response);
-=======
-                        ajaxCall(
-                            'POST',
-                            `${API_CONFIG.baseUrl}/Users/login`,
-                            JSON.stringify({ username, passwordHash: password }),
-                            function(response) {
-                                console.log('📥 Backend login response:', response);
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                                 if (response && response.id) {
                                     localStorage.setItem('userInfo', JSON.stringify({
                                         id: response.id,
@@ -145,7 +136,6 @@
                             return;
                         }
 
-<<<<<<< HEAD
                         $.ajax({
                             type: 'PUT',
                             url: `${API_CONFIG.baseUrl}/Users/Update/${user.id}`,
@@ -155,13 +145,6 @@
                             dataType: "json",
                             timeout: API_CONFIG.timeout,
                             success: function(response) {
-=======
-                        ajaxCall(
-                            'PUT',
-                            `${API_CONFIG.baseUrl}/Users/Update/${user.id}`,
-                            JSON.stringify(profileData),
-                            function(response) {
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                                 if (response && response.success) {
                                     // Update local storage
                                     const currentUser = JSON.parse(localStorage.getItem('userInfo') || '{}');
@@ -228,7 +211,6 @@
                             data = typeof options.data === 'string' ? options.data : JSON.stringify(options.data);
                         }
 
-<<<<<<< HEAD
                         $.ajax({
                             type: options.method || 'GET',
                             url: url,
@@ -239,14 +221,6 @@
                             timeout: API_CONFIG.timeout,
                             success: function(response) {
                                 // console.log(`✅ API Success: ${endpoint}`, response);
-=======
-                        ajaxCall(
-                            options.method || 'GET',
-                            url,
-                            data,
-                            function(response) {
-                                console.log(`✅ API Success: ${endpoint}`, response);
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                                 resolve(response);
                             },
                             function(xhr, status, error) {

@@ -173,11 +173,7 @@ const ShareManager = {
             'POST',
             `${this.baseUrl}/shared?userId=${userId}`,
             JSON.stringify(shareData),
-<<<<<<< HEAD
             function (response) {
-=======
-            function(response) {
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 if (response && response.success) {
                     showAlert('success', 'Article shared successfully!');
 
@@ -186,25 +182,15 @@ const ShareManager = {
                     if (userId) {
                         ajaxCall(
                             'POST',
-<<<<<<< HEAD
                             `http://localhost:5121/api/users/activity/${userId}`,
                             null,
                             function () {
-=======
-                            `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/users/activity/${userId}`,
-                            null,
-                            function() {
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                                 // Trigger avatar update after activity change
                                 if (window.triggerAvatarUpdate) {
                                     window.triggerAvatarUpdate();
                                 }
                             },
-<<<<<<< HEAD
                             function (xhr, status, error) {
-=======
-                            function(xhr, status, error) {
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                                 console.warn('Failed to track activity:', error);
                             }
                         );
@@ -221,11 +207,7 @@ const ShareManager = {
                     showAlert('danger', response.message || 'Failed to share article');
                 }
             },
-<<<<<<< HEAD
             function (xhr, status, error) {
-=======
-            function(xhr, status, error) {
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 console.error('❌ Share submission error:', error);
                 showAlert('danger', 'Failed to share article. Please try again.');
             }
@@ -233,24 +215,15 @@ const ShareManager = {
     },
 
     // Load shared content
-<<<<<<< HEAD
     loadSharedContent: function () {
         ('📰 Loading shared content...');
-=======
-    loadSharedContent: function() {
-        console.log('📰 Loading shared content...');
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
         const userId = localStorage.getItem('userId');
 
         ajaxCall(
             'GET',
             `${this.baseUrl}/shared?userId=${userId || ''}`,
             null,
-<<<<<<< HEAD
             function (response) {
-=======
-            function(response) {
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 if (response && response.success) {
                     ShareManager.sharedContent = response.articles || [];
                     ShareManager.filteredContent = [...ShareManager.sharedContent];
@@ -260,11 +233,7 @@ const ShareManager = {
                     ShareManager.showErrorMessage('Failed to load shared content');
                 }
             },
-<<<<<<< HEAD
             function (xhr, status, error) {
-=======
-            function(xhr, status, error) {
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 console.error('❌ Error loading shared content:', error);
                 ShareManager.showErrorMessage('Failed to load shared content');
             }
@@ -280,21 +249,13 @@ const ShareManager = {
             'GET',
             `${this.baseUrl}/users/blocked?userId=${userId}`,
             null,
-<<<<<<< HEAD
             function (response) {
-=======
-            function(response) {
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 if (response && response.success) {
                     ShareManager.blockedUsers = response.blockedUsers || [];
                     ShareManager.displayBlockedUsers();
                 }
             },
-<<<<<<< HEAD
             function (xhr, status, error) {
-=======
-            function(xhr, status, error) {
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 console.error('❌ Error loading blocked users:', error);
             }
         );
@@ -309,20 +270,12 @@ const ShareManager = {
             'GET',
             `${this.baseUrl}/users/following?userId=${userId}`,
             null,
-<<<<<<< HEAD
             function (response) {
-=======
-            function(response) {
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 if (response && response.success) {
                     ShareManager.followingUsers = response.following || [];
                 }
             },
-<<<<<<< HEAD
             function (xhr, status, error) {
-=======
-            function(xhr, status, error) {
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 console.error('❌ Error loading following users:', error);
             }
         );
@@ -337,20 +290,12 @@ const ShareManager = {
             'GET',
             `${this.baseUrl}/users/following-stats?userId=${userId}`,
             null,
-<<<<<<< HEAD
             function (response) {
-=======
-            function(response) {
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 if (response && response.success) {
                     ShareManager.displayFollowingStats(response.stats);
                 }
             },
-<<<<<<< HEAD
             function (xhr, status, error) {
-=======
-            function(xhr, status, error) {
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 console.error('❌ Error loading following stats:', error);
             }
         );
@@ -374,11 +319,7 @@ const ShareManager = {
             `${this.baseUrl}/shared/${shareId}/like?userId=${userId}`,
             null
         );
-<<<<<<< HEAD
 
-=======
-        
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
         // Refresh page immediately
         location.reload();
     },
@@ -417,31 +358,19 @@ const ShareManager = {
             </div>
         `);
         $card.find('.card-body').append($loadingHtml);
-<<<<<<< HEAD
 
-=======
-        
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
         ajaxCall(
             'GET',
             `${this.baseUrl}/shared/${articleId}/comments?userId=${userId}`,
             null,
-<<<<<<< HEAD
             function (response) {
-=======
-            function(response) {
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 if (response && response.success) {
                     ShareManager.showCommentsInline(articleId, response.comments || [], $card);
                 } else {
                     $loadingHtml.html('<div class="alert alert-warning">Failed to load comments</div>');
                 }
             },
-<<<<<<< HEAD
             function (xhr, status, error) {
-=======
-            function(xhr, status, error) {
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 console.error('❌ Error loading comments:', error);
                 $loadingHtml.html('<div class="alert alert-danger">Error loading comments</div>');
             }
@@ -541,36 +470,22 @@ const ShareManager = {
             'POST',
             `${this.baseUrl}/shared/${articleId}/comments?userId=${userId}`,
             JSON.stringify({ content: content }),
-<<<<<<< HEAD
             function (response) {
-=======
-            function(response) {
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 if (response && response.success) {
                     // Track activity for commenting
                     const userId = localStorage.getItem('userId');
                     if (userId) {
                         ajaxCall(
                             'POST',
-<<<<<<< HEAD
                             `http://localhost:5121/api/users/activity/${userId}`,
                             null,
                             function () {
-=======
-                            `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/users/activity/${userId}`,
-                            null,
-                            function() {
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                                 // Trigger avatar update after activity change
                                 if (window.triggerAvatarUpdate) {
                                     window.triggerAvatarUpdate();
                                 }
                             },
-<<<<<<< HEAD
                             function (xhr, status, error) {
-=======
-                            function(xhr, status, error) {
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                                 console.warn('Failed to track activity:', error);
                             }
                         );
@@ -584,11 +499,7 @@ const ShareManager = {
                     $textarea.prop('disabled', false);
                 }
             },
-<<<<<<< HEAD
             function (xhr, status, error) {
-=======
-            function(xhr, status, error) {
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 console.error('❌ Error adding comment:', error);
                 showAlert('danger', 'Error adding comment');
                 $btn.html(originalText).prop('disabled', false);
@@ -612,11 +523,7 @@ const ShareManager = {
             `${this.baseUrl}/shared/${articleId}/comments/${commentId}?userId=${userId}`,
             null
         );
-<<<<<<< HEAD
 
-=======
-        
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
         // Immediately refresh the page
         location.reload();
     },
@@ -691,11 +598,7 @@ const ShareManager = {
             `${this.baseUrl}/users/${targetUserId}/block?userId=${userId}`,
             JSON.stringify({ reason: 'User blocked via shared articles page' }),
             null,
-<<<<<<< HEAD
             function (xhr, status, error) {
-=======
-            function(xhr, status, error) {
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 console.warn('Failed to block user:', error);
             }
         );
@@ -705,17 +608,10 @@ const ShareManager = {
     },
 
     // Handle report content
-<<<<<<< HEAD
     handleReportContent: function (e) {
         const shareId = $(e.currentTarget).data('content-id');
         ('🔍 handleReportContent shareId:', shareId);
 
-=======
-    handleReportContent: function(e) {
-        const shareId = $(e.currentTarget).data('content-id');
-        console.log('🔍 handleReportContent shareId:', shareId);
-        
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
         const reasons = [
             'Offensive or inappropriate content',
             'False information or misinformation',
@@ -784,13 +680,8 @@ const ShareManager = {
             // Get shareId from the button's data attribute
             const buttonShareId = $(this).data('share-id');
             const fullReason = description ? `${reason}: ${description}` : reason;
-<<<<<<< HEAD
 
             ('🔍 Report button shareId:', buttonShareId);
-=======
-            
-            console.log('🔍 Report button shareId:', buttonShareId);
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
             ShareManager.submitReport('shared_article', buttonShareId, fullReason);
             modal.hide();
         });
@@ -850,7 +741,6 @@ const ShareManager = {
         console.log('📤 Request JSON:', JSON.stringify(requestData));
         console.log('📤 URL:', `${this.baseUrl}/reports?userId=${userId}`);
 
-<<<<<<< HEAD
         // Validate inputs before sending
         ('📤 Raw inputs:', { contentType, contentId, reason, userId });
 
@@ -896,36 +786,22 @@ const ShareManager = {
         ('📤 Request JSON:', JSON.stringify(requestData));
         ('📤 URL:', `${this.baseUrl}/reports?userId=${userId}`);
 
-=======
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
         ajaxCall(
             'POST',
             `${this.baseUrl}/reports?userId=${userId}`,
             JSON.stringify(requestData),
-<<<<<<< HEAD
             function (response) {
-=======
-            function(response) {
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 if (response && response.success) {
                     showAlert('success', 'Report submitted successfully. Thank you for helping keep our community safe.');
                 } else {
                     showAlert('danger', response.message || 'Failed to submit report');
                 }
             },
-<<<<<<< HEAD
             function (xhr, status, error) {
                 console.error('❌ Error submitting report:', error);
                 console.error('❌ Response status:', xhr.status);
                 console.error('❌ Response text:', xhr.responseText);
 
-=======
-            function(xhr, status, error) {
-                console.error('❌ Error submitting report:', error);
-                console.error('❌ Response status:', xhr.status);
-                console.error('❌ Response text:', xhr.responseText);
-                
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 // Try to parse and show specific error message
                 if (xhr.responseJSON && xhr.responseJSON.message) {
                     showAlert('danger', xhr.responseJSON.message);
@@ -956,11 +832,7 @@ const ShareManager = {
             `${this.baseUrl}/shared/${shareId}?userId=${userId}`,
             null
         );
-<<<<<<< HEAD
 
-=======
-        
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
         // Immediately refresh the page
         location.reload();
     },
@@ -982,22 +854,14 @@ const ShareManager = {
                 source: articleData.articleSource || 'Shared Content',
                 category: 'general'
             }),
-<<<<<<< HEAD
             function (response) {
-=======
-            function(response) {
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 if (response && response.newsId) {
                     showAlert('success', 'Article saved successfully!');
                 } else {
                     showAlert('warning', 'Article may already be saved');
                 }
             },
-<<<<<<< HEAD
             function (xhr, status, error) {
-=======
-            function(xhr, status, error) {
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 console.error('❌ Error saving article:', error);
                 showAlert('danger', 'Failed to save article');
             }
@@ -1438,15 +1302,9 @@ const ShareManager = {
         // Fetch updated user data to get new activity level
         ajaxCall(
             'GET',
-<<<<<<< HEAD
             `http://localhost:5121/api/users/GetById/${userId}`,
             null,
             function (userData) {
-=======
-            `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/users/GetById/${userId}`,
-            null,
-            function(userData) {
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 // Update localStorage with new activity level
                 const currentUser = JSON.parse(localStorage.getItem('userInfo') || '{}');
                 currentUser.activityLevel = userData.activityLevel || 0;
@@ -1457,11 +1315,7 @@ const ShareManager = {
                     window.updateAllAvatars(userData.activityLevel || 0);
                 }
             },
-<<<<<<< HEAD
             function (xhr, status, error) {
-=======
-            function(xhr, status, error) {
->>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 console.warn('Failed to update navbar after activity change:', error);
             }
         );

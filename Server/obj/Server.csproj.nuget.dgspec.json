@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "/Users/nevoiflah/Documents/GitHub/NewsHubProject/Server/Server.csproj": {}
+    "/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/Server.csproj": {}
   },
   "projects": {
-    "/Users/nevoiflah/Documents/GitHub/NewsHubProject/Server/Server.csproj": {
+    "/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/Server.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/nevoiflah/Documents/GitHub/NewsHubProject/Server/Server.csproj",
+        "projectUniqueName": "/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/Server.csproj",
         "projectName": "Server",
-        "projectPath": "/Users/nevoiflah/Documents/GitHub/NewsHubProject/Server/Server.csproj",
+        "projectPath": "/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/Server.csproj",
         "packagesPath": "/Users/nevoiflah/.nuget/packages/",
-        "outputPath": "/Users/nevoiflah/Documents/GitHub/NewsHubProject/Server/obj/",
+        "outputPath": "/Users/nevoiflah/Desktop/Ruppin/שנה ב׳/סמסטר ב׳/צד שרת/מטלות/NewsHubProject/Server/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/Users/nevoiflah/.nuget/NuGet/NuGet.Config"
