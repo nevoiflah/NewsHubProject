@@ -16,7 +16,7 @@ namespace Server.BL
         private string passwordHash;
         private DateTime registrationDate;
         private DateTime? lastLoginDate;
-        private bool isLocked;
+
         private bool isAdmin;
         private string? avatarUrl;
         private int activityLevel;
@@ -27,7 +27,7 @@ namespace Server.BL
         private bool notifyOnShare;
 
         public Users(int id, string username, string email, string firstName, string lastName, string passwordHash,
-                     DateTime registrationDate, DateTime? lastLoginDate, bool isLocked, bool isAdmin,
+                     DateTime registrationDate, DateTime? lastLoginDate, bool isAdmin,
                      string? avatarUrl, int activityLevel, int likesReceived,
                      bool notifyOnLikes, bool notifyOnComments, bool notifyOnFollow, bool notifyOnShare)
         {
@@ -39,7 +39,6 @@ namespace Server.BL
             PasswordHash = passwordHash;
             RegistrationDate = registrationDate;
             LastLoginDate = lastLoginDate;
-            IsLocked = isLocked;
             IsAdmin = isAdmin;
             AvatarUrl = avatarUrl;
             ActivityLevel = activityLevel;
@@ -59,7 +58,6 @@ namespace Server.BL
         public string PasswordHash { get => passwordHash; set => passwordHash = value; }
         public DateTime RegistrationDate { get => registrationDate; set => registrationDate = value; }
         public DateTime? LastLoginDate { get => lastLoginDate; set => lastLoginDate = value; }
-        public bool IsLocked { get => isLocked; set => isLocked = value; }
         public bool IsAdmin { get => isAdmin; set => isAdmin = value; }
         public string? AvatarUrl { get => avatarUrl; set => avatarUrl = value; }
         public int ActivityLevel { get => activityLevel; set => activityLevel = value; }
@@ -84,7 +82,7 @@ namespace Server.BL
                 : user.AvatarUrl;
 
             user.IsAdmin = false;
-            user.IsLocked = false;
+
             user.ActivityLevel = 0;
             user.LikesReceived = 0;
             user.NotifyOnLikes = true;
@@ -95,13 +93,14 @@ namespace Server.BL
             UsersDBservices dbs = new UsersDBservices();
             return dbs.InsertUser(user);
         }
-        public static Users? Login(string username, string password)
+        static public Users? Login(string email, string password)
         {
             UsersDBservices dbs = new UsersDBservices();
-            Users? user = dbs.GetUserByUsername(username);
+            Users? user = dbs.GetUserByEmail(email);
 
             if (user != null && user.VerifyPassword(password))
             {
+                // Update last login date
                 dbs.UpdateLastLogin(user.Id);
                 return user;
             }
@@ -116,25 +115,25 @@ namespace Server.BL
 
             try
             {
-                Console.WriteLine($"🔍 Starting user update for ID: {id}");
-                Console.WriteLine($"🔍 User data: Username={user.Username}, Email={user.Email}");
+                // Console.WriteLine($"🔍 Starting user update for ID: {id}");
+                // Console.WriteLine($"🔍 User data: Username={user.Username}, Email={user.Email}");
                 
                 UsersDBservices dbs = new UsersDBservices();
                 int result = dbs.UpdateUser(id, user);
-                Console.WriteLine($"🔍 Update result from DB: {result}");
+                // Console.WriteLine($"🔍 Update result from DB: {result}");
                 
                 // With SET NOCOUNT ON, ExecuteNonQuery returns -1 for successful operations
                 // Also accept 0 (no rows changed) and positive values (rows affected) as success
                 // This covers the case where data is unchanged but operation succeeded
                 bool isSuccess = (result == -1) || (result >= 0);
-                Console.WriteLine($"🔍 Update success determination: {isSuccess} (result was {result})");
+                // Console.WriteLine($"🔍 Update success determination: {isSuccess} (result was {result})");
                 
                 return isSuccess;
             }
             catch (Exception e)
             {
-                Console.WriteLine($"❌ Update error: {e.Message}");
-                Console.WriteLine($"❌ Update stack trace: {e.StackTrace}");
+                // Console.WriteLine($"❌ Update error: {e.Message}");
+                // Console.WriteLine($"❌ Update stack trace: {e.StackTrace}");
                 return false;
             }
         }
@@ -163,7 +162,7 @@ namespace Server.BL
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
+                // Console.WriteLine(e.Message);
                 return 0; // Error
             }
         }
@@ -173,7 +172,7 @@ namespace Server.BL
             if (!string.IsNullOrEmpty(passwordHash))
             {
                 // Hash the password if provided
-                var tempUser = new Users(0, "", "", "", "", passwordHash, DateTime.Now, null, false, false, "", 0, 0, true, true, true, true);
+                var tempUser = new Users(0, "", "", "", "", passwordHash, DateTime.Now, null, false, "", 0, 0, true, true, true, true);
                 passwordHash = tempUser.HashPassword(passwordHash);
             }
 
@@ -184,7 +183,7 @@ namespace Server.BL
             }
             catch (Exception e)
             {
-                Console.WriteLine($"❌ UpdateSimple error: {e.Message}");
+                // Console.WriteLine($"❌ UpdateSimple error: {e.Message}");
                 return false;
             }
         }
@@ -207,11 +206,7 @@ namespace Server.BL
             return dbs.GetUserById(id);
         }
 
-        public static int SetUserLock(int id, bool isLocked)
-        {
-            UsersDBservices dbs = new UsersDBservices();
-            return dbs.SetUserLockState(id, isLocked);
-        }
+
         public static List<string> GetUserInterests(int userId)
         {
             UsersDBservices db = new UsersDBservices();
@@ -314,6 +309,12 @@ namespace Server.BL
             {
                 return false;
             }
+        }
+
+        static public int GetTotalUsersCount()
+        {
+            UsersDBservices dbs = new UsersDBservices();
+            return dbs.GetTotalUsersCount();
         }
     }
 }

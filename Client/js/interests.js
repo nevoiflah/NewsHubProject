@@ -52,7 +52,7 @@ const InterestsManager = {
             dataType: "json",
             success: function(userData) {
                 const newActivityLevel = userData.activityLevel || 0;
-                console.log('🔄 Refreshing activity level:', newActivityLevel);
+                // console.log('🔄 Refreshing activity level:', newActivityLevel);
                 
                 // Update interests page avatar and progress
                 InterestsManager.updateUserAvatar(newActivityLevel);
@@ -207,7 +207,7 @@ const InterestsManager = {
                     InterestsManager.updateUserAvatar(userData.activityLevel || 0);
                     InterestsManager.updateActivityProgress(userData.activityLevel || 0);
 
-                    console.log('✅ User profile loaded successfully');
+                    // console.log('✅ User profile loaded successfully');
                 },
                 error: function(xhr, status, error) {
                     console.error('Error loading user profile:', error);
@@ -242,9 +242,9 @@ const InterestsManager = {
                     });
                     $('#saveInterests').prop('disabled', false);
                     $('#resetInterests').prop('disabled', false);
-                    console.log("✅ Interests loaded:", tags);
+                    // console.log("✅ Interests loaded:", tags);
                 } else {
-                    console.log("📝 No interests found for user");
+                    // console.log("📝 No interests found for user");
                     $('input[name="interestCategory"]').prop('checked', false);
                     $('#saveInterests').prop('disabled', true);
                     $('#resetInterests').prop('disabled', true);
@@ -273,9 +273,9 @@ const InterestsManager = {
                 if (response && response.success && response.stats) {
                     $('#followingCount').text(response.stats.following || 0);
                     $('#followersCount').text(response.stats.followers || 0);
-                    console.log("✅ Following stats loaded:", response.stats);
+                    // console.log("✅ Following stats loaded:", response.stats);
                 } else {
-                    console.log("📝 No following stats found");
+                    // console.log("📝 No following stats found");
                     $('#followingCount').text('0');
                     $('#followersCount').text('0');
                 }
@@ -326,7 +326,7 @@ const InterestsManager = {
 
     // Update activity progress bar with more detailed information
     updateActivityProgress: function(activityLevel) {
-        console.log('📊 Updating activity progress:', activityLevel);
+        // console.log('📊 Updating activity progress:', activityLevel);
         
         const currentLevel = Math.floor(activityLevel / 10);
         const nextLevel = currentLevel + 1;
@@ -358,7 +358,46 @@ const InterestsManager = {
             $progressBar.addClass('bg-primary'); // Reader - Blue
         }
         
-        console.log('✅ Activity progress updated successfully');
+        // console.log('✅ Activity progress updated successfully');
+    },
+
+    // Load likes received count dynamically from shared articles
+    loadLikesReceivedCount: function(userId) {
+        if (!userId) return;
+
+        // console.log('🔍 Loading likes received count for userId:', userId);
+
+        ajaxCall(
+            'GET',
+            `http://localhost:5121/api/shared?userId=${userId}`,
+            null,
+            function(response) {
+                // console.log('📊 Shared articles response:', response);
+                
+                if (response && response.success && response.articles) {
+                    // Calculate total likes received from all user's shared articles
+                    let totalLikes = 0;
+                    const currentUserId = parseInt(userId);
+                    
+                    response.articles.forEach(article => {
+                        // console.log('📝 Article:', article.id, 'userId:', article.userId, 'likes:', article.likes);
+                        if (article.userId === currentUserId) {
+                            totalLikes += article.likes || 0;
+                        }
+                    });
+                    
+                    $('#likesReceived').text(totalLikes);
+                    // console.log('✅ Likes received count loaded:', totalLikes);
+                } else {
+                    $('#likesReceived').text('0');
+                    // console.log('📝 No shared articles found for likes count');
+                }
+            },
+            function(xhr, status, error) {
+                console.error('❌ Error loading likes received count:', error);
+                $('#likesReceived').text('0');
+            }
+        );
     },
 
     // Load likes received count dynamically from shared articles
@@ -405,7 +444,11 @@ const InterestsManager = {
     saveProfile: async function(e) {
         e.preventDefault();
     
+<<<<<<< HEAD
+        // console.log('🚀 STARTING COMPLETELY NEW SAVE PROFILE FUNCTION');
+=======
         console.log('🚀 STARTING COMPLETELY NEW SAVE PROFILE FUNCTION');
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
     
         const profileData = {
             username: $('#editUsername').val().trim(),
@@ -469,10 +512,17 @@ const InterestsManager = {
     
         try {
             const userId = getUserIdFromStorage();
+<<<<<<< HEAD
+            // console.log('🔍 User ID:', userId);
+        
+            const currentUser = JSON.parse(localStorage.getItem('userInfo') || '{}');
+            // console.log('🔍 Current user:', currentUser);
+=======
             console.log('🔍 User ID:', userId);
         
             const currentUser = JSON.parse(localStorage.getItem('userInfo') || '{}');
             console.log('🔍 Current user:', currentUser);
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
         
             const isPasswordUpdate = profileData.newPassword && profileData.confirmPassword;
         
@@ -499,12 +549,21 @@ const InterestsManager = {
                 NotifyOnShare: profileData.notifyOnShare
             };
         
+<<<<<<< HEAD
+            // console.log('🔍 Update request to send:', updateRequest);
+        
+            // Make the profile update API call using the correct endpoint
+            // console.log('🚀 Making profile update API call...');
+            const profileApiUrl = `http://localhost:5121/api/Users/Update/${userId}`;
+            // console.log('🌐 Profile API URL:', profileApiUrl);
+=======
             console.log('🔍 Update request to send:', updateRequest);
         
             // Make the profile update API call using the correct endpoint
             console.log('🚀 Making profile update API call...');
             const profileApiUrl = `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Users/Update/${userId}`;
             console.log('🌐 Profile API URL:', profileApiUrl);
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
         
             try {
                 const profileResult = await $.ajax({
@@ -516,6 +575,17 @@ const InterestsManager = {
                     cache: false,
                     timeout: 30000,
                     beforeSend: function(xhr) {
+<<<<<<< HEAD
+                        // console.log('📤 Sending profile update request to:', profileApiUrl);
+                        // console.log('📤 Request data:', JSON.stringify(updateRequest));
+                    }
+                });
+            
+                // console.log('✅ Profile update response:', profileResult);
+            
+                // Success handling
+                // console.log('🎉 Profile update completed successfully!');
+=======
                         console.log('📤 Sending profile update request to:', profileApiUrl);
                         console.log('📤 Request data:', JSON.stringify(updateRequest));
                     }
@@ -525,6 +595,7 @@ const InterestsManager = {
             
                 // Success handling
                 console.log('🎉 Profile update completed successfully!');
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
             
                 // Update localStorage with new user data
                 const updatedUser = { 
@@ -539,7 +610,11 @@ const InterestsManager = {
                     notifyOnShare: profileData.notifyOnShare
                 };
                 localStorage.setItem('userInfo', JSON.stringify(updatedUser));
+<<<<<<< HEAD
+                // console.log('💾 Local storage updated');
+=======
                 console.log('💾 Local storage updated');
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
             
                 // Clear password fields
                 $('#newPassword').val('');
@@ -597,7 +672,11 @@ const InterestsManager = {
         } finally {
             button.prop('disabled', false);
             button.html('<i class="fas fa-save me-2"></i>Save Changes');
+<<<<<<< HEAD
+            // console.log('🏁 Save profile function completed');
+=======
             console.log('🏁 Save profile function completed');
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
         }
     },
 
@@ -643,7 +722,7 @@ const InterestsManager = {
             }),
             success: function (response) {
                 showAlert('success', 'Interests saved!');
-                console.log("✅ Interests saved:", selectedInterests);
+                // console.log("✅ Interests saved:", selectedInterests);
             },
             error: function (xhr, status, error) {
                 console.error('❌ Error saving interests:', error);
@@ -681,7 +760,7 @@ const InterestsManager = {
                 localStorage.removeItem('userInterests');
 
                 showAlert("success", "Your interest preference has been cleared.");
-                console.log("✅ User interests cleared.");
+                // console.log("✅ User interests cleared.");
             },
             error: function (xhr, status, error) {
                 console.error("❌ Failed to clear interests:", error);
@@ -810,7 +889,7 @@ const InterestsManager = {
                     }
                     
                     showAlert('success', `Imported ${validInterests.length} interest(s) successfully`);
-                    console.log('✅ Interests imported:', validInterests);
+                    // console.log('✅ Interests imported:', validInterests);
                 } else {
                     showAlert('warning', 'No valid interests found in import data');
                 }

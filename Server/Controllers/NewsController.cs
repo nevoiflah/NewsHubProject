@@ -12,18 +12,18 @@ namespace Server.Controllers
         {
             try
             {
-                Console.WriteLine($"🔍 SaveNews called - UserId: {userId}, Title: {request.Title}");
+                // Console.WriteLine($"🔍 SaveNews called - UserId: {userId}, Title: {request.Title}");
 
                 // Validate required parameters
                 if (userId <= 0)
                 {
-                    Console.WriteLine("❌ Invalid userId");
+                    // Console.WriteLine("❌ Invalid userId");
                     return BadRequest(new { success = false, message = "Invalid user ID" });
                 }
 
                 if (string.IsNullOrEmpty(request.Title) && string.IsNullOrEmpty(request.Url))
                 {
-                    Console.WriteLine("❌ Missing required fields");
+                    // Console.WriteLine("❌ Missing required fields");
                     return BadRequest(new { success = false, message = "Title or URL is required" });
                 }
 
@@ -42,7 +42,7 @@ namespace Server.Controllers
                 };
 
                 int newsId = News.SaveNews(article, userId);
-                Console.WriteLine($"✅ Article saved successfully - NewsId: {newsId}");
+                // Console.WriteLine($"✅ Article saved successfully - NewsId: {newsId}");
 
                 if (newsId > 0)
                 {
@@ -56,14 +56,14 @@ namespace Server.Controllers
                 }
                 else
                 {
-                    Console.WriteLine("❌ Save failed - returned invalid ID");
+                    // Console.WriteLine("❌ Save failed - returned invalid ID");
                     return BadRequest(new { success = false, message = "Failed to save article" });
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"💥 SaveNews error: {ex.Message}");
-                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                // Console.WriteLine($"💥 SaveNews error: {ex.Message}");
+                // Console.WriteLine($"Stack trace: {ex.StackTrace}");
                 return StatusCode(500, new { success = false, message = "Error: " + ex.Message });
             }
         }
@@ -73,17 +73,17 @@ namespace Server.Controllers
         {
             try
             {
-                Console.WriteLine($"🔍 GetSavedNewsForUser called - UserId: {userId}");
+                // Console.WriteLine($"🔍 GetSavedNewsForUser called - UserId: {userId}");
 
                 // Validate userId
                 if (userId <= 0)
                 {
-                    Console.WriteLine("❌ Invalid userId");
+                    // Console.WriteLine("❌ Invalid userId");
                     return BadRequest(new { success = false, message = "Invalid user ID" });
                 }
 
                 var savedArticles = News.GetSavedNews(userId);
-                Console.WriteLine($"📰 Found {savedArticles?.Count ?? 0} saved articles for user {userId}");
+                // Console.WriteLine($"📰 Found {savedArticles?.Count ?? 0} saved articles for user {userId}");
 
                 if (savedArticles == null)
                 {
@@ -101,8 +101,8 @@ namespace Server.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"💥 GetSavedNewsForUser error: {ex.Message}");
-                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                // Console.WriteLine($"💥 GetSavedNewsForUser error: {ex.Message}");
+                // Console.WriteLine($"Stack trace: {ex.StackTrace}");
                 return StatusCode(500, new
                 {
                     success = false,
@@ -118,7 +118,7 @@ namespace Server.Controllers
         {
             try
             {
-                Console.WriteLine($"🔍 GetSavedNewsById called - NewsId: {newsId}, UserId: {userId}");
+                // Console.WriteLine($"🔍 GetSavedNewsById called - NewsId: {newsId}, UserId: {userId}");
 
                 if (newsId <= 0 || userId <= 0)
                 {
@@ -129,11 +129,11 @@ namespace Server.Controllers
                 
                 if (article == null)
                 {
-                    Console.WriteLine($"❌ Article not found - NewsId: {newsId}, UserId: {userId}");
+                    // Console.WriteLine($"❌ Article not found - NewsId: {newsId}, UserId: {userId}");
                     return NotFound(new { success = false, message = "Article not found" });
                 }
 
-                Console.WriteLine($"✅ Article found - NewsId: {newsId}");
+                // Console.WriteLine($"✅ Article found - NewsId: {newsId}");
                 return Ok(new 
                 { 
                     success = true, 
@@ -143,7 +143,7 @@ namespace Server.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"💥 GetSavedNewsById error: {ex.Message}");
+                // Console.WriteLine($"💥 GetSavedNewsById error: {ex.Message}");
                 return StatusCode(500, new { success = false, message = "Error: " + ex.Message });
             }
         }
@@ -153,7 +153,7 @@ namespace Server.Controllers
         {
             try
             {
-                Console.WriteLine($"🔍 UnsaveNewsForUser called - NewsId: {newsId}, UserId: {userId}");
+                // Console.WriteLine($"🔍 UnsaveNewsForUser called - NewsId: {newsId}, UserId: {userId}");
 
                 if (newsId <= 0 || userId <= 0)
                 {
@@ -161,7 +161,7 @@ namespace Server.Controllers
                 }
 
                 bool result = News.UnsaveForUser(userId, newsId);
-                Console.WriteLine($"🗑️ Unsave result: {result}");
+                // Console.WriteLine($"🗑️ Unsave result: {result}");
 
                 return result
                     ? Ok(new { success = true, message = "Article removed from saved list" })
@@ -169,7 +169,7 @@ namespace Server.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"💥 UnsaveNewsForUser error: {ex.Message}");
+                // Console.WriteLine($"💥 UnsaveNewsForUser error: {ex.Message}");
                 return StatusCode(500, new { success = false, message = "Error: " + ex.Message });
             }
         }
@@ -198,7 +198,7 @@ namespace Server.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"💥 CheckIfSaved error: {ex.Message}");
+                // Console.WriteLine($"💥 CheckIfSaved error: {ex.Message}");
                 return StatusCode(500, new { success = false, message = "Error: " + ex.Message });
             }
         }
@@ -209,7 +209,7 @@ namespace Server.Controllers
         {
             try
             {
-                Console.WriteLine($"🔍 GetLatestNews called - Page: {page}, PageSize: {pageSize}");
+                // Console.WriteLine($"🔍 GetLatestNews called - Page: {page}, PageSize: {pageSize}");
 
                 // This should return actual news articles from your news source
                 // For now, returning empty list - you might want to implement actual news fetching
@@ -227,7 +227,7 @@ namespace Server.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"💥 GetLatestNews error: {ex.Message}");
+                // Console.WriteLine($"💥 GetLatestNews error: {ex.Message}");
                 return StatusCode(500, new { success = false, message = "Error: " + ex.Message });
             }
         }
@@ -237,7 +237,7 @@ namespace Server.Controllers
         {
             try
             {
-                Console.WriteLine($"🔍 GetNewsById called - Id: {id}");
+                // Console.WriteLine($"🔍 GetNewsById called - Id: {id}");
 
                 if (id <= 0)
                 {
@@ -250,7 +250,7 @@ namespace Server.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"💥 GetNewsById error: {ex.Message}");
+                // Console.WriteLine($"💥 GetNewsById error: {ex.Message}");
                 return StatusCode(500, new { success = false, message = "Error: " + ex.Message });
             }
         }
@@ -261,7 +261,7 @@ namespace Server.Controllers
         {
             try
             {
-                Console.WriteLine($"🔍 Debug endpoint called for user: {userId}");
+                // Console.WriteLine($"🔍 Debug endpoint called for user: {userId}");
 
                 var savedArticles = News.GetSavedNews(userId);
                 
@@ -277,7 +277,7 @@ namespace Server.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"💥 Debug error: {ex.Message}");
+                // Console.WriteLine($"💥 Debug error: {ex.Message}");
                 return StatusCode(500, new { success = false, message = "Error: " + ex.Message });
             }
         }

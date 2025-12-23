@@ -78,7 +78,7 @@ function submitRegistration(userData, messageDiv) {
         `${registerBaseUrl}/users/register`,
         JSON.stringify(userData),
         function (response) {
-            console.log('✅ Registration response:', response);
+            // console.log('✅ Registration response:', response);
             
             // עכשיו השרת מחזיר JSON עם success flag
             if (response && response.success === true) {

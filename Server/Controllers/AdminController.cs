@@ -21,33 +21,7 @@ namespace Server.Controllers
             }
         }
 
-        [HttpPost("lock/{id}")]
-        public IActionResult LockUser(int id)
-        {
-            try
-            {
-                bool result = Admin.LockUser(id);
-                return result ? Ok("User locked successfully.") : NotFound("User not found.");
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, "Error: " + ex.Message);
-            }
-        }
 
-        [HttpPost("unlock/{id}")]
-        public IActionResult UnlockUser(int id)
-        {
-            try
-            {
-                bool result = Admin.UnlockUser(id);
-                return result ? Ok("User unlocked successfully.") : NotFound("User not found.");
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, "Error: " + ex.Message);
-            }
-        }
 
         [HttpDelete("{id}")]
         public IActionResult DeleteUser(int id)
@@ -76,7 +50,7 @@ namespace Server.Controllers
                 }
                 catch (Exception dbEx)
                 {
-                    Console.WriteLine($"⚠️ Could not get system stats from DB: {dbEx.Message}");
+                    // Console.WriteLine($"⚠️ Could not get system stats from DB: {dbEx.Message}");
                     // Return default stats if DB call fails
                     var defaultStats = new Admin(0, 0, 0, 0);
                     return Ok(defaultStats);
@@ -84,7 +58,7 @@ namespace Server.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Error in GetSystemStats: {ex.Message}");
+                // Console.WriteLine($"❌ Error in GetSystemStats: {ex.Message}");
                 return StatusCode(500, "Error: " + ex.Message);
             }
         }
@@ -120,7 +94,7 @@ namespace Server.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Error in GetLoginAnalytics: {ex.Message}");
+                // Console.WriteLine($"❌ Error in GetLoginAnalytics: {ex.Message}");
                 // Return default data on error
                 var labels = new List<string>();
                 var values = new List<int>();
@@ -152,7 +126,7 @@ namespace Server.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Error in GetUserActivityAnalytics: {ex.Message}");
+                // Console.WriteLine($"❌ Error in GetUserActivityAnalytics: {ex.Message}");
                 // Return default data on error
                 var labels = new List<string> { "Active Users", "Locked Users", "New Users" };
                 var values = new List<int> { 0, 0, 0 };
@@ -191,7 +165,7 @@ namespace Server.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Error in GetRegistrationAnalytics: {ex.Message}");
+                // Console.WriteLine($"❌ Error in GetRegistrationAnalytics: {ex.Message}");
                 return Ok(new { 
                     labels = new List<string>(), 
                     values = new List<int>(),
@@ -251,7 +225,7 @@ namespace Server.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Error in GetContentAnalytics: {ex.Message}");
+                // Console.WriteLine($"❌ Error in GetContentAnalytics: {ex.Message}");
                 return Ok(new { 
                     labels = new List<string>(),
                     datasets = new object[0],

@@ -1,6 +1,6 @@
 // auth.js 
 $(document).ready(function() {
-    console.log('🔐 Auth module loaded with jQuery');
+    // console.log('🔐 Auth module loaded with jQuery');
 });
 
 const baseUrl = 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api';
@@ -14,7 +14,7 @@ async function getUserInterests(userId) {
             { userId: Auth.getCurrentUser().id },
             function(response) {
                 if (response && response.categories) {
-                    console.log('📝 User interests:', response.categories);
+                    // console.log('📝 User interests:', response.categories);
                     resolve(response.categories);
                 } else {
                     resolve(['general']); // Default interest
@@ -32,7 +32,7 @@ async function getUserInterests(userId) {
 function resetNotificationPrompts() {
     sessionStorage.removeItem('notificationPromptShown');
     sessionStorage.removeItem('notificationPromptDismissed');
-    console.log('🔄 Notification prompt state reset');
+    // console.log('🔄 Notification prompt state reset');
 }
 
 const Auth = {
@@ -49,7 +49,7 @@ const Auth = {
     // Login user - Using ajaxCall
     login: async (username, password) => {
         return new Promise((resolve) => {
-            console.log('🌐 Frontend: Starting login request...');
+            // console.log('🌐 Frontend: Starting login request...');
             
             ajaxCall(
                 'POST',
@@ -58,12 +58,21 @@ const Auth = {
                     Username: username, 
                     Password: password
                 }),
+<<<<<<< HEAD
+                cache: false,
+                contentType: "application/json",
+                dataType: "json",
+                timeout: 30000,
+                success: function(response) {
+                    // console.log('📥 Frontend: Raw API response:', response);
+=======
                 function(response) {
                     console.log('📥 Frontend: Raw API response:', response);
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
 
                     // ✅ FIXED: Check for response.user.id instead of response.id
                     if (response && response.user && response.user.id) {
-                        console.log('✅ Frontend: Login successful, storing data...');
+                        // console.log('✅ Frontend: Login successful, storing data...');
                         
                         // ✅ FIXED: Access data from response.user object
                         localStorage.setItem('userInfo', JSON.stringify({
@@ -77,10 +86,10 @@ const Auth = {
                         // Store userId directly for backward compatibility
                         localStorage.setItem('userId', response.user.id);
 
-                        console.log('💾 Frontend: User data stored in localStorage');
+                        // console.log('💾 Frontend: User data stored in localStorage');
                         resolve({ success: true, message: 'Login successful' });
                     } else {
-                        console.log('❌ Frontend: Invalid response format');
+                        // console.log('❌ Frontend: Invalid response format');
                         resolve({ success: false, error: 'Invalid response from server' });
                     }
                 },
@@ -145,22 +154,34 @@ const Auth = {
         return new Promise((resolve) => {
             const user = Auth.getCurrentUser();
 
+<<<<<<< HEAD
+            $.ajax({
+                type: 'PUT',
+                url: `${baseUrl}/Users/Update/${user.id}`,
+                data: JSON.stringify(profileData),
+                cache: false,
+                contentType: "application/json",
+                dataType: "json",
+                success: function (response) {
+                    // console.log('📥 Profile update response:', response);
+=======
             ajaxCall(
                 'PUT',
                 `${baseUrl}/Users/Update/${user.id}`,
                 JSON.stringify(profileData),
                 function (response) {
                     console.log('📥 Profile update response:', response);
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
 
                     if (response && response === "User updated successfully.") {
                         // Update local storage
                         const updatedUser = { ...user, ...profileData };
                         localStorage.setItem('userInfo', JSON.stringify(updatedUser));
 
-                        console.log('✅ Profile updated successfully');
+                        // console.log('✅ Profile updated successfully');
                         resolve({ success: true, message: 'Profile updated successfully' });
                     } else {
-                        console.log('❌ Profile update failed');
+                        // console.log('❌ Profile update failed');
                         resolve({ success: false, error: 'Profile update failed' });
                     }
                 },
@@ -197,7 +218,7 @@ const Auth = {
                 JSON.stringify(categories), // רק מערך של IDs
                 function (response) {
                     if (response && response.success) {
-                        console.log('✅ Interests saved successfully');
+                        // console.log('✅ Interests saved successfully');
                         resolve({ success: true, message: 'Interests saved successfully' });
                     } else {
                         resolve({ success: false, error: 'Failed to save interests' });
@@ -252,7 +273,7 @@ const Auth = {
 
     // Logout user
     logout: () => {
-        console.log('🚪 Frontend: Logging out user...');
+        // console.log('🚪 Frontend: Logging out user...');
         
         try {
             if (window.NotificationService && window.NotificationService.cleanup) {
@@ -266,14 +287,14 @@ const Auth = {
         localStorage.removeItem('userId');
         localStorage.removeItem('fcmToken');
         
-        console.log('🧹 Frontend: Local storage cleared');
+        // console.log('🧹 Frontend: Local storage cleared');
         window.location.href = 'index.html';
     },
 
     // Require authentication
     requireAuth: () => {
         if (!Auth.isLoggedIn()) {
-            console.log('🔒 Authentication required, redirecting to login...');
+            // console.log('🔒 Authentication required, redirecting to login...');
             window.location.href = 'login.html';
             return false;
         }
@@ -283,7 +304,7 @@ const Auth = {
     // Require admin access
     requireAdmin: () => {
         if (!Auth.isLoggedIn() || !Auth.isAdmin()) {
-            console.log('🔒 Admin access required, redirecting...');
+            // console.log('🔒 Admin access required, redirecting...');
             window.location.href = 'index.html';
             return false;
         }
@@ -434,34 +455,34 @@ $(document).ready(function() {
         const currentPath = window.location.pathname;
         const currentFile = currentPath.split('/').pop(); // Gets just the filename like "news.html"
         
-        console.log('🔐 Checking auth for page:', currentFile);
-        console.log('🔐 Full path:', currentPath);
+        // console.log('🔐 Checking auth for page:', currentFile);
+        // console.log('🔐 Full path:', currentPath);
         
         // Check protected pages
         if (protectedPages.includes(currentFile)) {
             if (!window.Auth || !window.Auth.isLoggedIn()) {
-                console.log('🚫 Redirecting to login - protected page requires auth');
+                // console.log('🚫 Redirecting to login - protected page requires auth');
                 const currentUrl = encodeURIComponent(window.location.href);
                 window.location.href = `login.html?redirect=${currentUrl}`;
                 return;
             }
-            console.log('✅ User authenticated for protected page');
+            // console.log('✅ User authenticated for protected page');
         }
         
         // Check admin pages
         if (adminPages.includes(currentFile)) {
             if (!window.Auth || !window.Auth.isLoggedIn()) {
-                console.log('🚫 Redirecting to login - admin page requires auth');
+                // console.log('🚫 Redirecting to login - admin page requires auth');
                 const currentUrl = encodeURIComponent(window.location.href);
                 window.location.href = `login.html?redirect=${currentUrl}`;
                 return;
             }
             if (!window.Auth.isAdmin()) {
-                console.log('🚫 Redirecting to home - admin access required');
+                // console.log('🚫 Redirecting to home - admin access required');
                 window.location.href = 'index.html';
                 return;
             }
-            console.log('✅ Admin access confirmed');
+            // console.log('✅ Admin access confirmed');
         }
     }, 100); // Small delay to ensure Auth is loaded
 });

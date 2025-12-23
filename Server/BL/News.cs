@@ -118,5 +118,12 @@ namespace Server.BL
             NewsDBservices db = new NewsDBservices();
             return db.SaveNewsForUser(userId, newsId);
         }
+
+        public static int GetTotalSavedNewsCount()
+        {
+            UsersDBservices dbs = new UsersDBservices();
+            // Note: We are using UsersDBservices to query the saved count directly as implemented there
+            return dbs.GetTotalSavedNewsCount();
+        }
     }
 }

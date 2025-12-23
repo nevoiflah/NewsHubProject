@@ -50,7 +50,6 @@ namespace Server.Controllers
                             lastName = user.LastName,
                             registrationDate = user.RegistrationDate,
                             lastLoginDate = user.LastLoginDate,
-                            isLocked = user.IsLocked,
                             isAdmin = user.IsAdmin,
                             avatarUrl = user.AvatarUrl,
                             activityLevel = user.ActivityLevel,
@@ -149,7 +148,7 @@ namespace Server.Controllers
                 if (!string.IsNullOrEmpty(request.NewPassword))
                 {
                     // Create a temporary user to hash the new password
-                    var tempUser = new Users(0, "", "", "", "", request.NewPassword, DateTime.Now, null, false, false, "", 0, 0, true, true, true, true);
+                    var tempUser = new Users(0, "", "", "", "", request.NewPassword, DateTime.Now, null, false, "", 0, 0, true, true, true, true);
                     passwordToUse = tempUser.HashPassword(request.NewPassword);
                 }
                 
@@ -162,7 +161,6 @@ namespace Server.Controllers
                     passwordToUse,
                     currentUser.RegistrationDate,
                     currentUser.LastLoginDate,
-                    currentUser.IsLocked,
                     currentUser.IsAdmin,
                     !string.IsNullOrEmpty(request.AvatarUrl) ? request.AvatarUrl : currentUser.AvatarUrl,
                     currentUser.ActivityLevel,
@@ -239,21 +237,7 @@ namespace Server.Controllers
             }
         }
 
-        [HttpPost("SetLock/{userId}")]
-        public IActionResult SetLock(int userId, [FromQuery] bool isLocked)
-        {
-            try
-            {
-                int result = Users.SetUserLock(userId, isLocked);
-                if (result == 1)
-                    return Ok($"User {(isLocked ? "locked" : "unlocked")} successfully.");
-                return NotFound("User not found.");
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, "Error: " + ex.Message);
-            }
-        }
+
 
         [HttpGet("interests/{userId}")]
         public IActionResult GetUserInterests(int userId)
@@ -265,7 +249,7 @@ namespace Server.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine("⚠️ Error in GetUserInterests: " + ex.Message);
+                // Console.WriteLine("⚠️ Error in GetUserInterests: " + ex.Message);
                 return Ok(new List<string>());
             }
         }
@@ -280,7 +264,7 @@ namespace Server.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine("⚠️ Error in SaveUserInterests: " + ex.Message);
+                // Console.WriteLine("⚠️ Error in SaveUserInterests: " + ex.Message);
                 return BadRequest("Error saving interests: " + ex.Message);
             }
         }
@@ -295,7 +279,7 @@ namespace Server.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine("⚠️ Error in ClearUserInterests: " + ex.Message);
+                // Console.WriteLine("⚠️ Error in ClearUserInterests: " + ex.Message);
                 return BadRequest("Error clearing interests: " + ex.Message);
             }
         }
@@ -316,7 +300,7 @@ namespace Server.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine("⚠️ Error in UpdateNotificationPreferences: " + ex.Message);
+                // Console.WriteLine("⚠️ Error in UpdateNotificationPreferences: " + ex.Message);
                 return BadRequest(new { success = false, message = "Error updating notification preferences: " + ex.Message });
             }
         }
@@ -350,7 +334,7 @@ namespace Server.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine("⚠️ Error in UpdateNotificationPreferencesSecure: " + ex.Message);
+                // Console.WriteLine("⚠️ Error in UpdateNotificationPreferencesSecure: " + ex.Message);
                 return BadRequest(new { success = false, message = "Error updating notification preferences: " + ex.Message });
             }
         }
@@ -365,13 +349,13 @@ namespace Server.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine("⚠️ Error in UpdateUserActivity: " + ex.Message);
+                // Console.WriteLine("⚠️ Error in UpdateUserActivity: " + ex.Message);
                 return BadRequest("Error updating user activity: " + ex.Message);
             }
         }
 
         // ======================================
-        // MISSING ENDPOINTS - COMMUNITY FEATURES
+        // COMMUNITY FEATURES
         // ======================================
 
         [HttpGet("blocked")]
@@ -548,6 +532,28 @@ namespace Server.Controllers
         }
 
         
+
+        // GET: api/Users/stats
+        [HttpGet("stats")]
+        public IActionResult GetSystemStats()
+        {
+            try
+            {
+                int totalUsers = Users.GetTotalUsersCount();
+                int totalSavedArticles = News.GetTotalSavedNewsCount();
+                
+                return Ok(new 
+                { 
+                    success = true,
+                    totalUsers = totalUsers,
+                    totalSavedArticles = totalSavedArticles
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = "Error: " + ex.Message });
+            }
+        }
     }
 
     // ======================================

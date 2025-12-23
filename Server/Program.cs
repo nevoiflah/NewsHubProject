@@ -1,7 +1,7 @@
 var builder = WebApplication.CreateBuilder(args);
 
-// ?? Init Firebase once
-NewsHub_New_Server.FirebaseConfig.Init();  // ??? ???namespace ?????
+// Init Firebase
+NewsHub_New_Server.FirebaseConfig.Init();
 
 // Add services to the container.
 builder.Services.AddControllers();

@@ -8,16 +8,16 @@ var SavedNewsManager = {
     currentView: 'grid', // Add view toggle property
 
     // Initialize saved news page
-    init: function() {
-        console.log('🚀 Initializing SavedNewsManager...');
+    init: function () {
+        // console.log('🚀 Initializing SavedNewsManager...');
         SavedNewsManager.setupEventListeners();
         SavedNewsManager.loadSavedArticles();
     },
 
     // Setup event listeners
-    setupEventListeners: function() {
+    setupEventListeners: function () {
         $('#searchBtn').on('click', SavedNewsManager.handleSearch);
-        $('#searchSaved').on('keypress', function(e) {
+        $('#searchSaved').on('keypress', function (e) {
             if (e.which === 13) { // Enter key
                 SavedNewsManager.handleSearch();
             }
@@ -25,20 +25,20 @@ var SavedNewsManager = {
 
         $('#sortBy').on('change', SavedNewsManager.handleSortChange);
         $('#filterCategory').on('change', SavedNewsManager.handleCategoryChange);
-        
+
         // Add view toggle event listeners
-        $('#gridView').on('click', function() {
+        $('#gridView').on('click', function () {
             SavedNewsManager.switchView('grid');
         });
-        $('#listView').on('click', function() {
+        $('#listView').on('click', function () {
             SavedNewsManager.switchView('list');
         });
     },
 
     // Switch between grid and list view
-    switchView: function(view) {
+    switchView: function (view) {
         SavedNewsManager.currentView = view;
-        
+
         // Update button states
         if (view === 'grid') {
             $('#gridView')
@@ -61,10 +61,10 @@ var SavedNewsManager = {
     },
 
     // Show login required message (for non-authenticated users)
-    showLoginRequiredMessage: function() {
+    showLoginRequiredMessage: function () {
         $('#savedArticles').hide();
         var noArticlesDiv = $('#noArticles');
-        
+
         noArticlesDiv.html(`
             <div class="text-center py-5">
                 <i class="fas fa-lock fa-3x text-warning mb-3"></i>
@@ -75,25 +75,40 @@ var SavedNewsManager = {
                 </a>
             </div>
         `);
-        
+
         noArticlesDiv.show();
         $('#articleCount').text('Login required');
     },
 
     // Load saved articles from API - Production version with improved debugging
     loadSavedArticles: function () {
-        console.log('🔄 Loading saved articles...');
+        // console.log('🔄 Loading saved articles...');
 
         const userId = localStorage.getItem('userId');
-        console.log('👤 UserId from localStorage:', userId);
+        // console.log('👤 UserId from localStorage:', userId);
 
         if (!userId) {
-            console.log('❌ No userId found, showing login required message');
+            // console.log('❌ No userId found, showing login required message');
             SavedNewsManager.showLoginRequiredMessage();
             return;
         }
 
         // ✅ FIXED: Use capital 'N' in News to match controller route
+<<<<<<< HEAD
+        const apiUrl = `http://localhost:5121/api/News/saved?userId=${userId}`;
+        // console.log('🌐 API URL:', apiUrl);
+
+        $.ajax({
+            type: 'GET',
+            url: apiUrl,
+            cache: false,
+            dataType: "json",
+            timeout: 10000, // 10 second timeout
+            success: function (response) {
+                // console.log('✅ Raw API response:', response);
+                // console.log('📊 Response type:', typeof response);
+                // console.log('📊 Response structure:', Object.keys(response || {}));
+=======
         const apiUrl = `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/News/saved?userId=${userId}`;
         console.log('🌐 API URL:', apiUrl);
 
@@ -105,6 +120,7 @@ var SavedNewsManager = {
                 console.log('✅ Raw API response:', response);
                 console.log('📊 Response type:', typeof response);
                 console.log('📊 Response structure:', Object.keys(response || {}));
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
 
                 let articles = [];
 
@@ -112,43 +128,43 @@ var SavedNewsManager = {
                 if (Array.isArray(response)) {
                     // Direct array response
                     articles = response;
-                    console.log('📰 Parsed as direct array:', articles.length, 'articles');
+                    // console.log('📰 Parsed as direct array:', articles.length, 'articles');
                 } else if (response && response.articles) {
                     // Object with articles property (new controller format)
                     articles = Array.isArray(response.articles) ? response.articles : [];
-                    console.log('📰 Parsed from response.articles:', articles.length, 'articles');
-                    console.log('📊 Response success:', response.success);
-                    console.log('📊 Response message:', response.message);
+                    // console.log('📰 Parsed from response.articles:', articles.length, 'articles');
+                    // console.log('📊 Response success:', response.success);
+                    // console.log('📊 Response message:', response.message);
                 } else if (response && response.success === false) {
                     // Error response from server
-                    console.log('❌ Server returned error:', response.message);
+                    // console.log('❌ Server returned error:', response.message);
                     articles = [];
                 } else {
                     // Unknown format
-                    console.log('⚠️ Unknown response format, defaulting to empty array');
+                    // console.log('⚠️ Unknown response format, defaulting to empty array');
                     articles = [];
                 }
 
                 // ✅ IMPROVED: Log individual articles for debugging
-                console.log('📋 Final articles array:', articles);
+                // console.log('📋 Final articles array:', articles);
                 if (articles.length > 0) {
-                    console.log('📄 First article sample:', articles[0]);
-                    console.log('🆔 Article ID fields check:', {
+                    // console.log('📄 First article sample:', articles[0]);
+                    /* console.log('🆔 Article ID fields check:', {
                         id: articles[0].id,
                         Id: articles[0].Id,
                         newsId: articles[0].newsId
-                    });
+                    }); */
                 }
 
                 SavedNewsManager.savedArticles = articles;
                 SavedNewsManager.filteredArticles = articles.slice();
 
                 if (articles.length > 0) {
-                    console.log('🎉 Displaying articles...');
+                    // console.log('🎉 Displaying articles...');
                     SavedNewsManager.displayArticles();
                     SavedNewsManager.updateArticleCount();
                 } else {
-                    console.log('📭 No articles found, showing empty message');
+                    // console.log('📭 No articles found, showing empty message');
                     SavedNewsManager.showNoArticlesMessage();
                 }
             },
@@ -185,9 +201,9 @@ var SavedNewsManager = {
     },
 
     // Display articles in the UI with grid/list toggle
-    displayArticles: function() {
-        console.log('🎨 Displaying articles:', SavedNewsManager.filteredArticles.length);
-        
+    displayArticles: function () {
+        // console.log('🎨 Displaying articles:', SavedNewsManager.filteredArticles.length);
+
         var container = $('#savedArticles');
         var noArticlesDiv = $('#noArticles');
 
@@ -199,27 +215,27 @@ var SavedNewsManager = {
         noArticlesDiv.hide();
         container.show();
 
-        var html = SavedNewsManager.filteredArticles.map(function(article, index) {
-            console.log(`🔍 Processing article ${index}:`, {
+        var html = SavedNewsManager.filteredArticles.map(function (article, index) {
+            /* console.log(`🔍 Processing article ${index}:`, {
                 title: article.title,
                 id: article.id,
                 Id: article.Id,
                 newsId: article.newsId
-            });
+            }); */
 
             // ✅ IMPROVED: Better ID handling - try multiple possible ID fields
             var articleId = article.id || article.Id || article.newsId || index;
-            
+
             // Use fallbacks for missing properties
-            var imageUrl = article.urlToImage || article.imageUrl || article.UrlToImage || '/assets/default-news.jpg';
+            var imageUrl = article.urlToImage || article.imageUrl || article.UrlToImage || '../assets/default-news.jpg';
             var source = article.source || article.Source || 'Unknown Source';
             var category = article.category || article.Category || 'General';
             var description = article.description || article.content || article.Content || 'No description available';
             var url = article.url || article.Url || '#';
             var title = article.title || article.Title || 'No title';
-            
+
             // Safe HTML sanitization - use Utils if available, otherwise use jQuery fallback
-            var sanitizeHtml = function(text) {
+            var sanitizeHtml = function (text) {
                 if (!text) return '';
                 if (window.Utils && window.Utils.sanitizeHtml) {
                     return window.Utils.sanitizeHtml(text);
@@ -227,9 +243,9 @@ var SavedNewsManager = {
                 // Fallback using jQuery
                 return $('<div>').text(text).html();
             };
-            
+
             // Safe text truncation
-            var truncateText = function(text, maxLength) {
+            var truncateText = function (text, maxLength) {
                 if (!text) return '';
                 if (window.Utils && window.Utils.truncateText) {
                     return window.Utils.truncateText(text, maxLength);
@@ -259,7 +275,7 @@ var SavedNewsManager = {
                         <div class="card h-100 saved-article-card" data-article-id="${articleId}">
                             <img src="${imageUrl}" class="card-img-top" 
                                  style="height: 200px; object-fit: cover;" alt="Article Image"
-                                 onerror="this.src='/assets/default-news.jpg'">
+                                 onerror="this.src='../assets/default-news.jpg'">
                             <div class="card-body d-flex flex-column">
                                 <div class="d-flex justify-content-between align-items-start mb-2">
                                     <span class="badge bg-primary">${sanitizedCategory}</span>
@@ -322,7 +338,7 @@ var SavedNewsManager = {
                         <div class="card saved-article-card" data-article-id="${articleId}">
                             <div class="row g-0">
                                 <div class="col-md-3">
-                                    <img src="${imageUrl}" class="img-fluid rounded" style="width: 100%; height: 200px; object-fit: cover;" alt="Article Image" onerror="this.onerror=null;this.src='/assets/default-news.jpg';">
+                                    <img src="${imageUrl}" class="img-fluid rounded" style="width: 100%; height: 200px; object-fit: cover;" alt="Article Image" onerror="this.onerror=null;this.src='../assets/default-news.jpg';">
                                 </div>
                                 <div class="col-md-9">
                                     <div class="card-body">
@@ -381,14 +397,14 @@ var SavedNewsManager = {
         }).join('');
 
         container.html(html);
-        console.log('✅ Articles displayed successfully');
+        // console.log('✅ Articles displayed successfully');
     },
 
     // Show no articles message (for authenticated users with no saved articles)
-    showNoArticlesMessage: function() {
+    showNoArticlesMessage: function () {
         $('#savedArticles').hide();
         var noArticlesDiv = $('#noArticles');
-        
+
         if (SavedNewsManager.currentSearch || SavedNewsManager.currentCategory) {
             noArticlesDiv.html(`
                 <div class="text-center py-5">
@@ -415,16 +431,16 @@ var SavedNewsManager = {
                 </div>
             `);
         }
-        
+
         noArticlesDiv.show();
         $('#articleCount').text('0 articles');
     },
 
     // Show server connection error
-    showServerConnectionError: function() {
+    showServerConnectionError: function () {
         $('#savedArticles').hide();
         var noArticlesDiv = $('#noArticles');
-        
+
         noArticlesDiv.html(`
             <div class="text-center py-5">
                 <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
@@ -443,16 +459,16 @@ var SavedNewsManager = {
                 </button>
             </div>
         `);
-        
+
         noArticlesDiv.show();
         $('#articleCount').text('Connection error');
     },
 
     // Show server error
-    showServerError: function(responseText) {
+    showServerError: function (responseText) {
         $('#savedArticles').hide();
         var noArticlesDiv = $('#noArticles');
-        
+
         noArticlesDiv.html(`
             <div class="text-center py-5">
                 <i class="fas fa-server fa-3x text-danger mb-3"></i>
@@ -469,13 +485,13 @@ var SavedNewsManager = {
                 </button>
             </div>
         `);
-        
+
         noArticlesDiv.show();
         $('#articleCount').text('Server error');
     },
 
     // Debug method to help troubleshoot issues
-    debugSavedArticles: function() {
+    debugSavedArticles: function () {
         const userId = localStorage.getItem('userId');
         const debugInfo = {
             userId: userId,
@@ -489,10 +505,24 @@ var SavedNewsManager = {
             }
         };
 
-        console.log('🐛 DEBUG INFO:', debugInfo);
-        
+        // console.log('🐛 DEBUG INFO:', debugInfo);
+
         // Test API connectivity
         if (userId) {
+<<<<<<< HEAD
+            // console.log('🧪 Testing API connectivity...');
+            $.ajax({
+                type: 'GET',
+                url: `http://localhost:5121/api/News/debug/user/${userId}`,
+                cache: false,
+                dataType: "json",
+                success: function (response) {
+                    // console.log('✅ Debug API response:', response);
+                    alert(`DEBUG INFO:\nUser ID: ${userId}\nSaved Articles in DB: ${response.savedCount}\nAPI Response: ${JSON.stringify(response, null, 2)}`);
+                },
+                error: function (xhr) {
+                    // console.log('❌ Debug API failed:', xhr);
+=======
             console.log('🧪 Testing API connectivity...');
             ajaxCall(
                 'GET',
@@ -504,6 +534,7 @@ var SavedNewsManager = {
                 },
                 function(xhr) {
                     console.log('❌ Debug API failed:', xhr);
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                     alert(`DEBUG INFO:\nUser ID: ${userId}\nAPI Test Failed: ${xhr.status} ${xhr.statusText}\nResponse: ${xhr.responseText}`);
                 }
             );
@@ -513,50 +544,50 @@ var SavedNewsManager = {
     },
 
     // Handle search
-    handleSearch: function() {
+    handleSearch: function () {
         var searchTerm = $('#searchSaved').val().trim();
         SavedNewsManager.currentSearch = searchTerm.toLowerCase();
         SavedNewsManager.applyFilters();
     },
 
     // Handle sort change
-    handleSortChange: function() {
+    handleSortChange: function () {
         SavedNewsManager.currentSort = $('#sortBy').val();
         SavedNewsManager.applyFilters();
     },
 
     // Handle category filter change
-    handleCategoryChange: function() {
+    handleCategoryChange: function () {
         SavedNewsManager.currentCategory = $('#filterCategory').val();
         SavedNewsManager.applyFilters();
     },
 
     // Apply all filters and sorting
-    applyFilters: function() {
+    applyFilters: function () {
         SavedNewsManager.filteredArticles = SavedNewsManager.savedArticles.slice();
 
         // Apply search filter
         if (SavedNewsManager.currentSearch) {
-            SavedNewsManager.filteredArticles = SavedNewsManager.filteredArticles.filter(function(article) {
+            SavedNewsManager.filteredArticles = SavedNewsManager.filteredArticles.filter(function (article) {
                 const title = (article.title || article.Title || '').toLowerCase();
                 const description = (article.description || article.content || article.Content || '').toLowerCase();
                 const source = (article.source || article.Source || '').toLowerCase();
-                
+
                 return title.includes(SavedNewsManager.currentSearch) ||
-                       description.includes(SavedNewsManager.currentSearch) ||
-                       source.includes(SavedNewsManager.currentSearch);
+                    description.includes(SavedNewsManager.currentSearch) ||
+                    source.includes(SavedNewsManager.currentSearch);
             });
         }
 
         // Apply category filter
         if (SavedNewsManager.currentCategory) {
-            SavedNewsManager.filteredArticles = SavedNewsManager.filteredArticles.filter(function(article) {
+            SavedNewsManager.filteredArticles = SavedNewsManager.filteredArticles.filter(function (article) {
                 return (article.category || article.Category || 'general') === SavedNewsManager.currentCategory;
             });
         }
 
         // Apply sorting
-        SavedNewsManager.filteredArticles.sort(function(a, b) {
+        SavedNewsManager.filteredArticles.sort(function (a, b) {
             switch (SavedNewsManager.currentSort) {
                 case 'title':
                     return (a.title || a.Title || '').localeCompare(b.title || b.Title || '');
@@ -566,8 +597,8 @@ var SavedNewsManager = {
                     return new Date(b.publishedAt || b.PublishedAt || 0) - new Date(a.publishedAt || a.PublishedAt || 0);
                 case 'saved_date':
                 default:
-                    return new Date(b.savedAt || b.SavedAt || b.publishedAt || b.PublishedAt || 0) - 
-                           new Date(a.savedAt || a.SavedAt || a.publishedAt || a.PublishedAt || 0);
+                    return new Date(b.savedAt || b.SavedAt || b.publishedAt || b.PublishedAt || 0) -
+                        new Date(a.savedAt || a.SavedAt || a.publishedAt || a.PublishedAt || 0);
             }
         });
 
@@ -576,15 +607,15 @@ var SavedNewsManager = {
     },
 
     // Clear all filters
-    clearFilters: function() {
+    clearFilters: function () {
         $('#searchSaved').val('');
         $('#filterCategory').val('');
         $('#sortBy').val('saved_date');
-        
+
         SavedNewsManager.currentSearch = '';
         SavedNewsManager.currentCategory = '';
         SavedNewsManager.currentSort = 'saved_date';
-        
+
         SavedNewsManager.applyFilters();
         if (typeof showAlert === 'function') {
             showAlert('info', 'Filters cleared');
@@ -592,22 +623,22 @@ var SavedNewsManager = {
     },
 
     // Update article count display
-    updateArticleCount: function() {
+    updateArticleCount: function () {
         var totalCount = SavedNewsManager.savedArticles.length;
         var filteredCount = SavedNewsManager.filteredArticles.length;
-        
+
         var countText = '';
         if (SavedNewsManager.currentSearch || SavedNewsManager.currentCategory) {
             countText = `Showing ${filteredCount} of ${totalCount} saved articles`;
         } else {
             countText = `${totalCount} saved articles`;
         }
-        
+
         $('#articleCount').text(countText);
     },
 
     // Remove article - Production version (requires authentication)
-    removeArticle: function(articleId) {
+    removeArticle: function (articleId) {
         if (!confirm('Are you sure you want to remove this article from your saved list?')) {
             return;
         }
@@ -633,17 +664,17 @@ var SavedNewsManager = {
     },
 
     // Share article
-    shareArticle: function(articleId) {
+    shareArticle: function (articleId) {
         // Find the article by ID
-        var article = SavedNewsManager.savedArticles.find(function(a) {
+        var article = SavedNewsManager.savedArticles.find(function (a) {
             return (a.id || a.Id || a.newsId) === articleId;
         });
-        
+
         if (!article) {
             console.error('Article not found:', articleId);
             return;
         }
-    
+
         // Use community share modal instead of native sharing
         if (typeof window.openCommunityShareModal === 'function') {
             window.openCommunityShareModal(article);
@@ -654,12 +685,12 @@ var SavedNewsManager = {
                     title: article.title || article.Title,
                     text: article.content || article.Content,
                     url: article.url || article.Url
-                }).then(function() {
+                }).then(function () {
                     if (typeof showAlert === 'function') {
                         showAlert('success', 'Article shared successfully');
                     }
-                }).catch(function(error) {
-                    console.log('Error sharing:', error);
+                }).catch(function (error) {
+                    // console.log('Error sharing:', error);
                     SavedNewsManager.fallbackShare(article);
                 });
             } else {
@@ -669,15 +700,15 @@ var SavedNewsManager = {
     },
 
     // Fallback share method
-    fallbackShare: function(article) {
+    fallbackShare: function (article) {
         var url = article.url || article.Url;
         // Copy URL to clipboard
         if (navigator.clipboard && url) {
-            navigator.clipboard.writeText(url).then(function() {
+            navigator.clipboard.writeText(url).then(function () {
                 if (typeof showAlert === 'function') {
                     showAlert('success', 'Article URL copied to clipboard');
                 }
-            }).catch(function() {
+            }).catch(function () {
                 SavedNewsManager.showShareModal(article);
             });
         } else {
@@ -686,9 +717,9 @@ var SavedNewsManager = {
     },
 
     // Show share modal
-    showShareModal: function(article) {
+    showShareModal: function (article) {
         var shareText = `${article.title || article.Title}\n\n${article.description || article.content || article.Content || ''}\n\nRead more: ${article.url || article.Url}`;
-        
+
         var modal = `
             <div class="modal fade" id="shareModal" tabindex="-1">
                 <div class="modal-dialog">
@@ -713,21 +744,21 @@ var SavedNewsManager = {
                 </div>
             </div>
         `;
-        
+
         $('body').append(modal);
         var shareModal = new bootstrap.Modal(document.getElementById('shareModal'));
         shareModal.show();
-        
+
         // Remove modal when hidden
-        $('#shareModal').on('hidden.bs.modal', function() {
+        $('#shareModal').on('hidden.bs.modal', function () {
             $(this).remove();
         });
     },
 
     // Copy share text to clipboard
-    copyShareText: function(url) {
+    copyShareText: function (url) {
         if (navigator.clipboard) {
-            navigator.clipboard.writeText(url).then(function() {
+            navigator.clipboard.writeText(url).then(function () {
                 if (typeof showAlert === 'function') {
                     showAlert('success', 'URL copied to clipboard');
                 }
@@ -737,17 +768,17 @@ var SavedNewsManager = {
     },
 
     // Format date for display
-    formatDate: function(dateString) {
+    formatDate: function (dateString) {
         if (!dateString) return 'Unknown';
-        
+
         try {
             var date = new Date(dateString);
             if (isNaN(date.getTime())) return 'Invalid date';
-            
+
             var now = new Date();
             var diffMs = now - date;
             var diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-            
+
             if (diffDays === 0) {
                 return 'Today';
             } else if (diffDays === 1) {
@@ -763,7 +794,7 @@ var SavedNewsManager = {
     },
 
     // Export saved articles
-    exportSavedArticles: function() {
+    exportSavedArticles: function () {
         if (SavedNewsManager.savedArticles.length === 0) {
             if (typeof showAlert === 'function') {
                 showAlert('info', 'No saved articles to export');
@@ -772,7 +803,7 @@ var SavedNewsManager = {
         }
 
         try {
-            var exportData = SavedNewsManager.savedArticles.map(function(article) {
+            var exportData = SavedNewsManager.savedArticles.map(function (article) {
                 return {
                     title: article.title || article.Title,
                     description: article.description || article.content || article.Content,
@@ -784,15 +815,15 @@ var SavedNewsManager = {
             });
 
             var dataStr = JSON.stringify(exportData, null, 2);
-            var dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-            
+            var dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+
             var exportFileDefaultName = 'saved-articles-' + new Date().toISOString().split('T')[0] + '.json';
-            
+
             var linkElement = document.createElement('a');
             linkElement.setAttribute('href', dataUri);
             linkElement.setAttribute('download', exportFileDefaultName);
             linkElement.click();
-            
+
             if (typeof showAlert === 'function') {
                 showAlert('success', 'Saved articles exported successfully');
             }
@@ -805,7 +836,7 @@ var SavedNewsManager = {
     },
 
     // Clear all saved articles - Production version
-    clearAllSavedArticles: function() {
+    clearAllSavedArticles: function () {
         if (SavedNewsManager.savedArticles.length === 0) {
             if (typeof showAlert === 'function') {
                 showAlert('info', 'No saved articles to clear');
@@ -854,7 +885,7 @@ var SavedNewsManager = {
 }
 
 // Initialize saved news manager when page loads
-$(document).ready(function() {
+$(document).ready(function () {
     if (window.location.pathname.indexOf('saved.html') !== -1 || window.location.href.indexOf('saved.html') !== -1) {
         SavedNewsManager.init();
     }

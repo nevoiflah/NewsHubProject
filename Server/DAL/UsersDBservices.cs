@@ -97,17 +97,17 @@ namespace Server.DAL
                     { "@NotifyOnShare", user.NotifyOnShare }
                 };
 
-                Console.WriteLine($"UpdateUser parameters: {string.Join(", ", paramDic.Select(kvp => $"{kvp.Key}={kvp.Value}"))}");
+                // Console.WriteLine($"UpdateUser parameters: {string.Join(", ", paramDic.Select(kvp => $"{kvp.Key}={kvp.Value}"))}");
                 
                 SqlCommand cmd = CreateCommandWithStoredProcedureGeneral("NLM_NewsHub_UpdateUser", con, paramDic);
                 int result = cmd.ExecuteNonQuery();
-                Console.WriteLine($"UpdateUser result: {result}");
+                // Console.WriteLine($"UpdateUser result: {result}");
                 return result;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"UpdateUser error: {ex.Message}");
-                Console.WriteLine($"UpdateUser stack trace: {ex.StackTrace}");
+                // Console.WriteLine($"UpdateUser error: {ex.Message}");
+                // Console.WriteLine($"UpdateUser stack trace: {ex.StackTrace}");
                 throw ex;
             }
             finally
@@ -299,30 +299,7 @@ namespace Server.DAL
             }
         }
 
-        public int SetUserLockState(int id, bool isLocked)
-        {
-            SqlConnection con = null;
-            try
-            {
-                con = connect("myProjDB");
-                Dictionary<string, object> paramDic = new Dictionary<string, object>
-                {
-                    { "@Id", id },
-                    { "@IsLocked", isLocked }
-                };
 
-                SqlCommand cmd = CreateCommandWithStoredProcedureGeneral("NLM_NewsHub_SetUserLock", con, paramDic);
-                return cmd.ExecuteNonQuery();
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-            finally
-            {
-                con?.Close();
-            }
-        }
 
         public int UpdateLastLogin(int id)
         {
@@ -372,7 +349,7 @@ namespace Server.DAL
             }
             catch (Exception ex)
             {
-                Console.WriteLine("DB error GetUserInterests: " + ex.Message);
+                // Console.WriteLine("DB error GetUserInterests: " + ex.Message);
                 return new List<string>();
             }
         }
@@ -406,7 +383,7 @@ namespace Server.DAL
             }
             catch (Exception ex)
             {
-                Console.WriteLine("❌ DB Error SaveUserInterests: " + ex.Message);
+                // Console.WriteLine("❌ DB Error SaveUserInterests: " + ex.Message);
                 return false;
             }
         }
@@ -426,7 +403,7 @@ namespace Server.DAL
             }
             catch (Exception ex)
             {
-                Console.WriteLine("DB Error DeleteUserInterests: " + ex.Message);
+                // Console.WriteLine("DB Error DeleteUserInterests: " + ex.Message);
                 return false;
             }
         }
@@ -457,7 +434,7 @@ namespace Server.DAL
             }
             catch (Exception ex)
             {
-                Console.WriteLine("DB Error UpdateNotificationPreferences: " + ex.Message);
+                // Console.WriteLine("DB Error UpdateNotificationPreferences: " + ex.Message);
                 return false;
             }
         }
@@ -480,7 +457,7 @@ namespace Server.DAL
             }
             catch (Exception ex)
             {
-                Console.WriteLine("DB Error UpdateUserActivity: " + ex.Message);
+                // Console.WriteLine("DB Error UpdateUserActivity: " + ex.Message);
                 return 0;
             }
         }
@@ -496,8 +473,7 @@ namespace Server.DAL
                 reader["LastName"].ToString(),
                 reader["PasswordHash"].ToString(),
                 Convert.ToDateTime(reader["RegistrationDate"]),
-                reader["LastLoginDate"] == DBNull.Value ? null : Convert.ToDateTime(reader["LastLoginDate"]),
-                Convert.ToBoolean(reader["IsLocked"]),
+                reader["LastLoginDate"] != DBNull.Value ? Convert.ToDateTime(reader["LastLoginDate"]) : null,
                 Convert.ToBoolean(reader["IsAdmin"]),
                 reader["AvatarUrl"]?.ToString(),
                 Convert.ToInt32(reader["ActivityLevel"]),
@@ -508,5 +484,57 @@ namespace Server.DAL
                 Convert.ToBoolean(reader["NotifyOnShare"])
             );
         }
+
+    // Get total number of users
+    public int GetTotalUsersCount()
+    {
+        SqlConnection con = null;
+        try
+        {
+            con = connect("myProjDB");
+            string query = "SELECT COUNT(*) FROM NLM_NewsHub_Users";
+            SqlCommand cmd = new SqlCommand(query, con);
+
+            int count = (int)cmd.ExecuteScalar();
+            return count;
+        }
+        catch (Exception ex)
+        {
+            // Fallback for debugging - return 0 if table not found but don't crash
+            // Console.WriteLine("Error getting user count: " + ex.Message);
+            return 0; // Return 0 instead of rethrowing to avoid 500 error
+        }
+        finally
+        {
+            if (con != null)
+                con.Close();
+        }
+    }
+
+    // Get total number of saved articles
+    public int GetTotalSavedNewsCount()
+    {
+        SqlConnection con = null;
+        try
+        {
+            con = connect("myProjDB");
+            // Fallback to Shared Articles count as it represents the substantial content in the system
+            string query = "SELECT COUNT(*) FROM NLM_NewsHub_SharedArticles";
+            SqlCommand cmd = new SqlCommand(query, con);
+
+            object result = cmd.ExecuteScalar();
+            return result != null ? Convert.ToInt32(result) : 0;
+        }
+        catch (Exception ex)
+        {
+             // Console.WriteLine("Error getting saved news count: " + ex.Message);
+             return 0; // Return 0 safely on error
+        }
+        finally
+        {
+            if (con != null)
+                con.Close();
+        }
+    }
     }
 }

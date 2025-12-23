@@ -11,32 +11,22 @@ namespace Server.BL
         private int totalReports;
 
         // בנאי
-        public Admin(int totalUsers, int totalNewsPulled, int totalSavedNews, int totalReports)
+        public Admin(int totalUsers, int activeUsersCount, int sharedArticlesCount, int pendingReportsCount)
         {
             TotalUsers = totalUsers;
-            TotalNewsPulled = totalNewsPulled;
-            TotalSavedNews = totalSavedNews;
-            TotalReports = totalReports;
+            ActiveUsersCount = activeUsersCount;
+            SharedArticlesCount = sharedArticlesCount;
+            PendingReportsCount = pendingReportsCount;
         }
 
         // Properties
         public int TotalUsers { get => totalUsers; set => totalUsers = value; }
-        public int TotalNewsPulled { get => totalNewsPulled; set => totalNewsPulled = value; }
-        public int TotalSavedNews { get => totalSavedNews; set => totalSavedNews = value; }
-        public int TotalReports { get => totalReports; set => totalReports = value; }
+        public int ActiveUsersCount { get => totalNewsPulled; set => totalNewsPulled = value; }
+        public int SharedArticlesCount { get => totalSavedNews; set => totalSavedNews = value; }
+        public int PendingReportsCount { get => totalReports; set => totalReports = value; }
 
         // BL סטטיות
-        public static bool LockUser(int userId)
-        {
-            AdminDBservices dbs = new AdminDBservices();
-            return dbs.LockUser(userId) == 1;
-        }
 
-        public static bool UnlockUser(int userId)
-        {
-            AdminDBservices dbs = new AdminDBservices();
-            return dbs.UnlockUser(userId) == 1;
-        }
 
         public static Admin GetSystemStats()
         {

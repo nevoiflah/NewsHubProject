@@ -2,7 +2,7 @@
 (function($) {
     'use strict';
     
-    console.log('🔧 Loading jQuery-based common utilities...');
+    // console.log('🔧 Loading jQuery-based common utilities...');
     
     // API Configuration
     const API_CONFIG = {
@@ -12,7 +12,7 @@
 
     // FIXED: Helper function to get correct redirect URL based on current location
     function getCorrectRedirectUrl(targetPage = 'news.html') {
-        console.log('🔄 Getting redirect URL for:', targetPage);
+        // console.log('🔄 Getting redirect URL for:', targetPage);
         return getPageUrl(targetPage);
     }
 
@@ -61,12 +61,25 @@
                 // Login method 
                 login: async (username, password) => {
                     return new Promise((resolve) => {
+<<<<<<< HEAD
+                        $.ajax({
+                            type: 'POST',
+                            url: `${API_CONFIG.baseUrl}/Users/login`,
+                            data: JSON.stringify({ username, passwordHash: password }),
+                            cache: false,
+                            contentType: "application/json",
+                            dataType: "json",
+                            timeout: API_CONFIG.timeout,
+                            success: function(response) {
+                                // console.log('📥 Backend login response:', response);
+=======
                         ajaxCall(
                             'POST',
                             `${API_CONFIG.baseUrl}/Users/login`,
                             JSON.stringify({ username, passwordHash: password }),
                             function(response) {
                                 console.log('📥 Backend login response:', response);
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                                 if (response && response.id) {
                                     localStorage.setItem('userInfo', JSON.stringify({
                                         id: response.id,
@@ -132,11 +145,23 @@
                             return;
                         }
 
+<<<<<<< HEAD
+                        $.ajax({
+                            type: 'PUT',
+                            url: `${API_CONFIG.baseUrl}/Users/Update/${user.id}`,
+                            data: JSON.stringify(profileData),
+                            cache: false,
+                            contentType: "application/json",
+                            dataType: "json",
+                            timeout: API_CONFIG.timeout,
+                            success: function(response) {
+=======
                         ajaxCall(
                             'PUT',
                             `${API_CONFIG.baseUrl}/Users/Update/${user.id}`,
                             JSON.stringify(profileData),
                             function(response) {
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                                 if (response && response.success) {
                                     // Update local storage
                                     const currentUser = JSON.parse(localStorage.getItem('userInfo') || '{}');
@@ -203,12 +228,25 @@
                             data = typeof options.data === 'string' ? options.data : JSON.stringify(options.data);
                         }
 
+<<<<<<< HEAD
+                        $.ajax({
+                            type: options.method || 'GET',
+                            url: url,
+                            data: data,
+                            cache: false,
+                            contentType: options.method === 'GET' ? undefined : "application/json",
+                            dataType: "json",
+                            timeout: API_CONFIG.timeout,
+                            success: function(response) {
+                                // console.log(`✅ API Success: ${endpoint}`, response);
+=======
                         ajaxCall(
                             options.method || 'GET',
                             url,
                             data,
                             function(response) {
                                 console.log(`✅ API Success: ${endpoint}`, response);
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                                 resolve(response);
                             },
                             function(xhr, status, error) {
@@ -291,7 +329,7 @@
         }
 
         try {
-            console.log(`🔔 Auto-initializing notifications for user: ${currentUser.id} (${currentUser.username})`);
+            // console.log(`🔔 Auto-initializing notifications for user: ${currentUser.id} (${currentUser.username})`);
     
             let userInterests = ['general'];
             try {
@@ -300,7 +338,7 @@
                     userInterests = response.categories;
                 }
             } catch (e) {
-                console.log('⚠️ Could not load user interests, using defaults');
+                // console.log('⚠️ Could not load user interests, using defaults');
             }
     
             const success = await window.NotificationService.initializeForUser(
@@ -309,9 +347,9 @@
             );
     
             if (success) {
-                console.log('✅ Notifications auto-initialized successfully');
+                // console.log('✅ Notifications auto-initialized successfully');
             } else {
-                console.log('ℹ️ Notifications require user permission - prompt will be shown');
+                // console.log('ℹ️ Notifications require user permission - prompt will be shown');
             }
     
         } catch (error) {
@@ -321,7 +359,7 @@
 
     // Load preview news function
     function loadPreviewNews() {
-        console.log('🌐 Loading preview news from NewsAPI.org...');
+        // console.log('🌐 Loading preview news from NewsAPI.org...');
 
         const API_KEY = '1c92222d21a84a7ab30168a35d967b22';
         const url = `https://newsapi.org/v2/everything?q=*&language=en&sortBy=publishedAt&apiKey=${API_KEY}`;
@@ -331,7 +369,7 @@
             method: 'GET',
             dataType: 'json',
             success: function(response) {
-                console.log('✅ NewsAPI preview loaded:', response);
+                // console.log('✅ NewsAPI preview loaded:', response);
 
                 if (response && Array.isArray(response.articles) && response.articles.length > 0) {
                     const $container = $('#previewNews');
@@ -414,7 +452,7 @@
         ensureAuthService();
         ensureUtilsService();
         
-        console.log('✅ jQuery-based common utilities loaded');
+        // console.log('✅ jQuery-based common utilities loaded');
         
         // Auto-initialize for already logged-in users
         autoInitializeNotifications();
@@ -495,13 +533,13 @@ function createNavbar() {
                 document.body.style.setProperty('padding-top', '80px', 'important');
                 document.body.style.setProperty('margin-top', '0', 'important');
                 
-                console.log('✅ Navbar positioning forced with JavaScript');
+                // console.log('✅ Navbar positioning forced with JavaScript');
                 
                 // Verify the positioning worked
                 const computedStyle = window.getComputedStyle(navbar);
-                console.log('📊 Final navbar position:', computedStyle.position);
-                console.log('📊 Final navbar top:', computedStyle.top);
-                console.log('📊 Final navbar z-index:', computedStyle.zIndex);
+                // console.log('📊 Final navbar position:', computedStyle.position);
+                // console.log('📊 Final navbar top:', computedStyle.top);
+                // console.log('📊 Final navbar z-index:', computedStyle.zIndex);
             }
         }, 100);
     }
@@ -693,23 +731,28 @@ $(document).ready(function() {
                 $messageDiv.addClass('d-none');
                 window.showAlert('success', 'Login successful! Redirecting...');
 
-                console.log('✅ Login successful');
+                // console.log('✅ Login successful');
 
-                setTimeout(() => {
-                    // FIXED: Use built-in redirect logic with proper URL handling
-                    const redirectParam = new URLSearchParams(window.location.search).get('redirect');
-                    let redirectUrl;
-                    
-                    if (redirectParam) {
-                        redirectUrl = redirectParam;
-                    } else {
-                        // Use smart default based on current location
-                        redirectUrl = window.getPageUrl('news.html');
-                    }
-                    
-                    console.log('🔄 Redirecting to:', redirectUrl);
-                    window.location.href = redirectUrl;
-                }, 1000);
+                // Initialize notifications before redirecting
+                try {
+                    await window.notificationService.initializeForUser(user.id);
+                } catch (error) {
+                    console.warn('⚠️ Notification initialization error:', error);
+                }
+
+                // FIXED: Use built-in redirect logic with proper URL handling
+                const redirectParam = new URLSearchParams(window.location.search).get('redirect');
+                let redirectUrl;
+                
+                if (redirectParam) {
+                    redirectUrl = redirectParam;
+                } else {
+                    // Use smart default based on current location
+                    redirectUrl = window.getPageUrl('news.html');
+                }
+                
+                // console.log('🔄 Redirecting to:', redirectUrl);
+                window.location.href = redirectUrl;
                 
             } else {
                 $messageDiv.text(result.error || 'Login failed').removeClass('d-none');
@@ -997,7 +1040,7 @@ function updateAllAvatars(activityLevel) {
     // Note: Shared articles avatars are updated individually based on each user's activity level
     // They are handled in the displaySharedContent function in share.js
     
-    console.log('🔄 Current user avatars updated to:', avatarSrc);
+    // console.log('🔄 Current user avatars updated to:', avatarSrc);
 }
 
 // Function to update avatar for a specific user (for shared articles)
@@ -1010,7 +1053,7 @@ function updateUserAvatar(userId, activityLevel) {
         $userAvatar.attr('src', avatarSrc);
     }
     
-    console.log(`🔄 Avatar updated for user ${userId} to:`, avatarSrc);
+    // console.log(`🔄 Avatar updated for user ${userId} to:`, avatarSrc);
 }
 
 // Centralized function to refresh user data and update all avatars
@@ -1026,7 +1069,7 @@ function refreshUserDataAndAvatars() {
         null,
         function(userData) {
             const newActivityLevel = userData.activityLevel || 0;
-            console.log('🔄 Refreshing user data, activity level:', newActivityLevel);
+            // console.log('🔄 Refreshing user data, activity level:', newActivityLevel);
             
             // Update localStorage with fresh data
             const updatedUser = {
@@ -1068,7 +1111,7 @@ function setupAvatarSynchronization() {
         }
     }, 30000);
     
-    console.log('🔄 Avatar synchronization setup complete');
+    // console.log('🔄 Avatar synchronization setup complete');
 }
 
 // Initialize avatar synchronization when the page loads

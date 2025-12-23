@@ -38,29 +38,6 @@ namespace Server.DAL
             return cmd;
         }
 
-        public int LockUser(int userId)
-        {
-            using SqlConnection con = connect("myProjDB");
-            Dictionary<string, object> paramDic = new()
-            {
-                { "@UserId", userId }
-            };
-
-            SqlCommand cmd = CreateCommandWithStoredProcedureGeneral("NLM_NewsHub_LockUser", con, paramDic);
-            return cmd.ExecuteNonQuery();
-        }
-
-        public int UnlockUser(int userId)
-        {
-            using SqlConnection con = connect("myProjDB");
-            Dictionary<string, object> paramDic = new()
-            {
-                { "@UserId", userId }
-            };
-
-            SqlCommand cmd = CreateCommandWithStoredProcedureGeneral("NLM_NewsHub_UnlockUser", con, paramDic);
-            return cmd.ExecuteNonQuery();
-        }
 
         public Admin GetSystemStats()
         {
@@ -72,9 +49,9 @@ namespace Server.DAL
             {
                 return new Admin(
                     Convert.ToInt32(reader["TotalUsers"]),
-                    Convert.ToInt32(reader["TotalNewsPulled"]),
-                    Convert.ToInt32(reader["TotalSavedNews"]),
-                    Convert.ToInt32(reader["TotalReports"])
+                    Convert.ToInt32(reader["ActiveUsers"]),
+                    Convert.ToInt32(reader["SharedArticles"]),
+                    Convert.ToInt32(reader["PendingReports"])
                 );
             }
 
@@ -117,7 +94,7 @@ namespace Server.DAL
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error getting daily login stats: {ex.Message}");
+                // Console.WriteLine($"Error getting daily login stats: {ex.Message}");
             }
             
             return result;
@@ -154,7 +131,7 @@ namespace Server.DAL
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error getting daily registration stats: {ex.Message}");
+                // Console.WriteLine($"Error getting daily registration stats: {ex.Message}");
             }
             
             return result;
@@ -169,8 +146,8 @@ namespace Server.DAL
                 string sql = @"
                     SELECT 
                         COUNT(*) as TotalUsers,
-                        SUM(CASE WHEN IsLocked = 0 THEN 1 ELSE 0 END) as ActiveUsers,
-                        SUM(CASE WHEN IsLocked = 1 THEN 1 ELSE 0 END) as LockedUsers,
+                        SUM(CASE WHEN ActivityLevel > 0 THEN 1 ELSE 0 END) as ActiveUsers,
+                        0 as LockedUsers,
                         SUM(CASE WHEN RegistrationDate >= DATEADD(week, -1, GETDATE()) THEN 1 ELSE 0 END) as NewUsersThisWeek,
                         SUM(CASE WHEN IsAdmin = 1 THEN 1 ELSE 0 END) as AdminUsers
                     FROM NLM_NewsHub_Users";
@@ -191,7 +168,7 @@ namespace Server.DAL
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error getting user activity stats: {ex.Message}");
+                // Console.WriteLine($"Error getting user activity stats: {ex.Message}");
             }
             
             return (0, 0, 0, 0, 0);
@@ -226,7 +203,7 @@ namespace Server.DAL
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error getting content stats: {ex.Message}");
+                // Console.WriteLine($"Error getting content stats: {ex.Message}");
             }
             
             return (0, 0, 0, 0);
@@ -287,7 +264,7 @@ namespace Server.DAL
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error getting daily content stats: {ex.Message}");
+                // Console.WriteLine($"Error getting daily content stats: {ex.Message}");
             }
             
             return result;

@@ -9,7 +9,7 @@ const ShareManager = {
     baseUrl: 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api',
 
     // Initialize the shared content page
-    init: function() {
+    init: function () {
         this.setupEventListeners();
         this.loadSharedContent();
         this.loadBlockedUsers();
@@ -18,27 +18,27 @@ const ShareManager = {
     },
 
     // Setup event listeners
-    setupEventListeners: function() {
+    setupEventListeners: function () {
         // Share form submission
         $('#shareForm').on('submit', this.handleShareSubmission.bind(this));
         $('#submitShare').on('click', this.handleShareSubmission.bind(this));
-        
+
         // URL metadata fetching
         $('#fetchMetadata').on('click', this.fetchArticleMetadata.bind(this));
         $('#articleUrl').on('input', this.debounce(this.handleUrlInput.bind(this), 1000));
-        
+
         // Filter controls
         $('#userFilter').on('input', this.debounce(this.applyFilters.bind(this), 300));
         $('#sortShared').on('change', this.applyFilters.bind(this));
         $('#followingOnlyFilter').on('change', this.applyFilters.bind(this));
         $('#applyFilters').on('click', this.applyFilters.bind(this));
-        
+
         // Clear filters button
         $('#clearFilters').on('click', this.clearAllFilters.bind(this));
-        
+
         // Pagination
         $(document).on('click', '.pagination-btn', this.handlePagination.bind(this));
-        
+
         // Article interactions
         $(document).on('click', '.like-btn', this.handleLikeArticle.bind(this));
         $(document).on('click', '.comment-btn', this.handleShowComments.bind(this));
@@ -48,11 +48,11 @@ const ShareManager = {
         $(document).on('click', '.unfollow-user-btn', this.handleUnfollowUser.bind(this));
         $(document).on('click', '.block-user-btn', this.handleBlockUser.bind(this));
         $(document).on('click', '.delete-shared-btn', this.handleDeleteShared.bind(this));
-        
+
         // Comment interactions - INLINE VERSION
         $(document).on('click', '.submit-comment-inline-btn', this.handleSubmitCommentInline.bind(this));
         $(document).on('click', '.delete-comment-inline-btn', this.handleDeleteCommentInline.bind(this));
-        $(document).on('click', '.toggle-comments-btn', function() {
+        $(document).on('click', '.toggle-comments-btn', function () {
             const $btn = $(this);
             const $commentsList = $btn.closest('.comments-section').find('.comments-list, .add-comment-form');
             $commentsList.slideToggle();
@@ -62,7 +62,7 @@ const ShareManager = {
     },
 
     // Debounce utility function
-    debounce: function(func, wait) {
+    debounce: function (func, wait) {
         let timeout;
         return function executedFunction(...args) {
             const later = () => {
@@ -75,7 +75,7 @@ const ShareManager = {
     },
 
     // Fetch article metadata
-    fetchArticleMetadata: function() {
+    fetchArticleMetadata: function () {
         const url = $('#articleUrl').val().trim();
         if (!url || !this.isValidUrl(url)) {
             showAlert('warning', 'Please enter a valid URL');
@@ -90,11 +90,11 @@ const ShareManager = {
         try {
             const urlObj = new URL(url);
             const domain = urlObj.hostname.replace('www.', '');
-            
+
             // Auto-fill basic information
             $('#articleSource').val(domain);
             $('#articleTitle').val('Article from ' + domain);
-            
+
             // Show preview
             this.showMetadataPreview({
                 title: 'Article from ' + domain,
@@ -102,7 +102,7 @@ const ShareManager = {
                 source: domain,
                 image: null
             });
-            
+
             showAlert('info', 'Metadata fetched! Please review and edit as needed.');
         } catch (error) {
             showAlert('warning', 'Could not fetch metadata. Please fill in the details manually.');
@@ -112,7 +112,7 @@ const ShareManager = {
     },
 
     // Handle URL input changes
-    handleUrlInput: function() {
+    handleUrlInput: function () {
         const url = $('#articleUrl').val().trim();
         if (url && this.isValidUrl(url)) {
             this.fetchArticleMetadata();
@@ -120,9 +120,9 @@ const ShareManager = {
     },
 
     // Show metadata preview
-    showMetadataPreview: function(metadata) {
+    showMetadataPreview: function (metadata) {
         const $preview = $('#metadataPreview');
-        
+
         $preview.removeClass('d-none').html(`
             <hr>
             <h6>Preview:</h6>
@@ -137,7 +137,7 @@ const ShareManager = {
     },
 
     // Handle share form submission
-    handleShareSubmission: function(e) {
+    handleShareSubmission: function (e) {
         if (e) e.preventDefault();
 
         const url = $('#articleUrl').val().trim();
@@ -173,41 +173,59 @@ const ShareManager = {
             'POST',
             `${this.baseUrl}/shared?userId=${userId}`,
             JSON.stringify(shareData),
+<<<<<<< HEAD
+            function (response) {
+=======
             function(response) {
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 if (response && response.success) {
                     showAlert('success', 'Article shared successfully!');
-                    
+
                     // Track activity for sharing
                     const userId = localStorage.getItem('userId');
                     if (userId) {
                         ajaxCall(
                             'POST',
+<<<<<<< HEAD
+                            `http://localhost:5121/api/users/activity/${userId}`,
+                            null,
+                            function () {
+=======
                             `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/users/activity/${userId}`,
                             null,
                             function() {
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                                 // Trigger avatar update after activity change
                                 if (window.triggerAvatarUpdate) {
                                     window.triggerAvatarUpdate();
                                 }
                             },
+<<<<<<< HEAD
+                            function (xhr, status, error) {
+=======
                             function(xhr, status, error) {
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                                 console.warn('Failed to track activity:', error);
                             }
                         );
                     }
-                    
+
                     // Reset form
                     $('#shareForm')[0].reset();
                     $('#metadataPreview').addClass('d-none');
                     bootstrap.Modal.getInstance($('#shareModal')[0]).hide();
-                    
+
                     // Refresh shared content
                     setTimeout(() => ShareManager.loadSharedContent(), 1000);
                 } else {
                     showAlert('danger', response.message || 'Failed to share article');
                 }
             },
+<<<<<<< HEAD
+            function (xhr, status, error) {
+=======
             function(xhr, status, error) {
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 console.error('❌ Share submission error:', error);
                 showAlert('danger', 'Failed to share article. Please try again.');
             }
@@ -215,15 +233,24 @@ const ShareManager = {
     },
 
     // Load shared content
+<<<<<<< HEAD
+    loadSharedContent: function () {
+        ('📰 Loading shared content...');
+=======
     loadSharedContent: function() {
         console.log('📰 Loading shared content...');
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
         const userId = localStorage.getItem('userId');
 
         ajaxCall(
             'GET',
             `${this.baseUrl}/shared?userId=${userId || ''}`,
             null,
+<<<<<<< HEAD
+            function (response) {
+=======
             function(response) {
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 if (response && response.success) {
                     ShareManager.sharedContent = response.articles || [];
                     ShareManager.filteredContent = [...ShareManager.sharedContent];
@@ -233,7 +260,11 @@ const ShareManager = {
                     ShareManager.showErrorMessage('Failed to load shared content');
                 }
             },
+<<<<<<< HEAD
+            function (xhr, status, error) {
+=======
             function(xhr, status, error) {
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 console.error('❌ Error loading shared content:', error);
                 ShareManager.showErrorMessage('Failed to load shared content');
             }
@@ -241,7 +272,7 @@ const ShareManager = {
     },
 
     // Load blocked users
-    loadBlockedUsers: function() {
+    loadBlockedUsers: function () {
         const userId = localStorage.getItem('userId');
         if (!userId) return;
 
@@ -249,20 +280,28 @@ const ShareManager = {
             'GET',
             `${this.baseUrl}/users/blocked?userId=${userId}`,
             null,
+<<<<<<< HEAD
+            function (response) {
+=======
             function(response) {
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 if (response && response.success) {
                     ShareManager.blockedUsers = response.blockedUsers || [];
                     ShareManager.displayBlockedUsers();
                 }
             },
+<<<<<<< HEAD
+            function (xhr, status, error) {
+=======
             function(xhr, status, error) {
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 console.error('❌ Error loading blocked users:', error);
             }
         );
     },
 
     // Load following users
-    loadFollowingUsers: function() {
+    loadFollowingUsers: function () {
         const userId = localStorage.getItem('userId');
         if (!userId) return;
 
@@ -270,19 +309,27 @@ const ShareManager = {
             'GET',
             `${this.baseUrl}/users/following?userId=${userId}`,
             null,
+<<<<<<< HEAD
+            function (response) {
+=======
             function(response) {
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 if (response && response.success) {
                     ShareManager.followingUsers = response.following || [];
                 }
             },
+<<<<<<< HEAD
+            function (xhr, status, error) {
+=======
             function(xhr, status, error) {
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 console.error('❌ Error loading following users:', error);
             }
         );
     },
 
     // Load following stats
-    loadFollowingStats: function() {
+    loadFollowingStats: function () {
         const userId = localStorage.getItem('userId');
         if (!userId) return;
 
@@ -290,24 +337,32 @@ const ShareManager = {
             'GET',
             `${this.baseUrl}/users/following-stats?userId=${userId}`,
             null,
+<<<<<<< HEAD
+            function (response) {
+=======
             function(response) {
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 if (response && response.success) {
                     ShareManager.displayFollowingStats(response.stats);
                 }
             },
+<<<<<<< HEAD
+            function (xhr, status, error) {
+=======
             function(xhr, status, error) {
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 console.error('❌ Error loading following stats:', error);
             }
         );
     },
 
     // Handle like article
-    handleLikeArticle: function(e) {
+    handleLikeArticle: function (e) {
         e.preventDefault();
         const $btn = $(e.currentTarget);
         const shareId = $btn.closest('.card').data('share-id');
         const userId = window.Auth.getCurrentUser()?.id;
-        
+
         if (!userId) {
             showAlert('error', 'Please log in to like articles');
             return;
@@ -319,17 +374,21 @@ const ShareManager = {
             `${this.baseUrl}/shared/${shareId}/like?userId=${userId}`,
             null
         );
+<<<<<<< HEAD
+
+=======
         
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
         // Refresh page immediately
         location.reload();
     },
 
     // UPDATED: Show comments - now inline instead of modal
-    handleShowComments: function(e) {
+    handleShowComments: function (e) {
         const $btn = $(e.currentTarget);
         const articleId = $btn.data('article-id');
         const $card = $btn.closest('.card');
-        
+
         // Check if comments are already shown
         const $existingComments = $card.find('.comments-section');
         if ($existingComments.length > 0) {
@@ -337,15 +396,15 @@ const ShareManager = {
             $existingComments.slideToggle();
             return;
         }
-        
+
         // Load and show comments inline
         this.loadAndShowCommentsInline(articleId, $card);
     },
 
     // NEW: Load and show comments inline under the card
-    loadAndShowCommentsInline: function(articleId, $card) {
+    loadAndShowCommentsInline: function (articleId, $card) {
         const userId = localStorage.getItem('userId');
-        
+
         // Show loading
         const $loadingHtml = $(`
             <div class="comments-section border-top pt-3 mt-3">
@@ -358,19 +417,31 @@ const ShareManager = {
             </div>
         `);
         $card.find('.card-body').append($loadingHtml);
+<<<<<<< HEAD
+
+=======
         
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
         ajaxCall(
             'GET',
             `${this.baseUrl}/shared/${articleId}/comments?userId=${userId}`,
             null,
+<<<<<<< HEAD
+            function (response) {
+=======
             function(response) {
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 if (response && response.success) {
                     ShareManager.showCommentsInline(articleId, response.comments || [], $card);
                 } else {
                     $loadingHtml.html('<div class="alert alert-warning">Failed to load comments</div>');
                 }
             },
+<<<<<<< HEAD
+            function (xhr, status, error) {
+=======
             function(xhr, status, error) {
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 console.error('❌ Error loading comments:', error);
                 $loadingHtml.html('<div class="alert alert-danger">Error loading comments</div>');
             }
@@ -378,12 +449,12 @@ const ShareManager = {
     },
 
     // NEW: Show comments inline under the article card
-    showCommentsInline: function(articleId, comments, $card) {
+    showCommentsInline: function (articleId, comments, $card) {
         const userId = localStorage.getItem('userId');
-        
+
         // Remove loading indicator
         $card.find('.comments-section').remove();
-        
+
         // Build comments HTML
         const commentsHtml = comments.map(comment => `
             <div class="comment-item d-flex mb-3 p-2 bg-light rounded">
@@ -449,7 +520,7 @@ const ShareManager = {
     },
 
     // NEW: Handle submit comment inline
-    handleSubmitCommentInline: function(e) {
+    handleSubmitCommentInline: function (e) {
         const $btn = $(e.currentTarget);
         const articleId = $btn.data('article-id');
         const $textarea = $btn.siblings('.new-comment-text');
@@ -470,27 +541,41 @@ const ShareManager = {
             'POST',
             `${this.baseUrl}/shared/${articleId}/comments?userId=${userId}`,
             JSON.stringify({ content: content }),
+<<<<<<< HEAD
+            function (response) {
+=======
             function(response) {
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 if (response && response.success) {
                     // Track activity for commenting
                     const userId = localStorage.getItem('userId');
                     if (userId) {
                         ajaxCall(
                             'POST',
+<<<<<<< HEAD
+                            `http://localhost:5121/api/users/activity/${userId}`,
+                            null,
+                            function () {
+=======
                             `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/users/activity/${userId}`,
                             null,
                             function() {
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                                 // Trigger avatar update after activity change
                                 if (window.triggerAvatarUpdate) {
                                     window.triggerAvatarUpdate();
                                 }
                             },
+<<<<<<< HEAD
+                            function (xhr, status, error) {
+=======
                             function(xhr, status, error) {
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                                 console.warn('Failed to track activity:', error);
                             }
                         );
                     }
-                    
+
                     // Refresh the page to show the new comment
                     location.reload();
                 } else {
@@ -499,7 +584,11 @@ const ShareManager = {
                     $textarea.prop('disabled', false);
                 }
             },
+<<<<<<< HEAD
+            function (xhr, status, error) {
+=======
             function(xhr, status, error) {
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 console.error('❌ Error adding comment:', error);
                 showAlert('danger', 'Error adding comment');
                 $btn.html(originalText).prop('disabled', false);
@@ -509,7 +598,7 @@ const ShareManager = {
     },
 
     // NEW: Handle delete comment inline
-    handleDeleteCommentInline: function(e) {
+    handleDeleteCommentInline: function (e) {
         const $btn = $(e.currentTarget);
         const commentId = $btn.data('comment-id');
         const articleId = $btn.data('article-id');
@@ -523,13 +612,17 @@ const ShareManager = {
             `${this.baseUrl}/shared/${articleId}/comments/${commentId}?userId=${userId}`,
             null
         );
+<<<<<<< HEAD
+
+=======
         
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
         // Immediately refresh the page
         location.reload();
     },
 
     // Handle follow user
-    handleFollowUser: function(e) {
+    handleFollowUser: function (e) {
         const $btn = $(e.currentTarget);
         const targetUserId = $btn.data('user-id');
         const username = $btn.data('username');
@@ -552,7 +645,7 @@ const ShareManager = {
     },
 
     // Handle unfollow user
-    handleUnfollowUser: function(e) {
+    handleUnfollowUser: function (e) {
         const $btn = $(e.currentTarget);
         const targetUserId = $btn.data('user-id');
         const username = $btn.data('username');
@@ -577,7 +670,7 @@ const ShareManager = {
     },
 
     // Handle block user
-    handleBlockUser: function(e) {
+    handleBlockUser: function (e) {
         const $btn = $(e.currentTarget);
         const targetUserId = $btn.data('user-id');
         const username = $btn.data('username');
@@ -598,7 +691,11 @@ const ShareManager = {
             `${this.baseUrl}/users/${targetUserId}/block?userId=${userId}`,
             JSON.stringify({ reason: 'User blocked via shared articles page' }),
             null,
+<<<<<<< HEAD
+            function (xhr, status, error) {
+=======
             function(xhr, status, error) {
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 console.warn('Failed to block user:', error);
             }
         );
@@ -608,10 +705,17 @@ const ShareManager = {
     },
 
     // Handle report content
+<<<<<<< HEAD
+    handleReportContent: function (e) {
+        const shareId = $(e.currentTarget).data('content-id');
+        ('🔍 handleReportContent shareId:', shareId);
+
+=======
     handleReportContent: function(e) {
         const shareId = $(e.currentTarget).data('content-id');
         console.log('🔍 handleReportContent shareId:', shareId);
         
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
         const reasons = [
             'Offensive or inappropriate content',
             'False information or misinformation',
@@ -620,7 +724,7 @@ const ShareManager = {
             'Other'
         ];
 
-        let reasonsHtml = reasons.map((reason, index) => 
+        let reasonsHtml = reasons.map((reason, index) =>
             `<option value="${reason}">${reason}</option>`
         ).join('');
 
@@ -659,19 +763,19 @@ const ShareManager = {
 
         // Remove existing modal
         $('#reportModal').remove();
-        
+
         // Add new modal
         $('body').append(modalHtml);
-        
+
         // Show modal
         const modal = new bootstrap.Modal(document.getElementById('reportModal'));
         modal.show();
 
         // Handle submit report
-        $('#submitReport').on('click', function() {
+        $('#submitReport').on('click', function () {
             const reason = $('#reportReason').val();
             const description = $('#reportDescription').val().trim();
-            
+
             if (!reason) {
                 showAlert('warning', 'Please select a reason for reporting');
                 return;
@@ -680,20 +784,25 @@ const ShareManager = {
             // Get shareId from the button's data attribute
             const buttonShareId = $(this).data('share-id');
             const fullReason = description ? `${reason}: ${description}` : reason;
+<<<<<<< HEAD
+
+            ('🔍 Report button shareId:', buttonShareId);
+=======
             
             console.log('🔍 Report button shareId:', buttonShareId);
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
             ShareManager.submitReport('shared_article', buttonShareId, fullReason);
             modal.hide();
         });
-        
+
         // Remove modal when hidden
-        $('#reportModal').on('hidden.bs.modal', function() {
+        $('#reportModal').on('hidden.bs.modal', function () {
             $(this).remove();
         });
     },
 
     // Submit report
-    submitReport: function(contentType, contentId, reason) {
+    submitReport: function (contentType, contentId, reason) {
         const userId = localStorage.getItem('userId');
         
         // Validate inputs before sending
@@ -741,22 +850,82 @@ const ShareManager = {
         console.log('📤 Request JSON:', JSON.stringify(requestData));
         console.log('📤 URL:', `${this.baseUrl}/reports?userId=${userId}`);
 
+<<<<<<< HEAD
+        // Validate inputs before sending
+        ('📤 Raw inputs:', { contentType, contentId, reason, userId });
+
+        // Check each field individually
+        if (!contentType) {
+            console.error('❌ Missing contentType');
+            showAlert('danger', 'Content type is required');
+            return;
+        }
+
+        if (!contentId) {
+            console.error('❌ Missing contentId');
+            showAlert('danger', 'Content ID is required');
+            return;
+        }
+
+        if (!reason || reason.trim() === '') {
+            console.error('❌ Missing or empty reason');
+            showAlert('danger', 'Please select a reason for reporting');
+            return;
+        }
+
+        if (!userId) {
+            console.error('❌ Missing userId');
+            showAlert('danger', 'User authentication required');
+            return;
+        }
+
+        const parsedContentId = parseInt(contentId);
+        if (isNaN(parsedContentId) || parsedContentId <= 0) {
+            console.error('❌ Invalid ContentId:', contentId, 'parsed as:', parsedContentId);
+            showAlert('danger', 'Invalid content ID for report');
+            return;
+        }
+
+        const requestData = {
+            ContentType: contentType,
+            ContentId: parsedContentId,
+            Reason: reason.trim()
+        };
+
+        ('📤 Final request data:', requestData);
+        ('📤 Request JSON:', JSON.stringify(requestData));
+        ('📤 URL:', `${this.baseUrl}/reports?userId=${userId}`);
+
+=======
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
         ajaxCall(
             'POST',
             `${this.baseUrl}/reports?userId=${userId}`,
             JSON.stringify(requestData),
+<<<<<<< HEAD
+            function (response) {
+=======
             function(response) {
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 if (response && response.success) {
                     showAlert('success', 'Report submitted successfully. Thank you for helping keep our community safe.');
                 } else {
                     showAlert('danger', response.message || 'Failed to submit report');
                 }
             },
+<<<<<<< HEAD
+            function (xhr, status, error) {
+                console.error('❌ Error submitting report:', error);
+                console.error('❌ Response status:', xhr.status);
+                console.error('❌ Response text:', xhr.responseText);
+
+=======
             function(xhr, status, error) {
                 console.error('❌ Error submitting report:', error);
                 console.error('❌ Response status:', xhr.status);
                 console.error('❌ Response text:', xhr.responseText);
                 
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 // Try to parse and show specific error message
                 if (xhr.responseJSON && xhr.responseJSON.message) {
                     showAlert('danger', xhr.responseJSON.message);
@@ -775,7 +944,7 @@ const ShareManager = {
     },
 
     // Handle delete shared article
-    handleDeleteShared: function(e) {
+    handleDeleteShared: function (e) {
         const shareId = $(e.currentTarget).data('share-id');
         const userId = localStorage.getItem('userId');
 
@@ -787,13 +956,17 @@ const ShareManager = {
             `${this.baseUrl}/shared/${shareId}?userId=${userId}`,
             null
         );
+<<<<<<< HEAD
+
+=======
         
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
         // Immediately refresh the page
         location.reload();
     },
 
     // Handle save article
-    handleSaveArticle: function(e) {
+    handleSaveArticle: function (e) {
         const articleData = JSON.parse($(e.currentTarget).attr('data-article').replace(/&apos;/g, "'"));
         const userId = localStorage.getItem('userId');
 
@@ -809,14 +982,22 @@ const ShareManager = {
                 source: articleData.articleSource || 'Shared Content',
                 category: 'general'
             }),
+<<<<<<< HEAD
+            function (response) {
+=======
             function(response) {
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 if (response && response.newsId) {
                     showAlert('success', 'Article saved successfully!');
                 } else {
                     showAlert('warning', 'Article may already be saved');
                 }
             },
+<<<<<<< HEAD
+            function (xhr, status, error) {
+=======
             function(xhr, status, error) {
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 console.error('❌ Error saving article:', error);
                 showAlert('danger', 'Failed to save article');
             }
@@ -824,28 +1005,28 @@ const ShareManager = {
     },
 
     // Apply filters to shared content
-    applyFilters: function() {
+    applyFilters: function () {
         let filtered = this.sharedContent.slice();
-        
+
         // Filter by user
         const userFilter = $('#userFilter').val().trim().toLowerCase();
         if (userFilter) {
-            filtered = filtered.filter(item => 
+            filtered = filtered.filter(item =>
                 item.username && item.username.toLowerCase().includes(userFilter)
             );
         }
-        
+
         // Filter by following only
         const followingOnly = $('#followingOnlyFilter').is(':checked');
         if (followingOnly && this.followingUsers.length > 0) {
             const followingIds = this.followingUsers.map(f => f.followedUserId);
             filtered = filtered.filter(item => followingIds.includes(item.userId));
         }
-        
+
         // Filter out blocked users
         const blockedUserIds = this.blockedUsers.map(u => u.blockedUserId);
         filtered = filtered.filter(item => !blockedUserIds.includes(item.userId));
-        
+
         // Sort
         const sortBy = $('#sortShared').val() || 'newest';
         switch (sortBy) {
@@ -861,7 +1042,7 @@ const ShareManager = {
             default: // newest
                 filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         }
-        
+
         this.filteredContent = filtered;
         this.currentPage = 1;
         this.displaySharedContent();
@@ -869,22 +1050,22 @@ const ShareManager = {
     },
 
     // Clear all filters
-    clearAllFilters: function() {
+    clearAllFilters: function () {
         $('#userFilter').val('');
         $('#sortShared').val('newest');
         $('#followingOnlyFilter').prop('checked', false);
-        
+
         this.applyFilters();
         showAlert('info', 'All filters cleared');
     },
 
     // Display shared content
-    displaySharedContent: function() {
+    displaySharedContent: function () {
         const $container = $('#sharedContent');
         const userId = localStorage.getItem('userId');
         const currentUser = window.Auth ? window.Auth.getCurrentUser() : {};
         const isAdmin = currentUser.isAdmin === true;
-        
+
         if (!this.filteredContent || this.filteredContent.length === 0) {
             $container.html(`
                 <div class="text-center py-5">
@@ -900,12 +1081,12 @@ const ShareManager = {
         const startIndex = (this.currentPage - 1) * this.itemsPerPage;
         const endIndex = startIndex + this.itemsPerPage;
         const pageItems = this.filteredContent.slice(startIndex, endIndex);
-        
+
         const html = pageItems.map(item => {
-            const imageUrl = item.articleImageUrl || '/assets/default-news.jpg';
+            const imageUrl = item.articleImageUrl || '../assets/default-news.jpg';
             const isCurrentUser = userId && parseInt(userId) === item.userId;
             const isFollowing = this.followingUsers.some(f => f.followedUserId === item.userId);
-            
+
             // Get user avatar based on activity level - use the article owner's activity level
             let avatarSrc = '../assets/default-avatar.png';
             if (item.activityLevel !== undefined) {
@@ -921,7 +1102,7 @@ const ShareManager = {
                     avatarSrc = '../assets/avatar-reader.png';
                 }
             }
-            
+
             return `
                 <div class="card mb-4" data-share-id="${item.id}" data-user-id="${item.userId}">
                     <div class="card-body">
@@ -935,9 +1116,9 @@ const ShareManager = {
                                     <div>
                                         <h6 class="mb-1">
                                             ${this.sanitizeHtml(item.username || 'Anonymous')}
-                                            ${item.tags ? item.tags.split(',').map(tag => 
-                                                `<span class="badge bg-secondary ms-1">${this.sanitizeHtml(tag.trim())}</span>`
-                                            ).join('') : ''}
+                                            ${item.tags ? item.tags.split(',').map(tag =>
+                `<span class="badge bg-secondary ms-1">${this.sanitizeHtml(tag.trim())}</span>`
+            ).join('') : ''}
                                         </h6>
                                         <small class="text-muted">${this.formatDate(item.createdAt)}
                                             ${isFollowing ? '<span class="badge bg-info ms-1">Following</span>' : ''}
@@ -952,13 +1133,13 @@ const ShareManager = {
                                             <li>
                                                 <button class="dropdown-item save-article-btn" 
                                                         data-article='${JSON.stringify({
-                                                    url: item.url,
-                                                    articleTitle: item.articleTitle,
-                                                    articleDescription: item.articleDescription,
-                                                    articleImageUrl: item.articleImageUrl,
-                                                    articleSource: item.articleSource,
-                                                    comment: item.comment
-                                                }).replace(/'/g, "&apos;")}'>
+                url: item.url,
+                articleTitle: item.articleTitle,
+                articleDescription: item.articleDescription,
+                articleImageUrl: item.articleImageUrl,
+                articleSource: item.articleSource,
+                comment: item.comment
+            }).replace(/'/g, "&apos;")}'>
                                                     <i class="fas fa-bookmark me-2"></i>Save Article
                                                 </button>
                                             </li>
@@ -1005,7 +1186,7 @@ const ShareManager = {
                             <div class="col-md-4">
                                 <img src="${imageUrl}" class="img-fluid rounded" 
                                      style="width: 100%; height: 200px; object-fit: cover;" alt="Article Image"
-                                     onerror="this.src='/assets/default-news.jpg'">
+                                     onerror="this.src='../assets/default-news.jpg'">
                             </div>
                             <div class="col-md-8">
                                 <h6 class="card-title">
@@ -1046,20 +1227,20 @@ const ShareManager = {
                 </div>
             `;
         }).join('');
-        
+
         $container.html(html);
         this.updatePagination();
     },
 
     // Display blocked users
-    displayBlockedUsers: function() {
+    displayBlockedUsers: function () {
         const $container = $('#blockedUsers');
-        
+
         if (!this.blockedUsers || this.blockedUsers.length === 0) {
             $container.html('<p class="text-muted small">No blocked users</p>');
             return;
         }
-        
+
         const html = this.blockedUsers.map(user => `
             <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
                 <div>
@@ -1073,14 +1254,14 @@ const ShareManager = {
                 </button>
             </div>
         `).join('');
-        
+
         $container.html(html);
     },
 
     // Display following stats
-    displayFollowingStats: function(stats) {
+    displayFollowingStats: function (stats) {
         const $container = $('#followingStats');
-        
+
         if (stats) {
             $container.html(`
                 <div class="row text-center">
@@ -1098,7 +1279,7 @@ const ShareManager = {
                     </div>
                 </div>
             `);
-            
+
             // Enable following filter if user is following someone
             if (stats.following > 0) {
                 $('#followingOnlyFilter').prop('disabled', false);
@@ -1108,7 +1289,7 @@ const ShareManager = {
     },
 
     // Unblock user
-    unblockUser: function(targetUserId, username) {
+    unblockUser: function (targetUserId, username) {
         const userId = localStorage.getItem('userId');
 
         if (!confirm(`Are you sure you want to unblock ${username}?`)) return;
@@ -1125,11 +1306,11 @@ const ShareManager = {
     },
 
     // Update filter indicators
-    updateFilterIndicators: function() {
+    updateFilterIndicators: function () {
         // This can be enhanced to show active filters
         const totalCount = this.sharedContent.length;
         const filteredCount = this.filteredContent.length;
-        
+
         if (filteredCount < totalCount) {
             $('#sharedContent').prepend(`
                 <div class="alert alert-info alert-dismissible">
@@ -1142,15 +1323,15 @@ const ShareManager = {
     },
 
     // Update pagination
-    updatePagination: function() {
+    updatePagination: function () {
         const totalPages = Math.ceil(this.filteredContent.length / this.itemsPerPage);
         const $pagination = $('#sharedPagination');
-        
+
         if (totalPages <= 1) {
             $pagination.empty();
             return;
         }
-        
+
         let paginationHtml = `
             <nav aria-label="Shared articles pagination">
                 <ul class="pagination justify-content-center">
@@ -1160,7 +1341,7 @@ const ShareManager = {
                         </button>
                     </li>
         `;
-        
+
         // Show page numbers
         for (let i = 1; i <= totalPages; i++) {
             if (i === this.currentPage) {
@@ -1169,7 +1350,7 @@ const ShareManager = {
                 paginationHtml += `<li class="page-item"><button class="page-link pagination-btn" data-page="${i}">${i}</button></li>`;
             }
         }
-        
+
         paginationHtml += `
                     <li class="page-item ${this.currentPage === totalPages ? 'disabled' : ''}">
                         <button class="page-link pagination-btn" data-page="${this.currentPage + 1}">
@@ -1179,24 +1360,24 @@ const ShareManager = {
                 </ul>
             </nav>
         `;
-        
+
         $pagination.html(paginationHtml);
     },
 
     // Handle pagination
-    handlePagination: function(e) {
+    handlePagination: function (e) {
         const page = parseInt($(e.target).data('page'));
         if (page && page !== this.currentPage) {
             this.currentPage = page;
             this.displaySharedContent();
-            
+
             // Scroll to top of content
             document.getElementById('sharedContent').scrollIntoView({ behavior: 'smooth' });
         }
     },
 
     // Show error message
-    showErrorMessage: function(message) {
+    showErrorMessage: function (message) {
         $('#sharedContent').html(`
             <div class="alert alert-danger text-center">
                 <h6><i class="fas fa-exclamation-triangle me-2"></i>Error</h6>
@@ -1209,7 +1390,7 @@ const ShareManager = {
     },
 
     // Utility functions
-    isValidUrl: function(string) {
+    isValidUrl: function (string) {
         try {
             new URL(string);
             return true;
@@ -1218,19 +1399,19 @@ const ShareManager = {
         }
     },
 
-    sanitizeHtml: function(text) {
+    sanitizeHtml: function (text) {
         if (!text) return '';
         return $('<div>').text(text).html();
     },
 
-    truncateText: function(text, maxLength) {
+    truncateText: function (text, maxLength) {
         if (!text || text.length <= maxLength) return text;
         return text.substring(0, maxLength) + '...';
     },
 
-    formatDate: function(dateString) {
+    formatDate: function (dateString) {
         if (!dateString) return 'Unknown';
-        
+
         try {
             const date = new Date(dateString);
             const now = new Date();
@@ -1250,27 +1431,37 @@ const ShareManager = {
     },
 
     // Update navbar avatar after activity changes
-    updateNavbarAfterActivity: function() {
+    updateNavbarAfterActivity: function () {
         const userId = localStorage.getItem('userId');
         if (!userId) return;
 
         // Fetch updated user data to get new activity level
         ajaxCall(
             'GET',
+<<<<<<< HEAD
+            `http://localhost:5121/api/users/GetById/${userId}`,
+            null,
+            function (userData) {
+=======
             `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/users/GetById/${userId}`,
             null,
             function(userData) {
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 // Update localStorage with new activity level
                 const currentUser = JSON.parse(localStorage.getItem('userInfo') || '{}');
                 currentUser.activityLevel = userData.activityLevel || 0;
                 localStorage.setItem('userInfo', JSON.stringify(currentUser));
-                
+
                 // Update all avatars using centralized system
                 if (window.updateAllAvatars) {
                     window.updateAllAvatars(userData.activityLevel || 0);
                 }
             },
+<<<<<<< HEAD
+            function (xhr, status, error) {
+=======
             function(xhr, status, error) {
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 console.warn('Failed to update navbar after activity change:', error);
             }
         );
@@ -1278,8 +1469,8 @@ const ShareManager = {
 };
 
 // Initialize when page loads
-$(document).ready(function() {
-    if (window.location.pathname.indexOf('shared.html') !== -1 || 
+$(document).ready(function () {
+    if (window.location.pathname.indexOf('shared.html') !== -1 ||
         window.location.href.indexOf('shared.html') !== -1) {
         ShareManager.init();
     }

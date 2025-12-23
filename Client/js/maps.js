@@ -69,7 +69,7 @@ var NewsMap = {
         // Set default bounds (roughly world view but not too zoomed out)
         NewsMap.defaultBounds = [[-60, -180], [85, 180]];
 
-        console.log('🗺️ Map initialized with clustering support');
+        // console.log('🗺️ Map initialized with clustering support');
     },
 
     // Setup event listeners
@@ -356,7 +356,7 @@ var NewsMap = {
         NewsMap.clearMarkers();
         
         if (!NewsMap.filteredData || NewsMap.filteredData.length === 0) {
-            console.log('📍 No articles to display on map');
+            // console.log('📍 No articles to display on map');
             return;
         }
         
@@ -409,7 +409,7 @@ var NewsMap = {
             NewsMap.markers.push(marker);
         }
         
-        console.log('📍 Added ' + NewsMap.markers.length + ' markers to map with clustering');
+        // console.log('📍 Added ' + NewsMap.markers.length + ' markers to map with clustering');
         
         // Auto-fit bounds if there are markers
         if (NewsMap.markers.length > 0) {
@@ -486,7 +486,7 @@ var NewsMap = {
 
     // Load news data (keeping existing implementation)
     loadNewsData: function () {
-        console.log('📡 Loading news data for map...');
+        // console.log('📡 Loading news data for map...');
 
         const API_KEY = '1c92222d21a84a7ab30168a35d967b22';
 
@@ -497,11 +497,11 @@ var NewsMap = {
             dataType: "json",
             success: function (response) {
                 if (response && response.articles && response.articles.length > 0) {
-                    console.log('📊 Loaded ' + response.articles.length + ' articles for mapping');
+                    // console.log('📊 Loaded ' + response.articles.length + ' articles for mapping');
 
                     // Add geographic coordinates to articles with enhanced positioning
                     NewsMap.newsData = NewsMap.addGeographicCoordinates(response.articles);
-                    console.log('🗺️ Added coordinates to ' + NewsMap.newsData.length + ' articles');
+                    // console.log('🗺️ Added coordinates to ' + NewsMap.newsData.length + ' articles');
 
                     NewsMap.loadCategoriesFromArticles();
                     NewsMap.loadSourcesFromArticles();
@@ -510,7 +510,7 @@ var NewsMap = {
                     NewsMap.updateStatistics();
                     NewsMap.displayMarkersOnMap();
                 } else {
-                    console.log('❌ No articles received from API');
+                    // console.log('❌ No articles received from API');
                     NewsMap.newsData = [];
                     NewsMap.filteredData = [];
                     NewsMap.loadEmptyCategories();
@@ -550,7 +550,7 @@ var NewsMap = {
 
     // Keep all existing filter and utility functions...
     loadCategoriesFromArticles: function() {
-        console.log('📂 Loading categories from articles...');
+        // console.log('📂 Loading categories from articles...');
         
         var categorySelect = $('#categoryFilter');
         var categoriesLoading = $('#categoriesLoading');
@@ -572,11 +572,11 @@ var NewsMap = {
         if (categorySelect.length > 0) categorySelect.prop('disabled', false);
         if (categoriesLoading.length > 0) categoriesLoading.hide();
         
-        console.log('✅ Loaded ' + Object.keys(categoriesWithCount).length + ' categories');
+        // console.log('✅ Loaded ' + Object.keys(categoriesWithCount).length + ' categories');
     },
 
     loadSourcesFromArticles: function() {
-        console.log('📰 Loading sources from articles...');
+        // console.log('📰 Loading sources from articles...');
         
         var sourceSelect = $('#sourceFilter');
         var sourcesLoading = $('#sourcesLoading');
@@ -598,7 +598,7 @@ var NewsMap = {
         if (sourceSelect.length > 0) sourceSelect.prop('disabled', false);
         if (sourcesLoading.length > 0) sourcesLoading.hide();
         
-        console.log('✅ Loaded ' + Object.keys(sourcesWithCount).length + ' sources');
+        // console.log('✅ Loaded ' + Object.keys(sourcesWithCount).length + ' sources');
     },
 
     populateCategoriesDropdown: function(categoriesWithCount) {
@@ -686,7 +686,7 @@ var NewsMap = {
     },
 
     applyFilters: function() {
-        console.log('🔍 Applying map filters...');
+        // console.log('🔍 Applying map filters...');
         
         var filtered = NewsMap.newsData.slice();
         
@@ -739,7 +739,7 @@ var NewsMap = {
         NewsMap.displayMarkersOnMap();
         NewsMap.updateStatistics();
         
-        console.log('✅ Map filters applied, showing ' + filtered.length + ' articles');
+        // console.log('✅ Map filters applied, showing ' + filtered.length + ' articles');
     },
 
     clearAllFilters: function() {

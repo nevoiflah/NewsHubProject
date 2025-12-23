@@ -11,13 +11,13 @@ if (!window.Utils) {
             if (!html) return '';
             return $('<div>').text(html).html();
         },
-        
+
         formatDate: (dateString) => {
             if (!dateString) return 'Unknown';
             try {
                 const date = new Date(dateString);
                 if (isNaN(date.getTime())) return 'Invalid Date';
-                
+
                 const now = new Date();
                 const diffMs = now - date;
                 const diffMins = Math.floor(diffMs / 60000);
@@ -36,7 +36,7 @@ if (!window.Utils) {
 
         truncateText: (text, maxLength = 150) => {
             if (!text) return '';
-            return text.length > maxLength ? 
+            return text.length > maxLength ?
                 text.substring(0, maxLength) + '...' : text;
         }
     };
@@ -47,7 +47,7 @@ if (!window.showAlert) {
     window.showAlert = (type, message, duration = 5000) => {
         // Remove existing alerts
         $('.alert-custom').remove();
-    
+
         const alertHtml = `
             <div class="alert alert-${type} alert-dismissible alert-custom" role="alert" 
                 style="position: fixed !important; 
@@ -61,9 +61,9 @@ if (!window.showAlert) {
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         `;
-    
+
         $('body').append(alertHtml);
-    
+
         // Auto-dismiss after duration
         setTimeout(() => {
             $('.alert-custom').fadeOut();
@@ -81,14 +81,14 @@ const AdminManager = {
     // Initialize admin page
     init: () => {
         if (!Auth.requireAdmin()) return;
-        
+
         AdminManager.setupEventListeners();
         AdminManager.loadDashboardData();
     },
 
     // Setup event listeners using jQuery
     setupEventListeners: () => {
-        $('[data-section]').on('click', function(e) {
+        $('[data-section]').on('click', function (e) {
             e.preventDefault();
             const section = $(this).data('section');
             AdminManager.showSection(section);
@@ -99,13 +99,13 @@ const AdminManager = {
     showSection: (sectionName) => {
         // Hide all sections
         $('.admin-section').hide();
-        
+
         // Show selected section
         const $section = $('#' + sectionName);
         if ($section.length) {
             $section.show();
             AdminManager.currentSection = sectionName;
-            
+
             // Load section data
             switch (sectionName) {
                 case 'dashboard':
@@ -125,7 +125,7 @@ const AdminManager = {
                     break;
             }
         }
-        
+
         // Update active menu item
         $('.list-group-item').removeClass('active');
         $(`[data-section="${sectionName}"]`).addClass('active');
@@ -138,8 +138,8 @@ const AdminManager = {
     // Load dashboard data 
     loadDashboardData: async () => {
         try {
-            console.log('🔄 Loading dashboard data...');
-            
+            ('🔄 Loading dashboard data...');
+
             // Load system stats
             const statsPromise = $.ajax({
                 type: 'GET',
@@ -182,6 +182,8 @@ const AdminManager = {
 
             // Update dashboard stats - ensure arrays are valid and handle API response structure
             const usersArray = Array.isArray(users) ? users : [];
+<<<<<<< HEAD
+=======
             
             // Handle shared articles API response structure
             let sharedArray = [];
@@ -197,8 +199,26 @@ const AdminManager = {
             $('#activeUsers').text(usersArray.filter(u => !u.isLocked).length || 0);
             $('#sharedArticles').text(sharedArray.length || 0);
             $('#pendingReports').text(reportsArray.filter(r => !(r.isResolved || r.IsResolved)).length || 0);
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
 
-            console.log('✅ Dashboard data loaded successfully');
+            // Handle shared articles API response structure
+            let sharedArray = [];
+            if (shared && shared.success && Array.isArray(shared.articles)) {
+                sharedArray = shared.articles;
+            } else if (Array.isArray(shared)) {
+                sharedArray = shared;
+            }
+
+            const reportsArray = Array.isArray(reports) ? reports : (reports.reports || []);
+
+            if (stats) {
+                $('#totalUsers').text(stats.totalUsers || 0);
+                $('#activeUsers').text(stats.activeUsersCount || 0);
+                $('#sharedArticles').text(stats.sharedArticlesCount || 0);
+                $('#pendingReports').text(stats.pendingReportsCount || 0);
+            }
+
+            ('✅ Dashboard data loaded successfully');
         } catch (error) {
             console.error('❌ Error loading dashboard data:', error);
             // Set default values on error
@@ -214,8 +234,8 @@ const AdminManager = {
     // Load users data 
     loadUsersData: async () => {
         try {
-            console.log('🔄 Loading users data...');
-            
+            ('🔄 Loading users data...');
+
             const users = await $.ajax({
                 type: 'GET',
                 url: 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Admin/users',
@@ -224,20 +244,20 @@ const AdminManager = {
             });
 
             const $tbody = $('#usersTable');
-            
+
             if (!users || users.length === 0) {
                 $tbody.html('<tr><td colspan="6" class="text-center text-muted">No users found</td></tr>');
                 return;
             }
 
             const rows = users.map(user => {
-                const statusBadge = user.isLocked ? 
-                    '<span class="badge bg-danger">Locked</span>' : 
+                const statusBadge = user.isLocked ?
+                    '<span class="badge bg-danger">Locked</span>' :
                     '<span class="badge bg-success">Active</span>';
-                
-                const adminBadge = user.isAdmin ? 
+
+                const adminBadge = user.isAdmin ?
                     '<span class="badge bg-primary ms-1">Admin</span>' : '';
-                
+
                 return `
                     <tr data-user-id="${user.id}">
                         <td>
@@ -250,11 +270,6 @@ const AdminManager = {
                         <td>${statusBadge}</td>
                         <td>
                             <div class="btn-group btn-group-sm">
-                                <button class="btn btn-outline-${user.isLocked ? 'success' : 'warning'}" 
-                                        onclick="AdminManager.toggleUserLock(${user.id}, ${user.isLocked})" 
-                                        title="${user.isLocked ? 'Unlock' : 'Lock'} User">
-                                    <i class="fas fa-${user.isLocked ? 'unlock' : 'lock'}"></i>
-                                </button>
                                 <button class="btn btn-outline-danger" onclick="AdminManager.deleteUser(${user.id})" title="Delete User">
                                     <i class="fas fa-trash"></i>
                                 </button>
@@ -263,10 +278,10 @@ const AdminManager = {
                     </tr>
                 `;
             }).join('');
-            
+
             $tbody.html(rows);
             AdminManager.updateBulkOperationsUI();
-            console.log('✅ Users data loaded successfully');
+            ('✅ Users data loaded successfully');
         } catch (error) {
             console.error('❌ Error loading users:', error);
             $('#usersTable').html('<tr><td colspan="6" class="text-center text-danger">Failed to load users</td></tr>');
@@ -274,6 +289,8 @@ const AdminManager = {
         }
     },
 
+<<<<<<< HEAD
+=======
     // Toggle user lock status 
     toggleUserLock: async (userId, isCurrentlyLocked) => {
         const action = isCurrentlyLocked ? 'unlock' : 'lock';
@@ -289,24 +306,13 @@ const AdminManager = {
                 contentType: "application/json",
                 dataType: "text"
             });
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
 
-            if (response && response.includes('successfully')) {
-                showAlert('success', `User ${action}ed successfully`);
-                AdminManager.loadUsersData();
-                AdminManager.loadDashboardData();
-            } else {
-                showAlert('danger', `Failed to ${action} user`);
-            }
-        } catch (error) {
-            console.error(`❌ Error ${action}ing user:`, error);
-            showAlert('danger', `Error ${action}ing user`);
-        }
-    },
 
     // Delete user 
     deleteUser: async (userId) => {
         if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) return;
-        
+
         try {
             const response = await $.ajax({
                 type: 'DELETE',
@@ -352,7 +358,7 @@ const AdminManager = {
         // Update bulk operations panel
         const $bulkPanel = $('#bulkOperationsPanel');
         const $selectedCountSpan = $('#selectedUsersCount');
-        
+
         if (selectedCount > 0) {
             $selectedCountSpan.text(selectedCount);
             $bulkPanel.show();
@@ -377,7 +383,7 @@ const AdminManager = {
     // Perform bulk operations
     performBulkOperation: async (operation) => {
         const $selectedCheckboxes = $('.user-checkbox:checked');
-        const selectedUserIds = $selectedCheckboxes.map(function() {
+        const selectedUserIds = $selectedCheckboxes.map(function () {
             return parseInt($(this).val());
         }).get();
 
@@ -399,8 +405,11 @@ const AdminManager = {
             for (const userId of selectedUserIds) {
                 try {
                     let endpoint, method;
-                    
+
                     switch (operation) {
+<<<<<<< HEAD
+
+=======
                         case 'lock':
                             endpoint = `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Admin/lock/${userId}`;
                             method = 'POST';
@@ -409,6 +418,7 @@ const AdminManager = {
                             endpoint = `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Admin/unlock/${userId}`;
                             method = 'POST';
                             break;
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                         case 'delete':
                             endpoint = `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Admin/${userId}`;
                             method = 'DELETE';
@@ -459,8 +469,13 @@ const AdminManager = {
     // Load shared articles
     loadSharedArticles: async () => {
         try {
+<<<<<<< HEAD
+            ('🔄 Loading shared articles...');
+
+=======
             console.log('🔄 Loading shared articles...');
             
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
             const response = await $.ajax({
                 type: 'GET',
                 url: 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/shared',
@@ -469,6 +484,21 @@ const AdminManager = {
             });
 
             const $tbody = $('#sharedArticlesTable');
+<<<<<<< HEAD
+
+            // Handle the API response structure: { success: true, articles: [...], count: N }
+            let articlesArray = [];
+
+            if (response && response.success && Array.isArray(response.articles)) {
+                articlesArray = response.articles;
+                (`📊 Found ${articlesArray.length} shared articles`);
+            } else if (Array.isArray(response)) {
+                // Fallback for direct array response
+                articlesArray = response;
+                (`📊 Found ${articlesArray.length} shared articles (direct array)`);
+            }
+
+=======
             
             // Handle the API response structure: { success: true, articles: [...], count: N }
             let articlesArray = [];
@@ -482,6 +512,7 @@ const AdminManager = {
                 console.log(`📊 Found ${articlesArray.length} shared articles (direct array)`);
             }
             
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
             if (!articlesArray || articlesArray.length === 0) {
                 $tbody.html('<tr><td colspan="6" class="text-center text-muted">No shared articles found</td></tr>');
                 return;
@@ -491,7 +522,11 @@ const AdminManager = {
                 const title = article.articleTitle || article.title || 'Untitled';
                 const username = article.username || article.sharedBy || 'Unknown';
                 const commentCount = article.commentsCount || article.commentCount || 0;
+<<<<<<< HEAD
+
+=======
                 
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 return `
                     <tr data-article-id="${article.id}">
                         <td>${article.id}</td>
@@ -522,9 +557,9 @@ const AdminManager = {
                     </tr>
                 `;
             }).join('');
-            
+
             $tbody.html(rows);
-            console.log('✅ Shared articles loaded successfully');
+            ('✅ Shared articles loaded successfully');
         } catch (error) {
             console.error('❌ Error loading shared articles:', error);
             $('#sharedArticlesTable').html('<tr><td colspan="6" class="text-center text-danger">Failed to load shared articles</td></tr>');
@@ -556,7 +591,7 @@ const AdminManager = {
     // Delete shared article
     deleteSharedArticle: async (articleId) => {
         if (!confirm('Are you sure you want to delete this shared article? This will also delete all comments.')) return;
-        
+
         try {
             const response = await $.ajax({
                 type: 'DELETE',
@@ -590,10 +625,17 @@ const AdminManager = {
             });
 
             const $container = $('#commentsContainer');
+<<<<<<< HEAD
+
+            // Handle both direct array and object response formats
+            const comments = Array.isArray(response) ? response : (response.comments || []);
+
+=======
             
             // Handle both direct array and object response formats
             const comments = Array.isArray(response) ? response : (response.comments || []);
             
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
             if (!comments || comments.length === 0) {
                 $container.html('<p class="text-muted">No comments found for this article.</p>');
             } else {
@@ -611,7 +653,7 @@ const AdminManager = {
                         <p class="mt-2 mb-0">${Utils.sanitizeHtml(comment.content || comment.comment)}</p>
                     </div>
                 `).join('');
-                
+
                 $container.html(commentsHtml);
             }
 
@@ -628,7 +670,7 @@ const AdminManager = {
     // Delete comment
     deleteComment: async (commentId, articleId) => {
         if (!confirm('Are you sure you want to delete this comment?')) return;
-        
+
         try {
             // Get current user ID (admin should be logged in)
             const currentUser = Auth.getCurrentUser();
@@ -639,7 +681,11 @@ const AdminManager = {
 
             const response = await $.ajax({
                 type: 'DELETE',
+<<<<<<< HEAD
+                url: `http://localhost:5121/api/shared/${articleId}/comments/${commentId}?userId=${currentUser.id}`,
+=======
                 url: `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/shared/${articleId}/comments/${commentId}?userId=${currentUser.id}`,
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 cache: false,
                 contentType: "application/json",
                 dataType: "json"
@@ -661,8 +707,13 @@ const AdminManager = {
     // Load reports data 
     loadReportsData: async () => {
         try {
+<<<<<<< HEAD
+            ('🔄 Loading reports data...');
+
+=======
             console.log('🔄 Loading reports data...');
             
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
             const response = await $.ajax({
                 type: 'GET',
                 url: 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Reports',
@@ -671,6 +722,15 @@ const AdminManager = {
             });
 
             const $tbody = $('#reportsTable');
+<<<<<<< HEAD
+
+            // Handle both direct array and object response formats
+            const reportsArray = Array.isArray(response) ? response : (response.reports || []);
+
+            ('📋 Reports data received:', reportsArray);
+            ('📋 First report structure:', reportsArray[0]);
+
+=======
             
             // Handle both direct array and object response formats
             const reportsArray = Array.isArray(response) ? response : (response.reports || []);
@@ -678,6 +738,7 @@ const AdminManager = {
             console.log('📋 Reports data received:', reportsArray);
             console.log('📋 First report structure:', reportsArray[0]);
             
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
             if (!reportsArray || reportsArray.length === 0) {
                 $tbody.html('<tr><td colspan="7" class="text-center text-muted">No reports found</td></tr>');
                 return;
@@ -691,11 +752,19 @@ const AdminManager = {
                 const reporterUsername = report.reporterUsername || report.ReporterUsername || 'Unknown';
                 const contentType = report.contentType || report.ContentType || 'Article';
                 const reportedAt = report.reportedAt || report.ReportedAt || report.createdAt;
+<<<<<<< HEAD
+
+                const statusBadge = isResolved ?
+                    '<span class="badge bg-success">Resolved</span>' :
+                    '<span class="badge bg-warning">Pending</span>';
+
+=======
                 
                 const statusBadge = isResolved ? 
                     '<span class="badge bg-success">Resolved</span>' : 
                     '<span class="badge bg-warning">Pending</span>';
                 
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 // Clean up the reason by removing prefixes
                 let cleanReason = reason;
                 if (cleanReason.startsWith('SharedArticle:')) {
@@ -703,7 +772,11 @@ const AdminManager = {
                 } else if (cleanReason.startsWith('Comment:')) {
                     cleanReason = cleanReason.substring('Comment:'.length);
                 }
+<<<<<<< HEAD
+
+=======
                 
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 return `
                     <tr data-report-id="${reportId}">
                         <td>${reportId}</td>
@@ -730,9 +803,9 @@ const AdminManager = {
                     </tr>
                 `;
             }).join('');
-            
+
             $tbody.html(rows);
-            console.log('✅ Reports data loaded successfully');
+            ('✅ Reports data loaded successfully');
         } catch (error) {
             console.error('❌ Error loading reports:', error);
             $('#reportsTable').html('<tr><td colspan="7" class="text-center text-danger">Failed to load reports</td></tr>');
@@ -743,8 +816,13 @@ const AdminManager = {
     // View report details
     viewReport: async (reportId) => {
         try {
+<<<<<<< HEAD
+            ('👁️ Viewing report ID:', reportId);
+
+=======
             console.log('👁️ Viewing report ID:', reportId);
             
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
             const response = await $.ajax({
                 type: 'GET',
                 url: `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Reports/${reportId}`,
@@ -752,11 +830,19 @@ const AdminManager = {
                 dataType: "json"
             });
 
+<<<<<<< HEAD
+            ('👁️ Report API response:', response);
+
+            // Handle response format - could be direct object or wrapped
+            const report = response.report || response;
+
+=======
             console.log('👁️ Report API response:', response);
             
             // Handle response format - could be direct object or wrapped
             const report = response.report || response;
             
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
             // Handle both PascalCase and camelCase property names
             const reportIdValue = report.id || report.Id || reportId;
             const reporterUsername = report.reporterUsername || report.ReporterUsername || 'Unknown';
@@ -794,10 +880,15 @@ Status: ${isResolved ? 'Resolved' : 'Pending'}`;
 
     // Resolve report 
     resolveReport: async (reportId) => {
+<<<<<<< HEAD
+        ('🔧 Resolving report ID:', reportId, 'Type:', typeof reportId);
+
+=======
         console.log('🔧 Resolving report ID:', reportId, 'Type:', typeof reportId);
         
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
         if (!confirm('Mark this report as resolved?')) return;
-        
+
         try {
             // Get current admin user ID
             const currentUser = Auth.getCurrentUser();
@@ -808,7 +899,11 @@ Status: ${isResolved ? 'Resolved' : 'Pending'}`;
 
             const response = await $.ajax({
                 type: 'PUT',
+<<<<<<< HEAD
+                url: `http://localhost:5121/api/Reports/${reportId}/resolve?adminUserId=${currentUser.id}`,
+=======
                 url: `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Reports/${reportId}/resolve?adminUserId=${currentUser.id}`,
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 data: JSON.stringify({
                     IsResolved: true
                 }),
@@ -836,7 +931,7 @@ Status: ${isResolved ? 'Resolved' : 'Pending'}`;
     // Delete report 
     deleteReport: async (reportId) => {
         if (!confirm('Are you sure you want to delete this report?')) return;
-        
+
         try {
             const response = await $.ajax({
                 type: 'DELETE',
@@ -866,8 +961,13 @@ Status: ${isResolved ? 'Resolved' : 'Pending'}`;
     // Load analytics data 
     loadAnalyticsData: async () => {
         try {
+<<<<<<< HEAD
+            ('🔄 Loading analytics data...');
+
+=======
             console.log('🔄 Loading analytics data...');
             
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
             // Load all analytics charts
             await Promise.all([
                 AdminManager.loadLoginChart(),
@@ -875,8 +975,13 @@ Status: ${isResolved ? 'Resolved' : 'Pending'}`;
                 AdminManager.loadRegistrationChart(),
                 AdminManager.loadContentChart()
             ]);
+<<<<<<< HEAD
+
+            ('✅ All analytics data loaded successfully');
+=======
             
             console.log('✅ All analytics data loaded successfully');
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
         } catch (error) {
             console.error('❌ Error loading analytics:', error);
             AdminManager.renderSampleCharts();
@@ -920,7 +1025,11 @@ Status: ${isResolved ? 'Resolved' : 'Pending'}`;
         try {
             const data = await $.ajax({
                 type: 'GET',
+<<<<<<< HEAD
+                url: 'http://localhost:5121/api/Admin/analytics/registrations?days=14',
+=======
                 url: 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Admin/analytics/registrations?days=14',
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 cache: false,
                 dataType: "json"
             });
@@ -939,7 +1048,11 @@ Status: ${isResolved ? 'Resolved' : 'Pending'}`;
         try {
             const data = await $.ajax({
                 type: 'GET',
+<<<<<<< HEAD
+                url: 'http://localhost:5121/api/Admin/analytics/content?days=7',
+=======
                 url: 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Admin/analytics/content?days=7',
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
                 cache: false,
                 dataType: "json"
             });
@@ -955,14 +1068,19 @@ Status: ${isResolved ? 'Resolved' : 'Pending'}`;
     },
 
     renderSampleCharts: () => {
+<<<<<<< HEAD
+        ('📊 Rendering sample charts as fallback...');
+
+=======
         console.log('📊 Rendering sample charts as fallback...');
         
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
         AdminManager.renderLoginChart({
             labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
             values: [0, 0, 0, 0, 0, 0, 0],
             title: 'Daily Logins (No Data)'
         });
-        
+
         AdminManager.renderActivityChart({
             labels: ['Active Users', 'Locked Users', 'New Users'],
             values: [0, 0, 0],
@@ -1154,7 +1272,11 @@ Status: ${isResolved ? 'Resolved' : 'Pending'}`;
         if (data.overallStats) {
             // Remove any existing stats before adding new ones
             $('#contentChart').parent().find('.content-stats').remove();
+<<<<<<< HEAD
+
+=======
             
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
             const statsHtml = `
                 <div class="row mt-3 content-stats">
                     <div class="col-3">
@@ -1195,9 +1317,9 @@ Status: ${isResolved ? 'Resolved' : 'Pending'}`;
     generateReport: async () => {
         try {
             showAlert('info', 'Generating admin report...');
-            
+
             const promises = [];
-            
+
             // Create promises for each API call with error handling
             promises.push($.ajax({
                 type: 'GET',
@@ -1205,14 +1327,14 @@ Status: ${isResolved ? 'Resolved' : 'Pending'}`;
                 cache: false,
                 dataType: "json"
             }).catch(() => ({})));
-            
+
             promises.push($.ajax({
                 type: 'GET',
                 url: 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Admin/users',
                 cache: false,
                 dataType: "json"
             }).catch(() => []));
-            
+
             promises.push($.ajax({
                 type: 'GET',
                 url: 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Reports',
@@ -1232,7 +1354,11 @@ Status: ${isResolved ? 'Resolved' : 'Pending'}`;
             // Ensure all data is arrays and handle API response structures
             const usersArray = Array.isArray(users) ? users : [];
             const reportsArray = Array.isArray(reports) ? reports : [];
+<<<<<<< HEAD
+
+=======
             
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
             // Handle shared articles API response structure
             let sharedArray = [];
             if (shared && shared.success && Array.isArray(shared.articles)) {
@@ -1240,7 +1366,11 @@ Status: ${isResolved ? 'Resolved' : 'Pending'}`;
             } else if (Array.isArray(shared)) {
                 sharedArray = shared;
             }
+<<<<<<< HEAD
+
+=======
             
+>>>>>>> afe453e67e2ed02a713ac80076bc6e4e406184c5
             const currentUser = Auth.getCurrentUser();
             const reportData = {
                 generatedAt: new Date().toISOString(),
@@ -1267,19 +1397,19 @@ Status: ${isResolved ? 'Resolved' : 'Pending'}`;
             };
 
             const dataStr = JSON.stringify(reportData, null, 2);
-            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-            
+            const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+
             const exportFileDefaultName = `admin-report-${new Date().toISOString().split('T')[0]}.json`;
-            
+
             // Create download link
             const $linkElement = $('<a>').attr({
                 href: dataUri,
                 download: exportFileDefaultName
             });
-            
+
             // Trigger download
             $linkElement[0].click();
-            
+
             showAlert('success', 'Admin report downloaded successfully');
         } catch (error) {
             console.error('❌ Error generating report:', error);
@@ -1306,10 +1436,10 @@ Status: ${isResolved ? 'Resolved' : 'Pending'}`;
 // ============================================================================
 
 // Initialize when page loads
-$(document).ready(function() {
+$(document).ready(function () {
     // Small delay to ensure all dependencies are loaded
     setTimeout(() => {
-        console.log('🚀 Initializing Admin Manager...');
+        ('🚀 Initializing Admin Manager...');
         AdminManager.init();
     }, 100);
 });
