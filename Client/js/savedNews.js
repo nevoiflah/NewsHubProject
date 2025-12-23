@@ -94,7 +94,7 @@ var SavedNewsManager = {
         }
 
         // ✅ FIXED: Use capital 'N' in News to match controller route
-        const apiUrl = `http://localhost:5121/api/News/saved?userId=${userId}`;
+        const apiUrl = `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/News/saved?userId=${userId}`;
         // console.log('🌐 API URL:', apiUrl);
 
         $.ajax({
@@ -498,7 +498,7 @@ var SavedNewsManager = {
             // console.log('🧪 Testing API connectivity...');
             $.ajax({
                 type: 'GET',
-                url: `http://localhost:5121/api/News/debug/user/${userId}`,
+                url: `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/News/debug/user/${userId}`,
                 cache: false,
                 dataType: "json",
                 success: function (response) {

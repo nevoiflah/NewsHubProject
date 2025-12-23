@@ -182,7 +182,7 @@ const ShareManager = {
                     if (userId) {
                         ajaxCall(
                             'POST',
-                            `http://localhost:5121/api/users/activity/${userId}`,
+                            `${this.baseUrl}/users/activity/${userId}`,
                             null,
                             function () {
                                 // Trigger avatar update after activity change
@@ -216,7 +216,7 @@ const ShareManager = {
 
     // Load shared content
     loadSharedContent: function () {
-        ('📰 Loading shared content...');
+//         ('📰 Loading shared content...');
         const userId = localStorage.getItem('userId');
 
         ajaxCall(
@@ -477,7 +477,7 @@ const ShareManager = {
                     if (userId) {
                         ajaxCall(
                             'POST',
-                            `http://localhost:5121/api/users/activity/${userId}`,
+                            `${this.baseUrl}/users/activity/${userId}`,
                             null,
                             function () {
                                 // Trigger avatar update after activity change
@@ -695,83 +695,30 @@ const ShareManager = {
     // Submit report
     submitReport: function (contentType, contentId, reason) {
         const userId = localStorage.getItem('userId');
-        
-        // Validate inputs before sending
-        console.log('📤 Raw inputs:', { contentType, contentId, reason, userId });
-        
-        // Check each field individually
-        if (!contentType) {
-            console.error('❌ Missing contentType');
-            showAlert('danger', 'Content type is required');
-            return;
-        }
-        
-        if (!contentId) {
-            console.error('❌ Missing contentId');
-            showAlert('danger', 'Content ID is required');
-            return;
-        }
-        
-        if (!reason || reason.trim() === '') {
-            console.error('❌ Missing or empty reason');
-            showAlert('danger', 'Please select a reason for reporting');
-            return;
-        }
-        
-        if (!userId) {
-            console.error('❌ Missing userId');
-            showAlert('danger', 'User authentication required');
-            return;
-        }
-        
-        const parsedContentId = parseInt(contentId);
-        if (isNaN(parsedContentId) || parsedContentId <= 0) {
-            console.error('❌ Invalid ContentId:', contentId, 'parsed as:', parsedContentId);
-            showAlert('danger', 'Invalid content ID for report');
-            return;
-        }
-        
-        const requestData = {
-            ContentType: contentType,
-            ContentId: parsedContentId,
-            Reason: reason.trim()
-        };
-        
-        console.log('📤 Final request data:', requestData);
-        console.log('📤 Request JSON:', JSON.stringify(requestData));
-        console.log('📤 URL:', `${this.baseUrl}/reports?userId=${userId}`);
 
         // Validate inputs before sending
-        ('📤 Raw inputs:', { contentType, contentId, reason, userId });
-
-        // Check each field individually
         if (!contentType) {
-            console.error('❌ Missing contentType');
             showAlert('danger', 'Content type is required');
             return;
         }
 
         if (!contentId) {
-            console.error('❌ Missing contentId');
             showAlert('danger', 'Content ID is required');
             return;
         }
 
         if (!reason || reason.trim() === '') {
-            console.error('❌ Missing or empty reason');
             showAlert('danger', 'Please select a reason for reporting');
             return;
         }
 
         if (!userId) {
-            console.error('❌ Missing userId');
             showAlert('danger', 'User authentication required');
             return;
         }
 
         const parsedContentId = parseInt(contentId);
         if (isNaN(parsedContentId) || parsedContentId <= 0) {
-            console.error('❌ Invalid ContentId:', contentId, 'parsed as:', parsedContentId);
             showAlert('danger', 'Invalid content ID for report');
             return;
         }
@@ -781,10 +728,6 @@ const ShareManager = {
             ContentId: parsedContentId,
             Reason: reason.trim()
         };
-
-        ('📤 Final request data:', requestData);
-        ('📤 Request JSON:', JSON.stringify(requestData));
-        ('📤 URL:', `${this.baseUrl}/reports?userId=${userId}`);
 
         ajaxCall(
             'POST',
@@ -1302,7 +1245,7 @@ const ShareManager = {
         // Fetch updated user data to get new activity level
         ajaxCall(
             'GET',
-            `http://localhost:5121/api/users/GetById/${userId}`,
+            `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/users/GetById/${userId}`,
             null,
             function (userData) {
                 // Update localStorage with new activity level

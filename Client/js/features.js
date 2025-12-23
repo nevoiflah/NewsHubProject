@@ -12,7 +12,7 @@ var FeaturesDemo = {
         // Use the new public stats endpoint
         $.ajax({
             type: 'GET',
-            url: 'http://localhost:5121/api/Users/stats',
+            url: 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Users/stats',
             cache: false,
             dataType: "json",
             success: function (response) {

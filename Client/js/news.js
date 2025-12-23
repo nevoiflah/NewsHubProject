@@ -28,7 +28,7 @@ var NewsManager = {
 
             try {
                 const response = await $.ajax({
-                    url: "http://localhost:5121/api/AI/sentiment",
+                    url: "https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/AI/sentiment",
                     method: "POST",
                     contentType: "application/json",
                     data: JSON.stringify({ inputs: text.slice(0, 500) }),
@@ -54,7 +54,7 @@ var NewsManager = {
 
             try {
                 const response = await $.ajax({
-                    url: "http://localhost:5121/api/AI/summary",
+                    url: "https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/AI/summary",
                     method: "POST",
                     contentType: "application/json", // Explicitly set content type
                     data: JSON.stringify({ inputs: text.slice(0, 800) }),
@@ -98,7 +98,7 @@ var NewsManager = {
 
             $.ajax({
                 type: 'GET',
-                url: `http://localhost:5121/api/users/interests/${userId}`,
+                url: `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/users/interests/${userId}`,
                 cache: false,
                 dataType: "json",
                 timeout: 3000,

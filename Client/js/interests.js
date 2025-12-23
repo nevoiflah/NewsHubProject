@@ -369,7 +369,7 @@ const InterestsManager = {
 
         ajaxCall(
             'GET',
-            `http://localhost:5121/api/shared?userId=${userId}`,
+            `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/shared?userId=${userId}`,
             null,
             function(response) {
                 // console.log('📊 Shared articles response:', response);
@@ -542,7 +542,7 @@ const InterestsManager = {
         
             // Make the profile update API call using the correct endpoint
             // console.log('🚀 Making profile update API call...');
-            const profileApiUrl = `http://localhost:5121/api/Users/Update/${userId}`;
+            const profileApiUrl = `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Users/Update/${userId}`;
             // console.log('🌐 Profile API URL:', profileApiUrl);
         
             try {

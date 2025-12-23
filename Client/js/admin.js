@@ -138,7 +138,7 @@ const AdminManager = {
     // Load dashboard data 
     loadDashboardData: async () => {
         try {
-            ('🔄 Loading dashboard data...');
+            console.log('🔄 Loading dashboard data...');
 
             // Load system stats
             const statsPromise = $.ajax({
@@ -201,7 +201,7 @@ const AdminManager = {
                 $('#pendingReports').text(stats.pendingReportsCount || 0);
             }
 
-            ('✅ Dashboard data loaded successfully');
+            console.log('✅ Dashboard data loaded successfully');
         } catch (error) {
             console.error('❌ Error loading dashboard data:', error);
             // Set default values on error
@@ -217,7 +217,7 @@ const AdminManager = {
     // Load users data 
     loadUsersData: async () => {
         try {
-            ('🔄 Loading users data...');
+            console.log('🔄 Loading users data...');
 
             const users = await $.ajax({
                 type: 'GET',
@@ -234,10 +234,6 @@ const AdminManager = {
             }
 
             const rows = users.map(user => {
-                const statusBadge = user.isLocked ?
-                    '<span class="badge bg-danger">Locked</span>' :
-                    '<span class="badge bg-success">Active</span>';
-
                 const adminBadge = user.isAdmin ?
                     '<span class="badge bg-primary ms-1">Admin</span>' : '';
 
@@ -250,7 +246,7 @@ const AdminManager = {
                         <td>${Utils.sanitizeHtml(user.username)}${adminBadge}</td>
                         <td>${Utils.sanitizeHtml(user.email)}</td>
                         <td>${Utils.formatDate(user.registrationDate)}</td>
-                        <td>${statusBadge}</td>
+                        <td><span class="badge bg-success">Active</span></td>
                         <td>
                             <div class="btn-group btn-group-sm">
                                 <button class="btn btn-outline-danger" onclick="AdminManager.deleteUser(${user.id})" title="Delete User">
@@ -264,7 +260,7 @@ const AdminManager = {
 
             $tbody.html(rows);
             AdminManager.updateBulkOperationsUI();
-            ('✅ Users data loaded successfully');
+            console.log('✅ Users data loaded successfully');
         } catch (error) {
             console.error('❌ Error loading users:', error);
             $('#usersTable').html('<tr><td colspan="6" class="text-center text-danger">Failed to load users</td></tr>');
@@ -424,7 +420,7 @@ const AdminManager = {
     // Load shared articles
     loadSharedArticles: async () => {
         try {
-            ('🔄 Loading shared articles...');
+//             ('🔄 Loading shared articles...');
 
             const response = await $.ajax({
                 type: 'GET',
@@ -489,7 +485,7 @@ const AdminManager = {
             }).join('');
 
             $tbody.html(rows);
-            ('✅ Shared articles loaded successfully');
+//             ('✅ Shared articles loaded successfully');
         } catch (error) {
             console.error('❌ Error loading shared articles:', error);
             $('#sharedArticlesTable').html('<tr><td colspan="6" class="text-center text-danger">Failed to load shared articles</td></tr>');
@@ -604,7 +600,7 @@ const AdminManager = {
 
             const response = await $.ajax({
                 type: 'DELETE',
-                url: `http://localhost:5121/api/shared/${articleId}/comments/${commentId}?userId=${currentUser.id}`,
+                url: `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/shared/${articleId}/comments/${commentId}?userId=${currentUser.id}`,
                 cache: false,
                 contentType: "application/json",
                 dataType: "json"
@@ -626,7 +622,7 @@ const AdminManager = {
     // Load reports data 
     loadReportsData: async () => {
         try {
-            ('🔄 Loading reports data...');
+//             ('🔄 Loading reports data...');
 
             const response = await $.ajax({
                 type: 'GET',
@@ -697,7 +693,7 @@ const AdminManager = {
             }).join('');
 
             $tbody.html(rows);
-            ('✅ Reports data loaded successfully');
+//             ('✅ Reports data loaded successfully');
         } catch (error) {
             console.error('❌ Error loading reports:', error);
             $('#reportsTable').html('<tr><td colspan="7" class="text-center text-danger">Failed to load reports</td></tr>');
@@ -773,7 +769,7 @@ Status: ${isResolved ? 'Resolved' : 'Pending'}`;
 
             const response = await $.ajax({
                 type: 'PUT',
-                url: `http://localhost:5121/api/Reports/${reportId}/resolve?adminUserId=${currentUser.id}`,
+                url: `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Reports/${reportId}/resolve?adminUserId=${currentUser.id}`,
                 data: JSON.stringify({
                     IsResolved: true
                 }),
@@ -831,7 +827,7 @@ Status: ${isResolved ? 'Resolved' : 'Pending'}`;
     // Load analytics data 
     loadAnalyticsData: async () => {
         try {
-            ('🔄 Loading analytics data...');
+            console.log('🔄 Loading analytics data...');
 
             // Load all analytics charts
             await Promise.all([
@@ -841,7 +837,7 @@ Status: ${isResolved ? 'Resolved' : 'Pending'}`;
                 AdminManager.loadContentChart()
             ]);
 
-            ('✅ All analytics data loaded successfully');
+            console.log('✅ All analytics data loaded successfully');
         } catch (error) {
             console.error('❌ Error loading analytics:', error);
             AdminManager.renderSampleCharts();
@@ -874,8 +870,8 @@ Status: ${isResolved ? 'Resolved' : 'Pending'}`;
         } catch (error) {
             console.error('❌ Failed to load user activity analytics:', error);
             AdminManager.renderActivityChart({
-                labels: ['Active Users', 'Locked Users', 'New Users'],
-                values: [0, 0, 0],
+                labels: ['Active Users', 'New Users'],
+                values: [0, 0],
                 title: 'User Activity (Error)'
             });
         }
@@ -885,7 +881,7 @@ Status: ${isResolved ? 'Resolved' : 'Pending'}`;
         try {
             const data = await $.ajax({
                 type: 'GET',
-                url: 'http://localhost:5121/api/Admin/analytics/registrations?days=14',
+                url: 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Admin/analytics/registrations?days=14',
                 cache: false,
                 dataType: "json"
             });
@@ -904,7 +900,7 @@ Status: ${isResolved ? 'Resolved' : 'Pending'}`;
         try {
             const data = await $.ajax({
                 type: 'GET',
-                url: 'http://localhost:5121/api/Admin/analytics/content?days=7',
+                url: 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Admin/analytics/content?days=7',
                 cache: false,
                 dataType: "json"
             });
@@ -920,7 +916,7 @@ Status: ${isResolved ? 'Resolved' : 'Pending'}`;
     },
 
     renderSampleCharts: () => {
-        ('📊 Rendering sample charts as fallback...');
+        console.log('📊 Rendering sample charts as fallback...');
 
         AdminManager.renderLoginChart({
             labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
@@ -929,8 +925,8 @@ Status: ${isResolved ? 'Resolved' : 'Pending'}`;
         });
 
         AdminManager.renderActivityChart({
-            labels: ['Active Users', 'Locked Users', 'New Users'],
-            values: [0, 0, 0],
+            labels: ['Active Users', 'New Users'],
+            values: [0, 0],
             title: 'User Activity (No Data)'
         });
 
@@ -1212,8 +1208,7 @@ Status: ${isResolved ? 'Resolved' : 'Pending'}`;
                 generatedBy: currentUser.username || 'Unknown Admin',
                 summary: {
                     totalUsers: usersArray.length,
-                    activeUsers: usersArray.filter(u => !u.isLocked).length,
-                    lockedUsers: usersArray.filter(u => u.isLocked).length,
+                    activeUsers: usersArray.length,
                     adminUsers: usersArray.filter(u => u.isAdmin).length,
                     totalSharedArticles: sharedArray.length,
                     totalReports: reportsArray.length,
@@ -1274,7 +1269,7 @@ Status: ${isResolved ? 'Resolved' : 'Pending'}`;
 $(document).ready(function () {
     // Small delay to ensure all dependencies are loaded
     setTimeout(() => {
-        ('🚀 Initializing Admin Manager...');
+        console.log('🚀 Initializing Admin Manager...');
         AdminManager.init();
     }, 100);
 });
