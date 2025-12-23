@@ -143,7 +143,7 @@ const AdminManager = {
             // Load system stats
             const statsPromise = $.ajax({
                 type: 'GET',
-                url: 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Admin/stats',
+                url: `${window.API_BASE_URL || 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api'}/Admin/stats`,
                 cache: false,
                 dataType: "json"
             });
@@ -151,7 +151,7 @@ const AdminManager = {
             // Load users count
             const usersPromise = $.ajax({
                 type: 'GET',
-                url: 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Admin/users',
+                url: `${window.API_BASE_URL || 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api'}/Admin/users`,
                 cache: false,
                 dataType: "json"
             });
@@ -159,7 +159,7 @@ const AdminManager = {
             // Load shared articles count
             const sharedPromise = $.ajax({
                 type: 'GET',
-                url: 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/shared',
+                url: `${window.API_BASE_URL || 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api'}/shared`,
                 cache: false,
                 dataType: "json"
             });
@@ -167,7 +167,7 @@ const AdminManager = {
             // Load reports count
             const reportsPromise = $.ajax({
                 type: 'GET',
-                url: 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Reports',
+                url: `${window.API_BASE_URL || 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api'}/Reports`,
                 cache: false,
                 dataType: "json"
             });
@@ -221,7 +221,7 @@ const AdminManager = {
 
             const users = await $.ajax({
                 type: 'GET',
-                url: 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Admin/users',
+                url: `${window.API_BASE_URL || 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api'}/Admin/users`,
                 cache: false,
                 dataType: "json"
             });
@@ -278,7 +278,7 @@ const AdminManager = {
         try {
             const response = await $.ajax({
                 type: 'DELETE',
-                url: `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Admin/${userId}`,
+                url: `${window.API_BASE_URL}/Admin/${userId}`,
                 cache: false,
                 contentType: "application/json",
                 dataType: "text"
@@ -371,7 +371,7 @@ const AdminManager = {
                     switch (operation) {
 
                         case 'delete':
-                            endpoint = `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Admin/${userId}`;
+                            endpoint = `${window.API_BASE_URL}/Admin/${userId}`;
                             method = 'DELETE';
                             break;
                         default:
@@ -420,11 +420,11 @@ const AdminManager = {
     // Load shared articles
     loadSharedArticles: async () => {
         try {
-//             ('🔄 Loading shared articles...');
+            //             ('🔄 Loading shared articles...');
 
             const response = await $.ajax({
                 type: 'GET',
-                url: 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/shared',
+                url: `${window.API_BASE_URL}/shared`,
                 cache: false,
                 dataType: "json"
             });
@@ -436,11 +436,11 @@ const AdminManager = {
 
             if (response && response.success && Array.isArray(response.articles)) {
                 articlesArray = response.articles;
-                (`📊 Found ${articlesArray.length} shared articles`);
+                console.log(`📊 Found ${articlesArray.length} shared articles`);
             } else if (Array.isArray(response)) {
                 // Fallback for direct array response
                 articlesArray = response;
-                (`📊 Found ${articlesArray.length} shared articles (direct array)`);
+                console.log(`📊 Found ${articlesArray.length} shared articles (direct array)`);
             }
 
             if (!articlesArray || articlesArray.length === 0) {
@@ -454,7 +454,7 @@ const AdminManager = {
                 const commentCount = article.commentsCount || article.commentCount || 0;
 
                 return `
-                    <tr data-article-id="${article.id}">
+            <tr data-article-id="${article.id}">
                         <td>${article.id}</td>
                         <td>
                             <div style="max-width: 300px;">
@@ -481,11 +481,11 @@ const AdminManager = {
                             </div>
                         </td>
                     </tr>
-                `;
+    `;
             }).join('');
 
             $tbody.html(rows);
-//             ('✅ Shared articles loaded successfully');
+            //             ('✅ Shared articles loaded successfully');
         } catch (error) {
             console.error('❌ Error loading shared articles:', error);
             $('#sharedArticlesTable').html('<tr><td colspan="6" class="text-center text-danger">Failed to load shared articles</td></tr>');
@@ -498,7 +498,7 @@ const AdminManager = {
         try {
             const article = await $.ajax({
                 type: 'GET',
-                url: `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/shared/${articleId}`,
+                url: `${window.API_BASE_URL}/shared/${articleId} `,
                 cache: false,
                 dataType: "json"
             });
@@ -521,7 +521,7 @@ const AdminManager = {
         try {
             const response = await $.ajax({
                 type: 'DELETE',
-                url: `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/shared/${articleId}`,
+                url: `${window.API_BASE_URL}/shared/${articleId} `,
                 cache: false,
                 contentType: "application/json",
                 dataType: "text"
@@ -545,7 +545,7 @@ const AdminManager = {
         try {
             const response = await $.ajax({
                 type: 'GET',
-                url: `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/shared/${articleId}/comments`,
+                url: `${window.API_BASE_URL}/shared/${articleId}/comments`,
                 cache: false,
                 dataType: "json"
             });
@@ -600,7 +600,7 @@ const AdminManager = {
 
             const response = await $.ajax({
                 type: 'DELETE',
-                url: `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/shared/${articleId}/comments/${commentId}?userId=${currentUser.id}`,
+                url: `${window.API_BASE_URL}/shared/${articleId}/comments/${commentId}?userId=${currentUser.id}`,
                 cache: false,
                 contentType: "application/json",
                 dataType: "json"
@@ -622,11 +622,11 @@ const AdminManager = {
     // Load reports data 
     loadReportsData: async () => {
         try {
-//             ('🔄 Loading reports data...');
+            //             ('🔄 Loading reports data...');
 
             const response = await $.ajax({
                 type: 'GET',
-                url: 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Reports',
+                url: `${window.API_BASE_URL}/Reports`,
                 cache: false,
                 dataType: "json"
             });
@@ -666,7 +666,7 @@ const AdminManager = {
                 }
 
                 return `
-                    <tr data-report-id="${reportId}">
+                <tr data-report-id="${reportId}">
                         <td>${reportId}</td>
                         <td>${Utils.sanitizeHtml(reporterUsername)}</td>
                         <td>${Utils.sanitizeHtml(contentType)}</td>
@@ -688,12 +688,12 @@ const AdminManager = {
                                 </button>
                             </div>
                         </td>
-                    </tr>
+                </tr>
                 `;
             }).join('');
 
             $tbody.html(rows);
-//             ('✅ Reports data loaded successfully');
+            //             ('✅ Reports data loaded successfully');
         } catch (error) {
             console.error('❌ Error loading reports:', error);
             $('#reportsTable').html('<tr><td colspan="7" class="text-center text-danger">Failed to load reports</td></tr>');
@@ -708,7 +708,7 @@ const AdminManager = {
 
             const response = await $.ajax({
                 type: 'GET',
-                url: `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Reports/${reportId}`,
+                url: `${window.API_BASE_URL}/Reports/${reportId} `,
                 cache: false,
                 dataType: "json"
             });
@@ -737,13 +737,13 @@ const AdminManager = {
 
             const details = `Report Details:
 
-ID: ${reportIdValue}
-Reporter: ${reporterUsername}
+            ID: ${reportIdValue}
+            Reporter: ${reporterUsername}
 Content Type: ${contentType}
 ${contentTitle ? `Content Title: ${contentTitle}` : ''}
-Reason: ${cleanReason}
-Date: ${Utils.formatDate(createdAt)}
-Status: ${isResolved ? 'Resolved' : 'Pending'}`;
+            Reason: ${cleanReason}
+            Date: ${Utils.formatDate(createdAt)}
+            Status: ${isResolved ? 'Resolved' : 'Pending'} `;
 
             alert(details);
         } catch (error) {
@@ -769,7 +769,7 @@ Status: ${isResolved ? 'Resolved' : 'Pending'}`;
 
             const response = await $.ajax({
                 type: 'PUT',
-                url: `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Reports/${reportId}/resolve?adminUserId=${currentUser.id}`,
+                url: `${window.API_BASE_URL}/Reports/${reportId}/resolve?adminUserId=${currentUser.id}`,
                 data: JSON.stringify({
                     IsResolved: true
                 }),
@@ -801,7 +801,7 @@ Status: ${isResolved ? 'Resolved' : 'Pending'}`;
         try {
             const response = await $.ajax({
                 type: 'DELETE',
-                url: `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Reports/${reportId}`,
+                url: `${window.API_BASE_URL}/Reports/${reportId}`,
                 cache: false,
                 contentType: "application/json",
                 dataType: "text"
@@ -848,7 +848,7 @@ Status: ${isResolved ? 'Resolved' : 'Pending'}`;
         try {
             const data = await $.ajax({
                 type: 'GET',
-                url: 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Admin/analytics/logins',
+                url: `${window.API_BASE_URL}/Admin/analytics/logins`,
                 cache: false,
                 dataType: "json"
             });
@@ -862,7 +862,7 @@ Status: ${isResolved ? 'Resolved' : 'Pending'}`;
         try {
             const data = await $.ajax({
                 type: 'GET',
-                url: 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Admin/analytics/activity',
+                url: `${window.API_BASE_URL}/Admin/analytics/activity`,
                 cache: false,
                 dataType: "json"
             });
@@ -881,7 +881,7 @@ Status: ${isResolved ? 'Resolved' : 'Pending'}`;
         try {
             const data = await $.ajax({
                 type: 'GET',
-                url: 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Admin/analytics/registrations?days=14',
+                url: `${window.API_BASE_URL}/Admin/analytics/registrations?days=14`,
                 cache: false,
                 dataType: "json"
             });
@@ -900,7 +900,7 @@ Status: ${isResolved ? 'Resolved' : 'Pending'}`;
         try {
             const data = await $.ajax({
                 type: 'GET',
-                url: 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Admin/analytics/content?days=7',
+                url: `${window.API_BASE_URL}/Admin/analytics/content?days=7`,
                 cache: false,
                 dataType: "json"
             });
@@ -925,8 +925,8 @@ Status: ${isResolved ? 'Resolved' : 'Pending'}`;
         });
 
         AdminManager.renderActivityChart({
-            labels: ['Active Users', 'New Users'],
-            values: [0, 0],
+            labels: ['Active Users', 'New Users', 'Admin Users'],
+            values: [0, 0, 0],
             title: 'User Activity (No Data)'
         });
 
@@ -1001,7 +1001,6 @@ Status: ${isResolved ? 'Resolved' : 'Pending'}`;
                     data: data.values || [],
                     backgroundColor: [
                         'rgba(54, 162, 235, 0.8)',
-                        'rgba(255, 99, 132, 0.8)',
                         'rgba(255, 205, 86, 0.8)',
                         'rgba(75, 192, 192, 0.8)',
                         'rgba(153, 102, 255, 0.8)'
@@ -1162,28 +1161,28 @@ Status: ${isResolved ? 'Resolved' : 'Pending'}`;
             // Create promises for each API call with error handling
             promises.push($.ajax({
                 type: 'GET',
-                url: 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Admin/stats',
+                url: `${window.API_BASE_URL}/Admin/stats`,
                 cache: false,
                 dataType: "json"
             }).catch(() => ({})));
 
             promises.push($.ajax({
                 type: 'GET',
-                url: 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Admin/users',
+                url: `${window.API_BASE_URL}/Admin/users`,
                 cache: false,
                 dataType: "json"
             }).catch(() => []));
 
             promises.push($.ajax({
                 type: 'GET',
-                url: 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Reports',
+                url: `${window.API_BASE_URL}/Reports`,
                 cache: false,
                 dataType: "json"
             }).catch(() => []));
 
             promises.push($.ajax({
                 type: 'GET',
-                url: 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/shared',
+                url: `${window.API_BASE_URL}/shared`,
                 cache: false,
                 dataType: "json"
             }).catch(() => []));
@@ -1229,7 +1228,7 @@ Status: ${isResolved ? 'Resolved' : 'Pending'}`;
             const dataStr = JSON.stringify(reportData, null, 2);
             const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
 
-            const exportFileDefaultName = `admin-report-${new Date().toISOString().split('T')[0]}.json`;
+            const exportFileDefaultName = `admin - report - ${new Date().toISOString().split('T')[0]}.json`;
 
             // Create download link
             const $linkElement = $('<a>').attr({
@@ -1253,7 +1252,7 @@ Status: ${isResolved ? 'Resolved' : 'Pending'}`;
         users.forEach(user => {
             if (user.registrationDate) {
                 const date = new Date(user.registrationDate);
-                const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                const monthKey = `${date.getFullYear()} - ${String(date.getMonth() + 1).padStart(2, '0')}`;
                 monthGroups[monthKey] = (monthGroups[monthKey] || 0) + 1;
             }
         });

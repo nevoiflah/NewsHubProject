@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,6 +18,7 @@
         });
     </script>
 </head>
+
 <body>
     <!-- Navigation -->
     <div id="navbar-container"></div>
@@ -27,7 +29,8 @@
             <div class="row align-items-center">
                 <div class="col-lg-6">
                     <h1 class="display-4 fw-bold">Stay Informed, Stay Ahead</h1>
-                    <p class="lead">Your personalized news portal that brings you the latest updates from trusted sources worldwide.</p>
+                    <p class="lead">Your personalized news portal that brings you the latest updates from trusted
+                        sources worldwide.</p>
                     <div class="d-flex gap-2">
                         <a href="../pages/register.html" class="btn btn-primary btn-lg">Get Started</a>
                         <a href="../pages/news.html" class="btn btn-outline-primary btn-lg">Browse News</a>
@@ -92,43 +95,21 @@
         </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="bg-dark text-light py-4">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-6">
-                    <h5>NewsHub</h5>
-                    <p>Your trusted source for personalized news and community discussions.</p>
-                </div>
-                <div class="col-md-6">
-                    <h5>Quick Links</h5>
-                    <ul class="list-unstyled">
-                        <li><a href="../pages/news.html" class="text-light">Browse News</a></li>
-                        <li><a href="../pages/features.html" class="text-light">Advanced Features</a></li>
-                        <li><a href="../pages/shared.html" class="text-light">Community</a></li>
-                    </ul>
-                </div>
-            </div>
-            <hr>
-            <div class="text-center">
-                <p>&copy; 2025 NewsHub. All rights reserved.</p>
-            </div>
-        </div>
-    </footer>
+
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="../ajaxCalls.js"></script>
     <script src="../js/common.js"></script>
     <script src="../js/auth.js"></script>
-    
+
     <!-- Load Preview News on Page Load -->
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
             console.log('🏠 Index page loading...');
-            
+
             // Wait a bit for common.js to fully initialize
-            setTimeout(function() {
+            setTimeout(function () {
                 if (window.loadPreviewNews && typeof window.loadPreviewNews === 'function') {
                     console.log('📰 Loading preview news from common.js...');
                     window.loadPreviewNews();
@@ -142,16 +123,16 @@
         // Fallback function in case common.js doesn't load properly
         function loadNewsPreviewFallback() {
             console.log('🔄 Using fallback preview loader...');
-            
+
             $.ajax({
                 type: 'GET',
                 url: 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/api/News/latest',
                 cache: false,
                 dataType: "json",
                 timeout: 10000,
-                success: function(response) {
+                success: function (response) {
                     console.log('✅ Fallback preview loaded:', response);
-                    
+
                     if (response && Array.isArray(response) && response.length > 0) {
                         const $container = $('#previewNews');
                         if ($container.length) {
@@ -173,7 +154,7 @@
                                     </div>
                                 </div>
                             `).join('');
-                            
+
                             $container.html(articles);
                         }
                     } else {
@@ -187,13 +168,13 @@
                         `);
                     }
                 },
-                error: function(xhr, status, error) {
+                error: function (xhr, status, error) {
                     console.error('❌ Failed to load preview news:', {
                         status: xhr.status,
                         statusText: xhr.statusText,
                         error: error
                     });
-                    
+
                     $('#previewNews').html(`
                         <div class="col-12">
                             <div class="alert alert-warning text-center">
@@ -218,4 +199,5 @@
         }
     </script>
 </body>
+
 </html>

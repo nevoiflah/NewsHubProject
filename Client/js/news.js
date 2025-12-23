@@ -28,7 +28,7 @@ var NewsManager = {
 
             try {
                 const response = await $.ajax({
-                    url: "https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/AI/sentiment",
+                    url: `${window.API_BASE_URL || "https://proj.ruppin.ac.il/cgroup17/test2/tar1/api"}/AI/sentiment`,
                     method: "POST",
                     contentType: "application/json",
                     data: JSON.stringify({ inputs: text.slice(0, 500) }),
@@ -54,7 +54,7 @@ var NewsManager = {
 
             try {
                 const response = await $.ajax({
-                    url: "https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/AI/summary",
+                    url: `${window.API_BASE_URL || "https://proj.ruppin.ac.il/cgroup17/test2/tar1/api"}/AI/summary`,
                     method: "POST",
                     contentType: "application/json", // Explicitly set content type
                     data: JSON.stringify({ inputs: text.slice(0, 800) }),
@@ -98,7 +98,7 @@ var NewsManager = {
 
             $.ajax({
                 type: 'GET',
-                url: `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/users/interests/${userId}`,
+                url: `${window.API_BASE_URL || 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api'}/users/interests/${userId}`,
                 cache: false,
                 dataType: "json",
                 timeout: 3000,
@@ -119,11 +119,11 @@ var NewsManager = {
 
                     resolve();
                 },
-                function (xhr, status, error) {
+                error: function (xhr, status, error) {
                     console.warn('⚠️ Failed to load interests:', error);
                     resolve(); // Continue even if this fails
                 }
-            );
+            });
         });
     },
 
@@ -864,7 +864,7 @@ var NewsManager = {
         // API call to save article to user's saved list
         ajaxCall(
             'POST',
-            `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/news/save?userId=${userId}`,
+            `${window.API_BASE_URL || 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api'}/news/save?userId=${userId}`,
             JSON.stringify({
                 title: article.title,
                 content: article.description,

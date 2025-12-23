@@ -94,7 +94,7 @@ var SavedNewsManager = {
         }
 
         // ✅ FIXED: Use capital 'N' in News to match controller route
-        const apiUrl = `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/News/saved?userId=${userId}`;
+        const apiUrl = `${window.API_BASE_URL || 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api'}/News/saved?userId=${userId}`;
         // console.log('🌐 API URL:', apiUrl);
 
         $.ajax({
@@ -154,7 +154,7 @@ var SavedNewsManager = {
                     SavedNewsManager.showNoArticlesMessage();
                 }
             },
-            function (xhr, status, error) {
+            error: function (xhr, status, error) {
                 console.error('❌ AJAX Error details:', {
                     status: xhr.status,
                     statusText: xhr.statusText,
@@ -183,7 +183,7 @@ var SavedNewsManager = {
                     showAlert('danger', `Failed to load saved articles (${xhr.status})`);
                 }
             }
-        );
+        });
     },
 
     // Display articles in the UI with grid/list toggle
@@ -482,7 +482,7 @@ var SavedNewsManager = {
         const debugInfo = {
             userId: userId,
             currentPage: window.location.pathname,
-            apiUrl: `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/News/saved?userId=${userId}`,
+            apiUrl: `${window.API_BASE_URL || 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api'}/News/saved?userId=${userId}`,
             savedArticlesCount: SavedNewsManager.savedArticles.length,
             filteredArticlesCount: SavedNewsManager.filteredArticles.length,
             localStorage: {
@@ -498,7 +498,7 @@ var SavedNewsManager = {
             // console.log('🧪 Testing API connectivity...');
             $.ajax({
                 type: 'GET',
-                url: `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/News/debug/user/${userId}`,
+                url: `${window.API_BASE_URL || 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api'}/News/debug/user/${userId}`,
                 cache: false,
                 dataType: "json",
                 success: function (response) {
@@ -509,7 +509,7 @@ var SavedNewsManager = {
                     // console.log('❌ Debug API failed:', xhr);
                     alert(`DEBUG INFO:\nUser ID: ${userId}\nAPI Test Failed: ${xhr.status} ${xhr.statusText}\nResponse: ${xhr.responseText}`);
                 }
-            );
+            });
         } else {
             alert('DEBUG INFO:\nNo user ID found in localStorage\nPlease log in first');
         }
@@ -622,12 +622,12 @@ var SavedNewsManager = {
         // Fire AJAX call in background
         ajaxCall(
             'DELETE',
-            `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/News/saved/${articleId}?userId=${userId}`,
+            `${window.API_BASE_URL || 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api'}/News/saved/${articleId}?userId=${userId}`,
             null,
-            function() {
+            function () {
                 console.log('✅ Article deleted successfully');
             },
-            function(xhr, status, error) {
+            function (xhr, status, error) {
                 console.error('❌ Failed to delete article:', error);
             }
         );
@@ -657,10 +657,6 @@ var SavedNewsManager = {
                     title: article.title || article.Title,
                     text: article.content || article.Content,
                     url: article.url || article.Url
-                }).then(function () {
-                    if (typeof showAlert === 'function') {
-                        showAlert('success', 'Article shared successfully');
-                    }
                 }).catch(function (error) {
                     // console.log('Error sharing:', error);
                     SavedNewsManager.fallbackShare(article);
@@ -832,7 +828,7 @@ var SavedNewsManager = {
             new Promise((resolve, reject) => {
                 ajaxCall(
                     'DELETE',
-                    `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/News/saved/${article.id || article.Id || article.newsId}?userId=${userId}`,
+                    `${window.API_BASE_URL || 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api'}/News/saved/${article.id || article.Id || article.newsId}?userId=${userId}`,
                     null,
                     resolve,
                     reject

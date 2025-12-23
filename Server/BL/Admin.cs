@@ -50,7 +50,7 @@ namespace Server.BL
             return dbs.GetDailyRegistrationStats(days);
         }
 
-        public static (int TotalUsers, int ActiveUsers, int LockedUsers, int NewUsersThisWeek, int AdminUsers) GetUserActivityStats()
+        public static (int TotalUsers, int ActiveUsers, int NewUsersThisWeek, int AdminUsers) GetUserActivityStats()
         {
             AdminDBservices dbs = new AdminDBservices();
             return dbs.GetUserActivityStats();

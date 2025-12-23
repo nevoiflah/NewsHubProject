@@ -383,62 +383,71 @@
                         database.
                     </div>
 
-                    <!-- First Row: Login Activity and User Distribution -->
-                    <div class="row">
-                        <div class="col-lg-8 mb-4">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h6 class="mb-0"><i class="fas fa-chart-line me-2"></i>Daily Login Activity (Last 7
-                                        Days)</h6>
-                                </div>
-                                <div class="card-body">
-                                    <canvas id="loginChart" style="height: 300px;"></canvas>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-lg-4 mb-4">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h6 class="mb-0"><i class="fas fa-chart-pie me-2"></i>User Activity Distribution
-                                    </h6>
-                                </div>
-                                <div class="card-body">
-                                    <canvas id="activityChart" style="height: 300px;"></canvas>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Second Row: Registration Trends and Content Activity -->
-                    <div class="row">
-                        <div class="col-lg-6 mb-4">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h6 class="mb-0"><i class="fas fa-user-plus me-2"></i>User Registration Trends (Last
-                                        14 Days)</h6>
-                                </div>
-                                <div class="card-body">
-                                    <canvas id="registrationChart" style="height: 250px;"></canvas>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-lg-6 mb-4">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h6 class="mb-0"><i class="fas fa-chart-area me-2"></i>Content Activity (Last 7
-                                        Days)</h6>
-                                </div>
-                                <div class="card-body">
-                                    <div
-                                        style="height: 150px; max-height: 150px; overflow: hidden; position: relative;">
-                                        <canvas id="contentChart"></canvas>
+                    <!-- Scrollable Container for Charts -->
+                    <div class="analytics-scroll-container"
+                        style="max-height: 70vh; overflow-y: auto; padding-right: 10px;">
+                        <!-- First Row: Login Activity -->
+                        <div class="row">
+                            <div class="col-12 mb-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6 class="mb-0"><i class="fas fa-chart-line me-2"></i>Daily Login Activity
+                                            (Last 7 Days)</h6>
                                     </div>
-                                    <!-- Stats will be appended here by JavaScript -->
+                                    <div class="card-body">
+                                        <canvas id="loginChart" style="height: 300px;"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Second Row: User Distribution -->
+                        <div class="row">
+                            <div class="col-12 mb-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6 class="mb-0"><i class="fas fa-chart-pie me-2"></i>User Activity Distribution
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="activityChart" style="height: 350px;"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Third Row: Registration Trends -->
+                        <div class="row">
+                            <div class="col-12 mb-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6 class="mb-0"><i class="fas fa-user-plus me-2"></i>User Registration Trends
+                                            (Last 14 Days)</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="registrationChart" style="height: 300px;"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Fourth Row: Content Activity -->
+                        <div class="row">
+                            <div class="col-12 mb-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6 class="mb-0"><i class="fas fa-chart-area me-2"></i>Content Activity (Last 7
+                                            Days)</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div style="height: 300px; position: relative;">
+                                            <canvas id="contentChart"></canvas>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-
                 </div>
             </div>
         </div>

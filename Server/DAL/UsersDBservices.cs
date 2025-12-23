@@ -467,21 +467,21 @@ namespace Server.DAL
         {
             return new Users(
                 Convert.ToInt32(reader["Id"]),
-                reader["Username"].ToString(),
-                reader["Email"].ToString(),
-                reader["FirstName"].ToString(),
-                reader["LastName"].ToString(),
-                reader["PasswordHash"].ToString(),
+                reader["Username"]?.ToString() ?? "",
+                reader["Email"]?.ToString() ?? "",
+                reader["FirstName"]?.ToString() ?? "",
+                reader["LastName"]?.ToString() ?? "",
+                reader["PasswordHash"]?.ToString() ?? "",
                 Convert.ToDateTime(reader["RegistrationDate"]),
                 reader["LastLoginDate"] != DBNull.Value ? Convert.ToDateTime(reader["LastLoginDate"]) : null,
-                Convert.ToBoolean(reader["IsAdmin"]),
+                reader["IsAdmin"] != DBNull.Value && Convert.ToBoolean(reader["IsAdmin"]),
                 reader["AvatarUrl"]?.ToString(),
-                Convert.ToInt32(reader["ActivityLevel"]),
-                Convert.ToInt32(reader["LikesReceived"]),
-                Convert.ToBoolean(reader["NotifyOnLikes"]),
-                Convert.ToBoolean(reader["NotifyOnComments"]),
-                Convert.ToBoolean(reader["NotifyOnFollow"]),
-                Convert.ToBoolean(reader["NotifyOnShare"])
+                reader["ActivityLevel"] != DBNull.Value ? Convert.ToInt32(reader["ActivityLevel"]) : 0,
+                reader["LikesReceived"] != DBNull.Value ? Convert.ToInt32(reader["LikesReceived"]) : 0,
+                reader["NotifyOnLikes"] == DBNull.Value || Convert.ToBoolean(reader["NotifyOnLikes"]),
+                reader["NotifyOnComments"] == DBNull.Value || Convert.ToBoolean(reader["NotifyOnComments"]),
+                reader["NotifyOnFollow"] == DBNull.Value || Convert.ToBoolean(reader["NotifyOnFollow"]),
+                reader["NotifyOnShare"] == DBNull.Value || Convert.ToBoolean(reader["NotifyOnShare"])
             );
         }
 

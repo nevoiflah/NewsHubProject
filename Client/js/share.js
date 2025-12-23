@@ -6,7 +6,7 @@ const ShareManager = {
     followingUsers: [],
     currentPage: 1,
     itemsPerPage: 10,
-    baseUrl: 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api',
+    baseUrl: window.API_BASE_URL || 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api',
 
     // Initialize the shared content page
     init: function () {
@@ -216,7 +216,7 @@ const ShareManager = {
 
     // Load shared content
     loadSharedContent: function () {
-//         ('📰 Loading shared content...');
+        //         ('📰 Loading shared content...');
         const userId = localStorage.getItem('userId');
 
         ajaxCall(
@@ -1245,7 +1245,7 @@ const ShareManager = {
         // Fetch updated user data to get new activity level
         ajaxCall(
             'GET',
-            `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/users/GetById/${userId}`,
+            `${window.API_BASE_URL}/users/GetById/${userId}`,
             null,
             function (userData) {
                 // Update localStorage with new activity level

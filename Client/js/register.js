@@ -1,7 +1,7 @@
 // register.js - תיקון פשוט
 document.addEventListener('DOMContentLoaded', initRegisterPage);
 
-const registerBaseUrl = 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api';
+const registerBaseUrl = window.API_BASE_URL || 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api';
 
 function initRegisterPage() {
     const elements = {
@@ -30,7 +30,7 @@ function initRegisterPage() {
 function validatePasswordMatch(elements) {
     // בדיקת קיום
     if (!elements || !elements.password || !elements.confirmPassword) return;
-    
+
     const password = elements.password.value;
     const confirmPassword = elements.confirmPassword.value;
 
@@ -46,7 +46,7 @@ function validatePasswordMatch(elements) {
 function validateUsername(elements) {
     // בדיקת קיום - זה התיקון העיקרי!
     if (!elements || !elements.username) return;
-    
+
     const username = elements.username.value;
     if (username.length > 0 && username.length < 3) {
         elements.username.setCustomValidity('Username must be at least 3 characters long');
@@ -79,7 +79,7 @@ function submitRegistration(userData, messageDiv) {
         JSON.stringify(userData),
         function (response) {
             // console.log('✅ Registration response:', response);
-            
+
             // עכשיו השרת מחזיר JSON עם success flag
             if (response && response.success === true) {
                 showSuccessMessage(messageDiv, userData.Username);
@@ -89,7 +89,7 @@ function submitRegistration(userData, messageDiv) {
         },
         function (xhr, status, error) {
             console.error('❌ Registration failed:', xhr.status, xhr.responseText);
-            
+
             let errorMsg = 'Registration failed. Please try again.';
             try {
                 const errorResponse = JSON.parse(xhr.responseText);
@@ -99,7 +99,7 @@ function submitRegistration(userData, messageDiv) {
             } catch (e) {
                 // אם זה לא JSON, השתמש בהודעה הכללית
             }
-            
+
             showErrorMessage(messageDiv, errorMsg);
         }
     );
@@ -112,7 +112,7 @@ function showSuccessMessage(messageDiv, username) {
 
     // התחברות אוטומטית לאחר הרשמה מוצלחת
     const password = document.getElementById('password').value;
-    
+
     // קריאה לפונקציית התחברות מ-auth.js
     Auth.login(username, password).then(loginResult => {
         if (loginResult.success) {

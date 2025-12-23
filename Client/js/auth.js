@@ -1,5 +1,5 @@
 // auth.js 
-$(document).ready(function() {
+$(document).ready(function () {
     // console.log('🔐 Auth module loaded with jQuery');
 });
 
@@ -12,7 +12,7 @@ async function getUserInterests(userId) {
             'GET',
             `${baseUrl}/users/interests`,
             { userId: Auth.getCurrentUser().id },
-            function(response) {
+            function (response) {
                 if (response && response.categories) {
                     // console.log('📝 User interests:', response.categories);
                     resolve(response.categories);
@@ -20,7 +20,7 @@ async function getUserInterests(userId) {
                     resolve(['general']); // Default interest
                 }
             },
-            function(xhr, status, error) {
+            function (xhr, status, error) {
                 console.warn('⚠️ Could not load user interests:', error);
                 resolve(['general']);
             }
@@ -50,25 +50,21 @@ const Auth = {
     login: async (username, password) => {
         return new Promise((resolve) => {
             // console.log('🌐 Frontend: Starting login request...');
-            
+
             ajaxCall(
                 'POST',
                 `${baseUrl}/Users/login`,
-                JSON.stringify({ 
-                    Username: username, 
+                JSON.stringify({
+                    Username: username,
                     Password: password
                 }),
-                cache: false,
-                contentType: "application/json",
-                dataType: "json",
-                timeout: 30000,
-                success: function(response) {
+                function (response) {
                     // console.log('📥 Frontend: Raw API response:', response);
 
                     // ✅ FIXED: Check for response.user.id instead of response.id
                     if (response && response.user && response.user.id) {
                         // console.log('✅ Frontend: Login successful, storing data...');
-                        
+
                         // ✅ FIXED: Access data from response.user object
                         localStorage.setItem('userInfo', JSON.stringify({
                             id: response.user.id,
@@ -88,7 +84,7 @@ const Auth = {
                         resolve({ success: false, error: 'Invalid response from server' });
                     }
                 },
-                function(xhr, status, error) {
+                function (xhr, status, error) {
                     console.error('❌ Frontend: Login failed:', {
                         status: xhr.status,
                         statusText: xhr.statusText,
@@ -171,7 +167,7 @@ const Auth = {
                         resolve({ success: false, error: 'Profile update failed' });
                     }
                 },
-                function (xhr, status, error) {
+                error: function (xhr, status, error) {
                     console.error('❌ Profile update error:', {
                         status: xhr.status,
                         statusText: xhr.statusText,
@@ -189,7 +185,7 @@ const Auth = {
 
                     resolve({ success: false, error: errorMessage });
                 }
-            );
+            });
         });
     },
 
@@ -260,7 +256,7 @@ const Auth = {
     // Logout user
     logout: () => {
         // console.log('🚪 Frontend: Logging out user...');
-        
+
         try {
             if (window.NotificationService && window.NotificationService.cleanup) {
                 window.NotificationService.cleanup();
@@ -268,11 +264,11 @@ const Auth = {
         } catch (e) {
             console.warn('Error cleaning up notifications:', e);
         }
-        
+
         localStorage.removeItem('userInfo');
         localStorage.removeItem('userId');
         localStorage.removeItem('fcmToken');
-        
+
         // console.log('🧹 Frontend: Local storage cleared');
         window.location.href = 'index.html';
     },
@@ -304,25 +300,25 @@ function validatePassword(password) {
     const hasUpperCase = /[A-Z]/.test(password);
     const hasLowerCase = /[a-z]/.test(password);
     const hasNumbers = /\d/.test(password);
-    
+
     const errors = [];
-    
+
     if (password.length < minLength) {
         errors.push(`Password must be at least ${minLength} characters long`);
     }
-    
+
     if (!hasUpperCase) {
         errors.push('Password must contain at least one uppercase letter');
     }
-    
+
     if (!hasLowerCase) {
         errors.push('Password must contain at least one lowercase letter');
     }
-    
+
     if (!hasNumbers) {
         errors.push('Password must contain at least one number');
     }
-    
+
     return {
         isValid: errors.length === 0,
         errors: errors
@@ -340,21 +336,21 @@ function validateUsername(username) {
     const minLength = 3;
     const maxLength = 30;
     const validChars = /^[a-zA-Z0-9_-]+$/;
-    
+
     const errors = [];
-    
+
     if (username.length < minLength) {
         errors.push(`Username must be at least ${minLength} characters long`);
     }
-    
+
     if (username.length > maxLength) {
         errors.push(`Username must be no more than ${maxLength} characters long`);
     }
-    
+
     if (!validChars.test(username)) {
         errors.push('Username can only contain letters, numbers, hyphens, and underscores');
     }
-    
+
     return {
         isValid: errors.length === 0,
         errors: errors
@@ -362,13 +358,13 @@ function validateUsername(username) {
 }
 
 // Form validation and submission handlers
-$(document).ready(function() {
+$(document).ready(function () {
     // Real-time password validation
-    $('#regPassword, #password').on('input', function() {
+    $('#regPassword, #password').on('input', function () {
         const password = $(this).val();
         const validation = validatePassword(password);
         const $feedback = $(this).siblings('.password-feedback');
-        
+
         if (password.length > 0) {
             if (validation.isValid) {
                 $feedback.removeClass('text-danger').addClass('text-success').text('✓ Password meets requirements');
@@ -380,12 +376,12 @@ $(document).ready(function() {
             $feedback.hide();
         }
     });
-    
+
     // Real-time email validation
-    $('#regEmail, #email').on('input', function() {
+    $('#regEmail, #email').on('input', function () {
         const email = $(this).val();
         const $feedback = $(this).siblings('.email-feedback');
-        
+
         if (email.length > 0) {
             if (validateEmail(email)) {
                 $feedback.removeClass('text-danger').addClass('text-success').text('✓ Valid email address');
@@ -397,13 +393,13 @@ $(document).ready(function() {
             $feedback.hide();
         }
     });
-    
+
     // Real-time username validation
-    $('#regUsername, #username').on('input', function() {
+    $('#regUsername, #username').on('input', function () {
         const username = $(this).val();
         const validation = validateUsername(username);
         const $feedback = $(this).siblings('.username-feedback');
-        
+
         if (username.length > 0) {
             if (validation.isValid) {
                 $feedback.removeClass('text-danger').addClass('text-success').text('✓ Valid username');
@@ -415,13 +411,13 @@ $(document).ready(function() {
             $feedback.hide();
         }
     });
-    
+
     // Password confirmation validation
-    $('#regConfirmPassword').on('input', function() {
+    $('#regConfirmPassword').on('input', function () {
         const password = $('#regPassword').val();
         const confirmPassword = $(this).val();
         const $feedback = $(this).siblings('.confirm-password-feedback');
-        
+
         if (confirmPassword.length > 0) {
             if (password === confirmPassword) {
                 $feedback.removeClass('text-danger').addClass('text-success').text('✓ Passwords match');
@@ -435,15 +431,15 @@ $(document).ready(function() {
     });
 
     // FIXED: Check authentication on protected pages
-    setTimeout(function() {
+    setTimeout(function () {
         const protectedPages = ['news.html', 'saved.html', 'shared.html', 'interests.html', 'maps.html'];
         const adminPages = ['admin.html'];
         const currentPath = window.location.pathname;
         const currentFile = currentPath.split('/').pop(); // Gets just the filename like "news.html"
-        
+
         // console.log('🔐 Checking auth for page:', currentFile);
         // console.log('🔐 Full path:', currentPath);
-        
+
         // Check protected pages
         if (protectedPages.includes(currentFile)) {
             if (!window.Auth || !window.Auth.isLoggedIn()) {
@@ -454,7 +450,7 @@ $(document).ready(function() {
             }
             // console.log('✅ User authenticated for protected page');
         }
-        
+
         // Check admin pages
         if (adminPages.includes(currentFile)) {
             if (!window.Auth || !window.Auth.isLoggedIn()) {

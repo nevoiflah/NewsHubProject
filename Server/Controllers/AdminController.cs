@@ -112,10 +112,10 @@ namespace Server.Controllers
         {
             try
             {
-                var (totalUsers, activeUsers, lockedUsers, newUsersThisWeek, adminUsers) = Admin.GetUserActivityStats();
+                var (totalUsers, activeUsers, newUsersThisWeek, adminUsers) = Admin.GetUserActivityStats();
                 
-                var labels = new List<string> { "Active Users", "Locked Users", "New Users (This Week)", "Admin Users" };
-                var values = new List<int> { activeUsers, lockedUsers, newUsersThisWeek, adminUsers };
+                var labels = new List<string> { "Active Users", "New Users (This Week)", "Admin Users" };
+                var values = new List<int> { activeUsers, newUsersThisWeek, adminUsers };
                 
                 return Ok(new { 
                     labels, 

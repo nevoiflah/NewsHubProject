@@ -1,11 +1,11 @@
 const firebaseConfig = {
-  apiKey: "AIzaSyBaQvw0SPblRIdc_PZN8L2uxQSJI7jGbHQ",
-  authDomain: "newshub-aaa5c.firebaseapp.com",
-  projectId: "newshub-aaa5c",
-  storageBucket: "newshub-aaa5c.firebasestorage.app",
-  messagingSenderId: "610570159104",
-  appId: "1:610570159104:web:4114a16df0ed20fc9184e5",
-  measurementId: "G-RC6XYMVT61"
+    apiKey: "AIzaSyBaQvw0SPblRIdc_PZN8L2uxQSJI7jGbHQ",
+    authDomain: "newshub-aaa5c.firebaseapp.com",
+    projectId: "newshub-aaa5c",
+    storageBucket: "newshub-aaa5c.firebasestorage.app",
+    messagingSenderId: "610570159104",
+    appId: "1:610570159104:web:4114a16df0ed20fc9184e5",
+    measurementId: "G-RC6XYMVT61"
 };
 
 class NotificationService {
@@ -34,18 +34,18 @@ class NotificationService {
             this.app = firebaseApp.initializeApp(firebaseConfig);
             this.messaging = firebaseMessaging.getMessaging(this.app);
             this.db = firebaseFirestore.getFirestore(this.app);
-            
+
             window.firebase = {
                 app: this.app,
                 messaging: this.messaging,
                 db: this.db,
                 modules: this.firebaseModules
             };
-            
+
             this.isInitialized = true;
             // console.log('✅ Firebase initialized successfully');
             return true;
-            
+
         } catch (error) {
             return false;
         }
@@ -58,27 +58,27 @@ class NotificationService {
                 return false;
             }
         }
-    
+
         this.currentUser = userId;
-    
+
         try {
             if (!('Notification' in window)) {
                 return false;
             }
-        
+
             let permission = Notification.permission;
-        
+
             if (permission === 'default') {
                 this.showNotificationPrompt(userId, userInterests);
                 return false;
             }
-        
+
             if (permission === 'granted') {
                 return await this.setupNotifications(userId, userInterests);
             } else {
                 return false;
             }
-        
+
         } catch (error) {
             return false;
         }
@@ -147,11 +147,11 @@ class NotificationService {
         document.getElementById('enableNotifications').onclick = async () => {
             try {
                 const permission = await Notification.requestPermission();
-            
+
                 if (permission === 'granted') {
                     await this.setupNotifications(userId, userInterests);
                     document.getElementById('notificationPrompt').remove();
-                
+
                     if (window.showAlert) {
                         window.showAlert('success', 'Notifications enabled');
                     }
@@ -178,29 +178,29 @@ class NotificationService {
     async setupNotifications(userId, userInterests) {
         try {
             await this.registerServiceWorker();
-        
+
             const token = await this.firebaseModules.messaging.getToken(this.messaging, {
                 vapidKey: 'BBzIJz2Hrx6LDER7EApmNDqy2gHhKuV3R8oUG3nX7sCAR-VckGJ_rgydYldzXntwwL0NxaTqFKU-HYoomm2_YDI'
             });
-        
+
             if (token) {
                 // console.log('✅ FCM Token obtained:', token.substring(0, 20) + '...');
                 localStorage.setItem('fcmToken', token);
-            
+
                 const registered = await this.registerTokenWithBackend(token, userId);
-            
+
                 if (registered) {
                     await this.setupRealtimeListeners(userInterests);
-                
+
                     this.firebaseModules.messaging.onMessage(this.messaging, (payload) => {
                         this.handleForegroundMessage(payload);
                     });
-                
+
                     // console.log('✅ Notifications setup complete');
                     return true;
                 }
             }
-        
+
             return false;
         } catch (error) {
             return false;
@@ -226,7 +226,7 @@ class NotificationService {
             const response = await new Promise((resolve, reject) => {
                 ajaxCall(
                     'POST',
-                    'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/Users/notifications/register-token',
+                    `${window.API_BASE_URL || 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api'}/Users/notifications/register-token`,
                     JSON.stringify({
                         token,
                         userId,
@@ -269,7 +269,7 @@ class NotificationService {
     showInAppNotification(title, message, type = 'info') {
         const notificationEl = document.createElement('div');
         notificationEl.className = `notification-toast notification-${type} slide-in`;
-        
+
         notificationEl.style.cssText = `
             position: fixed !important;
             top: 90px !important;
@@ -285,7 +285,7 @@ class NotificationService {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto;
             animation: slideInFromRight 0.3s ease-out;
         `;
-        
+
         notificationEl.innerHTML = `
             <div class="notification-content" style="display: flex; justify-content: space-between; align-items: flex-start;">
                 <div style="flex: 1;">

@@ -3,7 +3,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace NewsHub_New_Server.Controllers
+namespace Server.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
@@ -55,7 +55,8 @@ Text: {request.Inputs}";
         {
             try
             {
-                var prompt = $@"Summarize the following news article in 2 clear sentences. Keep it concise.
+                var prompt = $@"Summarize the following news article in under 20 words. 
+CRITICAL: The summary MUST NOT exceed 20 words. Keep it strictly concise and professional.
 
 Text: {request.Inputs}";
 
@@ -66,7 +67,12 @@ Text: {request.Inputs}";
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = ex.Message });
+                Console.WriteLine($"❌ AI Summarization Error: {ex.Message}");
+                return StatusCode(500, new { 
+                    message = "AI Summarization failed", 
+                    error = ex.Message,
+                    tip = ex.Message.Contains("missing") ? "Check HuggingFace:Token in appsettings.json" : "Check model availability"
+                });
             }
         }
 
@@ -74,7 +80,7 @@ Text: {request.Inputs}";
         {
             var token = _configuration["HuggingFace:Token"];
             if (string.IsNullOrEmpty(token))
-                throw new Exception("AI configuration missing");
+                throw new Exception("AI Token is missing. Please add your Hugging Face token to appsettings.json.");
 
             var requestBody = new
             {

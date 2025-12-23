@@ -41,18 +41,25 @@ namespace Server.DAL
 
         public Admin GetSystemStats()
         {
-            using SqlConnection con = connect("myProjDB");
-            SqlCommand cmd = CreateCommandWithStoredProcedureGeneral("NLM_NewsHub_GetSystemStats", con, null);
-            SqlDataReader reader = cmd.ExecuteReader();
-
-            if (reader.Read())
+            try
             {
-                return new Admin(
-                    Convert.ToInt32(reader["TotalUsers"]),
-                    Convert.ToInt32(reader["ActiveUsers"]),
-                    Convert.ToInt32(reader["SharedArticles"]),
-                    Convert.ToInt32(reader["PendingReports"])
-                );
+                using SqlConnection con = connect("myProjDB");
+                SqlCommand cmd = CreateCommandWithStoredProcedureGeneral("NLM_NewsHub_GetSystemStats", con, null);
+                SqlDataReader reader = cmd.ExecuteReader();
+
+                if (reader.Read())
+                {
+                    return new Admin(
+                        reader["TotalUsers"] != DBNull.Value ? Convert.ToInt32(reader["TotalUsers"]) : 0,
+                        reader["ActiveUsers"] != DBNull.Value ? Convert.ToInt32(reader["ActiveUsers"]) : 0,
+                        reader["SharedArticles"] != DBNull.Value ? Convert.ToInt32(reader["SharedArticles"]) : 0,
+                        reader["PendingReports"] != DBNull.Value ? Convert.ToInt32(reader["PendingReports"]) : 0
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                // Console.WriteLine($"Error mapping system stats: {ex.Message}");
             }
 
             return new Admin(0, 0, 0, 0);
@@ -137,7 +144,7 @@ namespace Server.DAL
             return result;
         }
 
-        public (int TotalUsers, int ActiveUsers, int LockedUsers, int NewUsersThisWeek, int AdminUsers) GetUserActivityStats()
+        public (int TotalUsers, int ActiveUsers, int NewUsersThisWeek, int AdminUsers) GetUserActivityStats()
         {
             try
             {
@@ -147,7 +154,6 @@ namespace Server.DAL
                     SELECT 
                         COUNT(*) as TotalUsers,
                         SUM(CASE WHEN ActivityLevel > 0 THEN 1 ELSE 0 END) as ActiveUsers,
-                        0 as LockedUsers,
                         SUM(CASE WHEN RegistrationDate >= DATEADD(week, -1, GETDATE()) THEN 1 ELSE 0 END) as NewUsersThisWeek,
                         SUM(CASE WHEN IsAdmin = 1 THEN 1 ELSE 0 END) as AdminUsers
                     FROM NLM_NewsHub_Users";
@@ -160,7 +166,6 @@ namespace Server.DAL
                     return (
                         Convert.ToInt32(reader["TotalUsers"]),
                         Convert.ToInt32(reader["ActiveUsers"]), 
-                        Convert.ToInt32(reader["LockedUsers"]),
                         Convert.ToInt32(reader["NewUsersThisWeek"]),
                         Convert.ToInt32(reader["AdminUsers"])
                     );

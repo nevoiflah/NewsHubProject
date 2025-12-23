@@ -1,14 +1,24 @@
 // /js/common.js - FIXED URL ROUTING VERSION WITH STICKY NAVBAR
-(function($) {
+(function ($) {
     'use strict';
-    
+
     // console.log('🔧 Loading jQuery-based common utilities...');
-    
+
     // API Configuration
+    const IS_LOCALHOST =
+        window.location.hostname === 'localhost' ||
+        window.location.hostname === '127.0.0.1' ||
+        window.location.hostname === ''; // Handle file:// or local environment without hostname
+
     const API_CONFIG = {
-        baseUrl: 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api',
+        baseUrl: IS_LOCALHOST
+            ? 'http://localhost:5121/api' // Switched to HTTP to avoid ERR_CERT_AUTHORITY_INVALID
+            : 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api',
         timeout: 30000
     };
+
+    // Export globally for other scripts
+    window.API_BASE_URL = API_CONFIG.baseUrl;
 
     // FIXED: Helper function to get correct redirect URL based on current location
     function getCorrectRedirectUrl(targetPage = 'news.html') {
@@ -17,15 +27,15 @@
     }
 
     function getPageUrl(relativePath = 'news.html') {
-    // לוקח את הנתיב הנוכחי ומשאיר הכל עד לפני /pages/
-    const basePath = window.location.pathname.replace(/\/pages\/.*/, '/');
+        // לוקח את הנתיב הנוכחי ומשאיר הכל עד לפני /pages/
+        const basePath = window.location.pathname.replace(/\/pages\/.*/, '/');
 
-    // מנקה "pages/" אם המשתמש שלח כתובת עם זה
-    const cleaned = String(relativePath).replace(/^\/?pages\//, '');
+        // מנקה "pages/" אם המשתמש שלח כתובת עם זה
+        const cleaned = String(relativePath).replace(/^\/?pages\//, '');
 
-    // מחזיר את הכתובת עם ה־prefix המלא
-    return basePath + 'pages/' + cleaned;
-}
+        // מחזיר את הכתובת עם ה־prefix המלא
+        return basePath + 'pages/' + cleaned;
+    }
 
 
     // Ensure Auth service is always available
@@ -33,7 +43,7 @@
         if (!window.Auth) {
             window.Auth = {
                 isLoggedIn: () => localStorage.getItem('token') !== null,
-                
+
                 getCurrentUser: () => {
                     try {
                         return JSON.parse(localStorage.getItem('userInfo') || '{}');
@@ -41,7 +51,7 @@
                         return {};
                     }
                 },
-                
+
                 logout: () => {
                     try {
                         if (window.NotificationService && window.NotificationService.cleanup) {
@@ -50,14 +60,14 @@
                     } catch (e) {
                         console.warn('Error cleaning up notifications:', e);
                     }
-                    
+
                     localStorage.removeItem('userInfo');
                     localStorage.removeItem('fcmToken');
-                    
+
                     // FIXED: Smart redirect for logout using the corrected function
                     window.location.href = getPageUrl('index.html');
                 },
-                
+
                 // Login method 
                 login: async (username, password) => {
                     return new Promise((resolve) => {
@@ -69,7 +79,7 @@
                             contentType: "application/json",
                             dataType: "json",
                             timeout: API_CONFIG.timeout,
-                            success: function(response) {
+                            success: function (response) {
                                 // console.log('📥 Backend login response:', response);
                                 if (response && response.id) {
                                     localStorage.setItem('userInfo', JSON.stringify({
@@ -84,7 +94,7 @@
                                     resolve({ success: false, error: 'Login failed' });
                                 }
                             },
-                            function(xhr, status, error) {
+                            error: function (xhr, status, error) {
                                 console.error('❌ Login error:', error);
                                 let errorMessage = 'Login failed';
                                 try {
@@ -95,7 +105,7 @@
                                 }
                                 resolve({ success: false, error: errorMessage });
                             }
-                        );
+                        });
                     });
                 },
 
@@ -106,14 +116,14 @@
                             'POST',
                             `${API_CONFIG.baseUrl}/Users/register`,
                             JSON.stringify({ username, email, passwordHash: password }),
-                            function(response) {
+                            function (response) {
                                 if (response && response.id) {
                                     resolve({ success: true, message: 'Registration successful' });
                                 } else {
                                     resolve({ success: false, error: 'Registration failed' });
                                 }
                             },
-                            function(xhr, status, error) {
+                            function (xhr, status, error) {
                                 let errorMessage = 'Registration failed';
                                 try {
                                     const errorResponse = JSON.parse(xhr.responseText);
@@ -144,7 +154,7 @@
                             contentType: "application/json",
                             dataType: "json",
                             timeout: API_CONFIG.timeout,
-                            success: function(response) {
+                            success: function (response) {
                                 if (response && response.success) {
                                     // Update local storage
                                     const currentUser = JSON.parse(localStorage.getItem('userInfo') || '{}');
@@ -156,7 +166,7 @@
                                     resolve({ success: false, error: 'Profile update failed' });
                                 }
                             },
-                            function(xhr, status, error) {
+                            error: function (xhr, status, error) {
                                 let errorMessage = 'Profile update failed';
                                 try {
                                     const errorResponse = JSON.parse(xhr.responseText);
@@ -166,7 +176,7 @@
                                 }
                                 resolve({ success: false, error: errorMessage });
                             }
-                        );
+                        });
                     });
                 },
 
@@ -196,7 +206,7 @@
             };
         }
     }
-    
+
     // Ensure Utils service is always available
     function ensureUtilsService() {
         if (!window.Utils) {
@@ -206,7 +216,7 @@
                     return new Promise((resolve, reject) => {
                         const url = `${API_CONFIG.baseUrl}${endpoint.startsWith('/') ? endpoint : '/' + endpoint}`;
                         let data = null;
-                        
+
                         if (options.data) {
                             data = typeof options.data === 'string' ? options.data : JSON.stringify(options.data);
                         }
@@ -219,11 +229,11 @@
                             contentType: options.method === 'GET' ? undefined : "application/json",
                             dataType: "json",
                             timeout: API_CONFIG.timeout,
-                            success: function(response) {
+                            success: function (response) {
                                 // console.log(`✅ API Success: ${endpoint}`, response);
                                 resolve(response);
                             },
-                            function(xhr, status, error) {
+                            error: function (xhr, status, error) {
                                 console.error(`❌ API Error: ${endpoint}`, {
                                     status: xhr.status,
                                     statusText: xhr.statusText,
@@ -231,7 +241,7 @@
                                     status,
                                     error
                                 });
-                                
+
                                 // Handle 401 Unauthorized
                                 if (xhr.status === 401) {
                                     if (window.Auth && window.Auth.logout) {
@@ -240,7 +250,7 @@
                                     reject(new Error('Unauthorized'));
                                     return;
                                 }
-                                
+
                                 // Try to parse error response
                                 let errorMessage = error || 'Network error';
                                 try {
@@ -249,23 +259,23 @@
                                 } catch (e) {
                                     // Use default error message
                                 }
-                                
+
                                 reject(new Error(errorMessage));
                             }
-                        );
+                        });
                     });
                 },
-                
+
                 // Helper function to get API URL
                 getApiUrl: (endpoint) => {
                     return `${API_CONFIG.baseUrl}${endpoint.startsWith('/') ? endpoint : '/' + endpoint}`;
                 },
-                
+
                 sanitizeHtml: (html) => {
                     if (!html) return '';
                     return $('<div>').text(html).html();
                 },
-                
+
                 formatDate: (dateString) => {
                     if (!dateString) return 'Unknown';
                     const date = new Date(dateString);
@@ -284,7 +294,7 @@
 
                 truncateText: (text, maxLength = 150) => {
                     if (!text) return '';
-                    return text.length > maxLength ? 
+                    return text.length > maxLength ?
                         text.substring(0, maxLength) + '...' : text;
                 }
             };
@@ -304,7 +314,7 @@
 
         try {
             // console.log(`🔔 Auto-initializing notifications for user: ${currentUser.id} (${currentUser.username})`);
-    
+
             let userInterests = ['general'];
             try {
                 const response = await window.Utils.apiCall('/users/interests');
@@ -314,18 +324,18 @@
             } catch (e) {
                 // console.log('⚠️ Could not load user interests, using defaults');
             }
-    
+
             const success = await window.NotificationService.initializeForUser(
-                currentUser.id, 
+                currentUser.id,
                 userInterests
             );
-    
+
             if (success) {
                 // console.log('✅ Notifications auto-initialized successfully');
             } else {
                 // console.log('ℹ️ Notifications require user permission - prompt will be shown');
             }
-    
+
         } catch (error) {
             console.warn('⚠️ Auto-initialization error:', error.message);
         }
@@ -342,7 +352,7 @@
             url: url,
             method: 'GET',
             dataType: 'json',
-            success: function(response) {
+            success: function (response) {
                 // console.log('✅ NewsAPI preview loaded:', response);
 
                 if (response && Array.isArray(response.articles) && response.articles.length > 0) {
@@ -380,7 +390,7 @@
                     `);
                 }
             },
-            error: function(xhr, status, error) {
+            error: function (xhr, status, error) {
                 console.error('❌ Failed to load preview news from NewsAPI.org:', error);
                 $('#previewNews').html(`
                     <div class="col-12 text-center">
@@ -398,7 +408,7 @@
     function showAlert(type, message, duration = 5000) {
         // Remove existing alerts
         $('.alert-custom').remove();
-    
+
         const alertHtml = `
             <div class="alert alert-${type} alert-dismissible alert-custom" role="alert" 
                 style="position: fixed !important; 
@@ -412,9 +422,9 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         `;
-    
+
         $('body').append(alertHtml);
-    
+
         // Auto-dismiss after duration
         setTimeout(() => {
             $('.alert-custom').fadeOut();
@@ -422,25 +432,25 @@
     }
 
     // Initialize when DOM is ready
-    function initialize() { 
+    function initialize() {
         ensureAuthService();
         ensureUtilsService();
-        
+
         // console.log('✅ jQuery-based common utilities loaded');
-        
+
         // Auto-initialize for already logged-in users
         autoInitializeNotifications();
     }
-    
+
     // Run initialization when document is ready
     $(document).ready(initialize);
-    
+
     // Make functions globally available
     window.loadPreviewNews = loadPreviewNews;
     window.getCorrectRedirectUrl = getCorrectRedirectUrl;
     window.getPageUrl = getPageUrl;
     window.showAlert = showAlert;
-    
+
 })(jQuery);
 
 // ============================================================================
@@ -485,7 +495,7 @@ function createNavbar() {
             </div>
             </nav>
         `);
-        
+
         // FORCE POSITIONING with JavaScript after creation
         setTimeout(() => {
             const navbar = document.getElementById('mainNavbar');
@@ -502,13 +512,13 @@ function createNavbar() {
                 navbar.style.setProperty('backdrop-filter', 'blur(10px)', 'important');
                 navbar.style.setProperty('-webkit-backdrop-filter', 'blur(10px)', 'important');
                 navbar.style.setProperty('box-shadow', '0 2px 10px rgba(0, 0, 0, 0.1)', 'important');
-                
+
                 // Force body padding
                 document.body.style.setProperty('padding-top', '80px', 'important');
                 document.body.style.setProperty('margin-top', '0', 'important');
-                
+
                 // console.log('✅ Navbar positioning forced with JavaScript');
-                
+
                 // Verify the positioning worked
                 const computedStyle = window.getComputedStyle(navbar);
                 // console.log('📊 Final navbar position:', computedStyle.position);
@@ -523,20 +533,20 @@ function createNavbar() {
 function updateNavbarForUser() {
     const $authNav = $('#authNav');
     if (!$authNav.length) return;
-    
+
     if (window.Auth && window.Auth.isLoggedIn()) {
         const user = window.Auth.getCurrentUser();
         let adminLink = '';
-        
+
         if (user.isAdmin) {
             adminLink = `<li><a class="dropdown-item" href="${window.getPageUrl('admin.html')}">
                 <i class="fas fa-cog me-2"></i>Admin Dashboard
             </a></li>`;
         }
-        
+
         // Get avatar using centralized function
         const avatarSrc = getAvatarSource(user.activityLevel);
-        
+
         $authNav.html(`
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
@@ -574,13 +584,13 @@ function updateNavbarForUser() {
 function updateNavbarWithLocalData(user) {
     const $authNav = $('#authNav');
     let adminLink = '';
-    
+
     if (user.isAdmin) {
         adminLink = `<li><a class="dropdown-item" href="${window.getPageUrl('admin.html')}">
             <i class="fas fa-cog me-2"></i>Admin Dashboard
         </a></li>`;
     }
-    
+
     // Get user avatar - use activity level to determine avatar
     let avatarSrc = '../assets/default-avatar.png';
     if (user.activityLevel !== undefined) {
@@ -596,7 +606,7 @@ function updateNavbarWithLocalData(user) {
             avatarSrc = '../assets/avatar-reader.png';
         }
     }
-    
+
     $authNav.html(`
         <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
@@ -631,14 +641,14 @@ async function followUser(userId) {
             'POST',
             `${API_CONFIG.baseUrl}/Users/${userId}/follow`,
             null,
-            function(response) {
+            function (response) {
                 if (response && response.success) {
                     resolve({ success: true, message: response.message });
                 } else {
                     resolve({ success: false, error: response?.message || 'Failed to follow user' });
                 }
             },
-            function(xhr, status, error) {
+            function (xhr, status, error) {
                 console.error('Error following user:', error);
                 resolve({ success: false, error: 'Network error' });
             }
@@ -653,14 +663,14 @@ async function unfollowUser(userId) {
             'DELETE',
             `${API_CONFIG.baseUrl}/Users/${userId}/follow`,
             null,
-            function(response) {
+            function (response) {
                 if (response && response.success) {
                     resolve({ success: true, message: response.message });
                 } else {
                     resolve({ success: false, error: response?.message || 'Failed to unfollow user' });
                 }
             },
-            function(xhr, status, error) {
+            function (xhr, status, error) {
                 console.error('Error unfollowing user:', error);
                 resolve({ success: false, error: 'Network error' });
             }
@@ -673,34 +683,34 @@ async function unfollowUser(userId) {
 // ============================================================================
 
 // Document ready handlers using jQuery
-$(document).ready(function() {
+$(document).ready(function () {
     // Create navbar
     createNavbar();
-    
+
     // Check and update navbar for logged-in users
     setTimeout(updateNavbarForUser, 100);
 
     // FIXED: Login form handler with proper redirect logic
-    $('#loginForm').on('submit', async function(e) {
+    $('#loginForm').on('submit', async function (e) {
         e.preventDefault();
-        
+
         const username = $('#username').val();
         const password = $('#password').val();
         const $messageDiv = $('#loginMessage');
-        
+
         if (!username || !password) {
             $messageDiv.text('Please enter both username and password').removeClass('d-none');
             return;
         }
-        
+
         // Show loading
         const $submitBtn = $(this).find('button[type="submit"]');
         const originalText = $submitBtn.html();
         $submitBtn.html('<span class="spinner-border spinner-border-sm me-2"></span>Signing in...').prop('disabled', true);
-        
+
         try {
             const result = await window.Auth.login(username, password);
-            
+
             if (result.success) {
                 $messageDiv.addClass('d-none');
                 window.showAlert('success', 'Login successful! Redirecting...');
@@ -717,21 +727,21 @@ $(document).ready(function() {
                 // FIXED: Use built-in redirect logic with proper URL handling
                 const redirectParam = new URLSearchParams(window.location.search).get('redirect');
                 let redirectUrl;
-                
+
                 if (redirectParam) {
                     redirectUrl = redirectParam;
                 } else {
                     // Use smart default based on current location
                     redirectUrl = window.getPageUrl('news.html');
                 }
-                
+
                 // console.log('🔄 Redirecting to:', redirectUrl);
                 window.location.href = redirectUrl;
-                
+
             } else {
                 $messageDiv.text(result.error || 'Login failed').removeClass('d-none');
             }
-            
+
         } catch (error) {
             console.error('💥 Login error:', error);
             $messageDiv.text('An error occurred. Please try again.').removeClass('d-none');
@@ -741,57 +751,57 @@ $(document).ready(function() {
     });
 
     // Registration form handler
-    $('#registrationForm').on('submit', async function(e) {
+    $('#registrationForm').on('submit', async function (e) {
         e.preventDefault();
-        
+
         const username = $('#regUsername').val();
         const email = $('#regEmail').val();
         const password = $('#regPassword').val();
         const confirmPassword = $('#regConfirmPassword').val();
         const $messageDiv = $('#registrationMessage');
-        
+
         // Validation
         if (!username || !email || !password || !confirmPassword) {
             $messageDiv.text('Please fill in all fields').removeClass('d-none alert-success').addClass('alert-danger');
             return;
         }
-        
+
         if (password !== confirmPassword) {
             $messageDiv.text('Passwords do not match').removeClass('d-none alert-success').addClass('alert-danger');
             return;
         }
-        
+
         if (password.length < 6) {
             $messageDiv.text('Password must be at least 6 characters long').removeClass('d-none alert-success').addClass('alert-danger');
             return;
         }
-        
+
         // Show loading
         const $submitBtn = $(this).find('button[type="submit"]');
         const originalText = $submitBtn.html();
         $submitBtn.html('<span class="spinner-border spinner-border-sm me-2"></span>Creating account...').prop('disabled', true);
-        
+
         try {
             const result = await window.Auth.register(username, email, password);
-            
+
             if (result.success) {
                 $messageDiv.text('Registration successful! You can now log in.')
-                          .removeClass('d-none alert-danger')
-                          .addClass('alert-success');
-                
+                    .removeClass('d-none alert-danger')
+                    .addClass('alert-success');
+
                 setTimeout(() => {
                     // Use smart redirect for registration too
                     window.location.href = window.getPageUrl('login.html');
                 }, 2000);
             } else {
                 $messageDiv.text(result.error)
-                          .removeClass('d-none alert-success')
-                          .addClass('alert-danger');
+                    .removeClass('d-none alert-success')
+                    .addClass('alert-danger');
             }
         } catch (error) {
             $messageDiv.text('An error occurred. Please try again.')
-                      .removeClass('d-none alert-success')
-                      .addClass('alert-danger');
+                .removeClass('d-none alert-success')
+                .addClass('alert-danger');
         } finally {
             $submitBtn.html(originalText).prop('disabled', false);
         }
@@ -799,7 +809,7 @@ $(document).ready(function() {
 });
 
 // Global function to open community share modal with article data
-window.openCommunityShareModal = function(article) {
+window.openCommunityShareModal = function (article) {
     // Check if user is logged in
     const userId = localStorage.getItem('userId');
     if (!userId) {
@@ -882,9 +892,9 @@ window.openCommunityShareModal = function(article) {
             </div>
         `;
         document.body.insertAdjacentHTML('beforeend', modalHtml);
-        
+
         // Add submit handler
-        document.getElementById('submitShare').addEventListener('click', function() {
+        document.getElementById('submitShare').addEventListener('click', function () {
             const formData = {
                 url: document.getElementById('articleUrl').value,
                 articleTitle: document.getElementById('articleTitle').value,
@@ -906,15 +916,15 @@ window.openCommunityShareModal = function(article) {
             // Submit to API (using the same URL as in share.js)
             ajaxCall(
                 'POST',
-                `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/shared?userId=${userId}`,
+                `${window.API_BASE_URL}/shared?userId=${userId}`,
                 JSON.stringify(formData),
-                function(response) {
+                function (response) {
                     if (response && response.success) {
                         if (typeof showAlert === 'function') {
                             showAlert('success', 'Article shared with community successfully!');
                         }
                         bootstrap.Modal.getInstance(document.getElementById('shareModal')).hide();
-                        
+
                         // Clear form
                         document.getElementById('shareForm').reset();
                     } else {
@@ -923,7 +933,7 @@ window.openCommunityShareModal = function(article) {
                         }
                     }
                 },
-                function(xhr, status, error) {
+                function (xhr, status, error) {
                     console.error('Share failed:', error);
                     if (typeof showAlert === 'function') {
                         showAlert('danger', 'Failed to share article. Please try again.');
@@ -956,7 +966,7 @@ window.openCommunityShareModal = function(article) {
 // Centralized function to get avatar source based on activity level
 function getAvatarSource(activityLevel) {
     let avatarSrc = '../assets/default-avatar.png';
-    
+
     if (activityLevel !== undefined) {
         if (activityLevel >= 50) {
             avatarSrc = '../assets/avatar-legend.png';
@@ -970,7 +980,7 @@ function getAvatarSource(activityLevel) {
             avatarSrc = '../assets/avatar-reader.png';
         }
     }
-    
+
     return avatarSrc;
 }
 
@@ -992,80 +1002,80 @@ function getTierName(activityLevel) {
 // Centralized function to update all avatars on the page
 function updateAllAvatars(activityLevel) {
     const avatarSrc = getAvatarSource(activityLevel);
-    
+
     // Update navbar avatar (current user)
     const $navbarAvatar = $('#authNav img[alt="User Avatar"]');
     if ($navbarAvatar.length) {
         $navbarAvatar.attr('src', avatarSrc);
     }
-    
+
     // Update interests page avatar (current user)
     const $interestsAvatar = $('#userAvatar');
     if ($interestsAvatar.length) {
         $interestsAvatar.attr('src', avatarSrc);
     }
-    
+
     // Update tier name in interests page (current user)
     const $tierName = $('#tierName');
     if ($tierName.length) {
         $tierName.text(getTierName(activityLevel));
     }
-    
+
     // Note: Shared articles avatars are updated individually based on each user's activity level
     // They are handled in the displaySharedContent function in share.js
-    
+
     // console.log('🔄 Current user avatars updated to:', avatarSrc);
 }
 
 // Function to update avatar for a specific user (for shared articles)
 function updateUserAvatar(userId, activityLevel) {
     const avatarSrc = getAvatarSource(activityLevel);
-    
+
     // Update avatar for specific user in shared articles
     const $userAvatar = $(`.card[data-user-id="${userId}"] img[alt="User Avatar"]`);
     if ($userAvatar.length) {
         $userAvatar.attr('src', avatarSrc);
     }
-    
+
     // console.log(`🔄 Avatar updated for user ${userId} to:`, avatarSrc);
 }
 
 // Centralized function to refresh user data and update all avatars
 function refreshUserDataAndAvatars() {
     if (!window.Auth || !window.Auth.isLoggedIn()) return;
-    
+
     const user = window.Auth.getCurrentUser();
     if (!user || !user.id) return;
-    
+
     ajaxCall(
         'GET',
-        `https://proj.ruppin.ac.il/cgroup17/test2/tar1/api/users/GetById/${user.id}`,
+        `${window.API_BASE_URL}/users/GetById/${user.id}`,
         null,
-        function(userData) {
+        function (userData) {
             const newActivityLevel = userData.activityLevel || 0;
             // console.log('🔄 Refreshing user data, activity level:', newActivityLevel);
-            
+
             // Update localStorage with fresh data
             const updatedUser = {
                 ...user,
                 activityLevel: newActivityLevel
             };
             localStorage.setItem('userInfo', JSON.stringify(updatedUser));
-            
+
             // Update all avatars on the page
             updateAllAvatars(newActivityLevel);
-            
+
             // Update progress meter if on interests page
             if (window.InterestsManager && window.InterestsManager.updateActivityProgress) {
                 window.InterestsManager.updateActivityProgress(newActivityLevel);
             }
-            
+
             // Update navbar if function exists
             if (window.updateNavbarForUser) {
                 window.updateNavbarForUser();
             }
         },
-        function(xhr, status, error) {
+        function (xhr, status, error) {
             console.warn('Failed to refresh user data:', error);
             // Fallback to localStorage data
             const currentUser = JSON.parse(localStorage.getItem('userInfo') || '{}');
@@ -1079,17 +1089,17 @@ function refreshUserDataAndAvatars() {
 // Set up periodic avatar synchronization
 function setupAvatarSynchronization() {
     // Refresh avatars every 30 seconds to keep them synchronized
-    setInterval(function() {
+    setInterval(function () {
         if (window.Auth && window.Auth.isLoggedIn()) {
             refreshUserDataAndAvatars();
         }
     }, 30000);
-    
+
     // console.log('🔄 Avatar synchronization setup complete');
 }
 
 // Initialize avatar synchronization when the page loads
-$(document).ready(function() {
+$(document).ready(function () {
     setupAvatarSynchronization();
 });
 
@@ -1097,7 +1107,7 @@ $(document).ready(function() {
 function triggerAvatarUpdate() {
     if (window.Auth && window.Auth.isLoggedIn()) {
         // Small delay to ensure backend has processed the action
-        setTimeout(function() {
+        setTimeout(function () {
             refreshUserDataAndAvatars();
         }, 1000);
     }
@@ -1110,3 +1120,17 @@ function triggerAvatarUpdate() {
 // Make functions globally available
 window.followUser = followUser;
 window.unfollowUser = unfollowUser;
+
+// Global ajaxCall function for legacy support
+window.ajaxCall = function (method, url, data, successCB, errorCB) {
+    $.ajax({
+        type: method,
+        url: url,
+        data: data,
+        cache: false,
+        contentType: "application/json",
+        dataType: "json",
+        success: successCB,
+        error: errorCB
+    });
+};
