@@ -19,7 +19,7 @@ namespace Server.DAL
             return con;
         }
 
-        private SqlCommand CreateCommandWithStoredProcedureGeneral(string spName, SqlConnection con, Dictionary<string, object> paramDic)
+        private SqlCommand CreateCommandWithStoredProcedureGeneral(string spName, SqlConnection con, Dictionary<string, object?>? paramDic)
         {
             SqlCommand cmd = new SqlCommand
             {
@@ -44,7 +44,7 @@ namespace Server.DAL
         public int CreateSharedArticle(SharedArticle article, int userId)
         {
             using SqlConnection con = connect("myProjDB");
-            Dictionary<string, object> paramDic = new()
+            Dictionary<string, object?> paramDic = new()
             {
                 { "@UserId", userId },
                 { "@Url", article.Url },
@@ -66,7 +66,7 @@ namespace Server.DAL
         public List<SharedArticle> GetSharedArticles(int? userId = null, string? sortBy = "newest", int page = 1, int pageSize = 20)
         {
             using SqlConnection con = connect("myProjDB");
-            Dictionary<string, object> paramDic = new()
+            Dictionary<string, object?> paramDic = new()
             {
                 { "@UserId", userId },
                 { "@SortBy", sortBy ?? "newest" },
@@ -90,7 +90,7 @@ namespace Server.DAL
         public SharedArticle? GetSharedArticleById(int id, int? currentUserId = null)
         {
             using SqlConnection con = connect("myProjDB");
-            Dictionary<string, object> paramDic = new()
+            Dictionary<string, object?> paramDic = new()
             {
                 { "@Id", id },
                 { "@CurrentUserId", currentUserId }
@@ -106,7 +106,7 @@ namespace Server.DAL
         public bool DeleteSharedArticle(int id, int userId)
         {
             using SqlConnection con = connect("myProjDB");
-            Dictionary<string, object> paramDic = new()
+            Dictionary<string, object?> paramDic = new()
             {
                 { "@Id", id },
                 { "@UserId", userId }
@@ -122,7 +122,7 @@ namespace Server.DAL
             try
             {
                 using SqlConnection con = connect("myProjDB");
-                Dictionary<string, object> paramDic = new()
+                Dictionary<string, object?> paramDic = new()
                 {
                     { "@SharedArticleId", sharedArticleId },
                     { "@UserId", userId }
@@ -147,7 +147,7 @@ namespace Server.DAL
         public bool IsLikedByUser(int articleId, int userId)
         {
             using SqlConnection con = connect("myProjDB");
-            Dictionary<string, object> paramDic = new()
+            Dictionary<string, object?> paramDic = new()
             {
                 { "@SharedArticleId", articleId },
                 { "@UserId", userId }
@@ -163,7 +163,7 @@ namespace Server.DAL
         public bool FlagSharedArticle(int id, bool flagged)
         {
             using SqlConnection con = connect("myProjDB");
-            Dictionary<string, object> paramDic = new()
+            Dictionary<string, object?> paramDic = new()
             {
                 { "@Id", id },
                 { "@IsFlagged", flagged }

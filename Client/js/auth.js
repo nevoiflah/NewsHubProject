@@ -3,14 +3,14 @@ $(document).ready(function () {
     // console.log('🔐 Auth module loaded with jQuery');
 });
 
-const baseUrl = 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api';
+const baseUrl = window.API_BASE_URL;
 
 // Helper function to get user interests 
 async function getUserInterests(userId) {
     return new Promise((resolve) => {
         ajaxCall(
             'GET',
-            `${baseUrl}/users/interests`,
+            `${baseUrl}/Tags/${Auth.getCurrentUser().id}`,
             { userId: Auth.getCurrentUser().id },
             function (response) {
                 if (response && response.categories) {
@@ -76,6 +76,18 @@ const Auth = {
 
                         // Store userId directly for backward compatibility
                         localStorage.setItem('userId', response.user.id);
+
+                        // Initialize notifications
+                        try {
+                            getUserInterests(response.user.id).then(interests => {
+                                if (window.NotificationService) {
+                                    // console.log('🔔 Initializing notifications for user:', response.user.id);
+                                    window.NotificationService.initializeForUser(response.user.id, interests);
+                                }
+                            });
+                        } catch (e) {
+                            console.warn('⚠️ Failed to initialize notifications:', e);
+                        }
 
                         // console.log('💾 Frontend: User data stored in localStorage');
                         resolve({ success: true, message: 'Login successful' });

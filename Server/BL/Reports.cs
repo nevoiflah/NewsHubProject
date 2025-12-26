@@ -8,7 +8,7 @@ namespace Server.BL
         private int id;
         private int newsId;
         private int userId;
-        private string reason;
+        private string reason = string.Empty;
         private DateTime createdAt;
         private bool isResolved;
 

@@ -23,7 +23,7 @@ function initRegisterPage() {
 
     elements.password.addEventListener('input', () => validatePasswordMatch(elements));
     elements.confirmPassword.addEventListener('input', () => validatePasswordMatch(elements));
-    elements.username.addEventListener('input', () => validateUsername(elements));
+    elements.username.addEventListener('input', () => validateRegisterFormUsername(elements));
     elements.form.addEventListener('submit', (e) => handleFormSubmit(e, elements));
 }
 
@@ -43,7 +43,7 @@ function validatePasswordMatch(elements) {
     }
 }
 
-function validateUsername(elements) {
+function validateRegisterFormUsername(elements) {
     // בדיקת קיום - זה התיקון העיקרי!
     if (!elements || !elements.username) return;
 

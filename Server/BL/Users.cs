@@ -9,11 +9,11 @@ namespace Server.BL
     public class Users
     {
         private int id;
-        private string username;
-        private string email;
-        private string firstName;
-        private string lastName;
-        private string passwordHash;
+        private string username = string.Empty;
+        private string email = string.Empty;
+        private string firstName = string.Empty;
+        private string lastName = string.Empty;
+        private string passwordHash = string.Empty;
         private DateTime registrationDate;
         private DateTime? lastLoginDate;
 
@@ -93,10 +93,14 @@ namespace Server.BL
             UsersDBservices dbs = new UsersDBservices();
             return dbs.InsertUser(user);
         }
-        static public Users? Login(string email, string password)
+        static public Users? Login(string identifier, string password)
         {
             UsersDBservices dbs = new UsersDBservices();
-            Users? user = dbs.GetUserByEmail(email);
+            Users? user = dbs.GetUserByUsername(identifier);
+            if (user == null)
+            {
+                user = dbs.GetUserByEmail(identifier);
+            }
 
             if (user != null && user.VerifyPassword(password))
             {
@@ -132,8 +136,8 @@ namespace Server.BL
             }
             catch (Exception e)
             {
-                // Console.WriteLine($"❌ Update error: {e.Message}");
-                // Console.WriteLine($"❌ Update stack trace: {e.StackTrace}");
+                Console.WriteLine($"❌ Update error: {e.Message}");
+                Console.WriteLine($"❌ Update stack trace: {e.StackTrace}");
                 return false;
             }
         }
@@ -288,7 +292,7 @@ namespace Server.BL
         private byte[] GenerateSalt()
         {
             byte[] salt = new byte[16];
-            using (var rng = new RNGCryptoServiceProvider())
+            using (var rng = RandomNumberGenerator.Create())
             {
                 rng.GetBytes(salt);
             }

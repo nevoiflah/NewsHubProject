@@ -33,6 +33,34 @@ namespace Server.Controllers
                 if (id > 0)
                 {
                     shared.Id = id;
+
+                    // Trigger Share Notification to Followers
+                    // "Get notified when people you follow share articles"
+                    Task.Run(async () => 
+                    {
+                        Console.WriteLine($"[DEBUG] Attempting Share Notification task. Sharer: {userId}");
+                        try 
+                        {
+                            // 1. Get the sharer's username
+                            var sharer = Users.GetUserById(userId);
+                            if (sharer != null) 
+                            {
+                                // 2. Get all users following this sharer
+                                var followers = UserFollow.GetFollowers(userId);
+                                
+                                // 3. Send notification to each follower
+                                foreach (var follower in followers)
+                                {
+                                    await NotificationService.SendShareNotification(follower.Id, sharer.Username, request.ArticleTitle ?? "Shared Article");
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                           Console.WriteLine($"Error sending share notifications: {ex.Message}");
+                        }
+                    });
+
                     return Ok(new { success = true, sharedId = id, message = "Article shared successfully" });
                 }
                 return BadRequest(new { success = false, message = "Failed to share article" });
@@ -115,6 +143,32 @@ namespace Server.Controllers
                 
                 if (success)
                 {
+                    // Fire-and-forget notification
+                    _ = Task.Run(async () => 
+                    {
+                        try
+                        {
+                            var article = SharedArticle.GetSharedArticleById(articleId, userId);
+                            var liker = Users.GetUserById(userId);
+                            
+                            Console.WriteLine($"[DEBUG] Notification Check: ArticleID={articleId}, LikerID={userId}, ArticleOwnerID={article?.UserId}");
+
+                            if (article != null && liker != null && article.UserId != userId)
+                            {
+                                Console.WriteLine($"[DEBUG] Sending notification to Owner {article.UserId} from Liker {liker.Username}");
+                                await NotificationService.SendLikeNotification(article.UserId, liker.Id, liker.Username, article.ArticleTitle ?? "Shared Article");
+                            }
+                            else
+                            {
+                                Console.WriteLine($"[DEBUG] Skip Notification: ArticleNull={article==null}, LikerNull={liker==null}, SelfLike={article?.UserId == userId}");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Error triggering like notification: {ex.Message}");
+                        }
+                    });
+
                     return Ok(new { success = true, message = "Like added successfully" });
                 }
                 else
@@ -166,6 +220,28 @@ namespace Server.Controllers
                 int commentId = SharedArticleComment.CreateComment(comment);
                 if (commentId > 0)
                 {
+                     // Trigger Comment Notification to Article Owner
+                    Task.Run(async () => 
+                    {
+                        Console.WriteLine($"[DEBUG] Attempting Comment Notification task. ArticleId: {articleId}");
+                        try 
+                        {
+                            var article = SharedArticle.GetSharedArticleById(articleId, userId);
+                            if (article != null && article.UserId != userId) // Don't notify if commenting on own post
+                            {
+                                var commenter = Users.GetUserById(userId);
+                                if (commenter != null)
+                                {
+                                    await NotificationService.SendCommentNotification(article.UserId, userId, commenter.Username, article.ArticleTitle ?? "Shared Article");
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Error sending comment notification: {ex.Message}");
+                        }
+                    });
+
                     return Ok(new { success = true, commentId = commentId, message = "Comment added successfully" });
                 }
                 return BadRequest(new { success = false, message = "Failed to add comment" });

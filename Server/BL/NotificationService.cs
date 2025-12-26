@@ -117,6 +117,7 @@ namespace Server.BL
         {
             try
             {
+                // Console.WriteLine($"[DEBUG] Checking preference '{preferenceField}' for user {userId}");
                 using var connection = new SqlConnection(GetConnectionString());
                 connection.Open();
 
@@ -125,11 +126,14 @@ namespace Server.BL
                 command.Parameters.AddWithValue("@UserId", userId);
 
                 var result = command.ExecuteScalar();
-                return result != null && Convert.ToBoolean(result);
+                bool shouldSend = result != null && Convert.ToBoolean(result);
+                // Console.WriteLine($"[DEBUG] Preference result for user {userId}: {shouldSend}");
+                return shouldSend;
             }
             catch (Exception ex)
             {
-                // Console.WriteLine($"Error checking notification preference: {ex.Message}");
+                Console.WriteLine($"[ERROR] Error checking notification preference: {ex.Message}");
+                Console.WriteLine($"[ERROR] Stack Trace: {ex.StackTrace}");
                 return false;
             }
         }
@@ -142,9 +146,11 @@ namespace Server.BL
                 var tokens = GetUserFCMTokens(userId);
                 if (!tokens.Any())
                 {
-                    // Console.WriteLine($"No FCM tokens found for user {userId}");
+                    Console.WriteLine($"[WARN] No FCM tokens found for user {userId}");
                     return;
                 }
+
+                Console.WriteLine($"[DEBUG] Found {tokens.Count} tokens for user {userId}. Sending notifications...");
 
                 // Send notification to each token
                 foreach (var token in tokens)
@@ -152,17 +158,17 @@ namespace Server.BL
                     try
                     {
                         await FirebaseConfig.SendNotificationAsync(token, title, body, data);
-                        // Console.WriteLine($"✅ Notification sent to user {userId}: {title}");
+                        Console.WriteLine($"[SUCCESS] Notification sent to user {userId}: {title}");
                     }
                     catch (Exception ex)
                     {
-                        // Console.WriteLine($"❌ Error sending notification to token {token}: {ex.Message}");
+                         Console.WriteLine($"[ERROR] Error sending notification to token {token.Substring(0, Math.Min(10, token.Length))}...: {ex.Message}");
                     }
                 }
             }
             catch (Exception ex)
             {
-                // Console.WriteLine($"Error sending notification to user {userId}: {ex.Message}");
+                Console.WriteLine($"[ERROR] Error sending notification to user {userId}: {ex.Message}");
             }
         }
 

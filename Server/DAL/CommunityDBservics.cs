@@ -19,7 +19,7 @@ namespace Server.DAL
             return con;
         }
 
-        private SqlCommand CreateCommandWithStoredProcedureGeneral(string spName, SqlConnection con, Dictionary<string, object> paramDic)
+        private SqlCommand CreateCommandWithStoredProcedureGeneral(string spName, SqlConnection con, Dictionary<string, object?>? paramDic)
         {
             SqlCommand cmd = new SqlCommand
             {
@@ -45,7 +45,7 @@ namespace Server.DAL
         public int CreateComment(SharedArticleComment comment)
         {
             using SqlConnection con = connect("myProjDB");
-            Dictionary<string, object> paramDic = new()
+            Dictionary<string, object?> paramDic = new()
             {
                 { "@SharedArticleId", comment.SharedArticleId },
                 { "@UserId", comment.UserId },
@@ -61,7 +61,7 @@ namespace Server.DAL
         public List<SharedArticleComment> GetCommentsByArticleId(int articleId, int? currentUserId = null)
         {
             using SqlConnection con = connect("myProjDB");
-            Dictionary<string, object> paramDic = new()
+            Dictionary<string, object?> paramDic = new()
             {
                 { "@SharedArticleId", articleId },
                 { "@CurrentUserId", currentUserId }
@@ -97,7 +97,7 @@ namespace Server.DAL
         public bool DeleteComment(int commentId, int userId)
         {
             using SqlConnection con = connect("myProjDB");
-            Dictionary<string, object> paramDic = new()
+            Dictionary<string, object?> paramDic = new()
             {
                 { "@CommentId", commentId },
                 { "@UserId", userId }
@@ -112,7 +112,7 @@ namespace Server.DAL
         public bool FollowUser(int followerUserId, int followedUserId)
         {
             using SqlConnection con = connect("myProjDB");
-            Dictionary<string, object> paramDic = new()
+            Dictionary<string, object?> paramDic = new()
             {
                 { "@FollowerUserId", followerUserId },
                 { "@FollowedUserId", followedUserId }
@@ -126,7 +126,7 @@ namespace Server.DAL
         public bool UnfollowUser(int followerUserId, int followedUserId)
         {
             using SqlConnection con = connect("myProjDB");
-            Dictionary<string, object> paramDic = new()
+            Dictionary<string, object?> paramDic = new()
             {
                 { "@FollowerUserId", followerUserId },
                 { "@FollowedUserId", followedUserId }
@@ -140,7 +140,7 @@ namespace Server.DAL
         public bool IsFollowing(int followerUserId, int followedUserId)
         {
             using SqlConnection con = connect("myProjDB");
-            Dictionary<string, object> paramDic = new()
+            Dictionary<string, object?> paramDic = new()
             {
                 { "@FollowerUserId", followerUserId },
                 { "@FollowedUserId", followedUserId }
@@ -155,7 +155,7 @@ namespace Server.DAL
         public List<UserFollow> GetFollowing(int userId)
         {
             using SqlConnection con = connect("myProjDB");
-            Dictionary<string, object> paramDic = new() { { "@UserId", userId } };
+            Dictionary<string, object?> paramDic = new() { { "@UserId", userId } };
 
             SqlCommand cmd = CreateCommandWithStoredProcedureGeneral("NLM_NewsHub_GetFollowing", con, paramDic);
             SqlDataReader reader = cmd.ExecuteReader();
@@ -179,7 +179,7 @@ namespace Server.DAL
         public List<UserFollow> GetFollowers(int userId)
         {
             using SqlConnection con = connect("myProjDB");
-            Dictionary<string, object> paramDic = new() { { "@UserId", userId } };
+            Dictionary<string, object?> paramDic = new() { { "@UserId", userId } };
 
             SqlCommand cmd = CreateCommandWithStoredProcedureGeneral("NLM_NewsHub_GetFollowers", con, paramDic);
             SqlDataReader reader = cmd.ExecuteReader();
@@ -203,7 +203,7 @@ namespace Server.DAL
         public Dictionary<string, int> GetFollowStats(int userId)
         {
             using SqlConnection con = connect("myProjDB");
-            Dictionary<string, object> paramDic = new() { { "@UserId", userId } };
+            Dictionary<string, object?> paramDic = new() { { "@UserId", userId } };
 
             SqlCommand cmd = CreateCommandWithStoredProcedureGeneral("NLM_NewsHub_GetFollowStats", con, paramDic);
             SqlDataReader reader = cmd.ExecuteReader();
@@ -228,7 +228,7 @@ namespace Server.DAL
         public bool BlockUser(int blockerUserId, int blockedUserId, string? reason = null)
         {
             using SqlConnection con = connect("myProjDB");
-            Dictionary<string, object> paramDic = new()
+            Dictionary<string, object?> paramDic = new()
             {
                 { "@BlockerUserId", blockerUserId },
                 { "@BlockedUserId", blockedUserId },
@@ -242,7 +242,7 @@ namespace Server.DAL
         public bool UnblockUser(int blockerUserId, int blockedUserId)
         {
             using SqlConnection con = connect("myProjDB");
-            Dictionary<string, object> paramDic = new()
+            Dictionary<string, object?> paramDic = new()
             {
                 { "@BlockerUserId", blockerUserId },
                 { "@BlockedUserId", blockedUserId }
@@ -255,7 +255,7 @@ namespace Server.DAL
         public bool IsBlocked(int blockerUserId, int blockedUserId)
         {
             using SqlConnection con = connect("myProjDB");
-            Dictionary<string, object> paramDic = new()
+            Dictionary<string, object?> paramDic = new()
             {
                 { "@BlockerUserId", blockerUserId },
                 { "@BlockedUserId", blockedUserId }
@@ -270,7 +270,7 @@ namespace Server.DAL
         public List<UserBlock> GetBlockedUsers(int userId)
         {
             using SqlConnection con = connect("myProjDB");
-            Dictionary<string, object> paramDic = new() { { "@UserId", userId } };
+            Dictionary<string, object?> paramDic = new() { { "@UserId", userId } };
 
             SqlCommand cmd = CreateCommandWithStoredProcedureGeneral("NLM_NewsHub_GetBlockedUsers", con, paramDic);
             SqlDataReader reader = cmd.ExecuteReader();
@@ -297,7 +297,7 @@ namespace Server.DAL
         public bool ReportContent(int userId, string contentType, int contentId, string reason)
         {
             using SqlConnection con = connect("myProjDB");
-            Dictionary<string, object> paramDic = new()
+            Dictionary<string, object?> paramDic = new()
             {
                 { "@UserId", userId },
                 { "@ContentType", contentType },
@@ -313,7 +313,7 @@ namespace Server.DAL
         public List<Report> GetReports(bool? resolved = null)
         {
             using SqlConnection con = connect("myProjDB");
-            Dictionary<string, object> paramDic = new() { { "@Resolved", resolved } };
+            Dictionary<string, object?> paramDic = new() { { "@Resolved", resolved } };
 
             SqlCommand cmd = CreateCommandWithStoredProcedureGeneral("NLM_NewsHub_GetReports", con, paramDic);
             SqlDataReader reader = cmd.ExecuteReader();
@@ -348,7 +348,7 @@ namespace Server.DAL
         public bool ResolveReport(int reportId, bool resolved)
         {
             using SqlConnection con = connect("myProjDB");
-            Dictionary<string, object> paramDic = new()
+            Dictionary<string, object?> paramDic = new()
             {
                 { "@ReportId", reportId },
                 { "@IsResolved", resolved }

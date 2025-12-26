@@ -63,10 +63,12 @@ class NotificationService {
 
         try {
             if (!('Notification' in window)) {
+                console.warn('⚠️ This browser does not support desktop notification');
                 return false;
             }
 
             let permission = Notification.permission;
+            console.log('🔔 Current Notification Permission:', permission);
 
             if (permission === 'default') {
                 this.showNotificationPrompt(userId, userInterests);
@@ -74,12 +76,16 @@ class NotificationService {
             }
 
             if (permission === 'granted') {
-                return await this.setupNotifications(userId, userInterests);
+                const result = await this.setupNotifications(userId, userInterests);
+                console.log('🔔 Setup Result:', result);
+                return result;
             } else {
+                console.warn('⚠️ Notifications denied');
                 return false;
             }
 
         } catch (error) {
+            console.error('❌ Error in initializeForUser:', error);
             return false;
         }
     }
@@ -177,14 +183,11 @@ class NotificationService {
 
     async setupNotifications(userId, userInterests) {
         try {
-            await this.registerServiceWorker();
-
-            const token = await this.firebaseModules.messaging.getToken(this.messaging, {
-                vapidKey: 'BBzIJz2Hrx6LDER7EApmNDqy2gHhKuV3R8oUG3nX7sCAR-VckGJ_rgydYldzXntwwL0NxaTqFKU-HYoomm2_YDI'
-            });
+            // Use our wrapper getToken method which handles the SW registration correctly
+            const token = await this.getToken();
 
             if (token) {
-                // console.log('✅ FCM Token obtained:', token.substring(0, 20) + '...');
+                console.log('✅ FCM Token obtained:', token.substring(0, 20) + '...');
                 localStorage.setItem('fcmToken', token);
 
                 const registered = await this.registerTokenWithBackend(token, userId);
@@ -193,58 +196,113 @@ class NotificationService {
                     await this.setupRealtimeListeners(userInterests);
 
                     this.firebaseModules.messaging.onMessage(this.messaging, (payload) => {
+                        console.log('🔔 Foreground message received:', payload);
+                        alert(`🔔 Notification Received:\n${payload.notification.title}\n${payload.notification.body}`);
                         this.handleForegroundMessage(payload);
                     });
 
-                    // console.log('✅ Notifications setup complete');
+                    console.log('✅ Notifications setup complete');
                     return true;
+                } else {
+                    console.error('❌ Failed to register token with backend');
                 }
+            } else {
+                console.warn('⚠️ No registration token available. Request permission to generate one.');
             }
 
             return false;
         } catch (error) {
+            console.error('❌ Error in setupNotifications:', error);
             return false;
         }
     }
 
     async registerServiceWorker() {
+        console.log('🔔 registerServiceWorker - START');
         try {
             if ('serviceWorker' in navigator) {
-                const registration = await navigator.serviceWorker.register('../firebase-messaging-sw.js');
-                // console.log('✅ Service Worker registered:', registration);
+                // Register SW at root scope to ensure compatibility with Firebase
+                // console.log('🔔 Attempting to register SW at /firebase-messaging-sw.js');
+                const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+                console.log('✅ Service Worker registered with scope:', registration.scope);
+
+                // Wait for the Service Worker to be active to avoid "no active Service Worker" error
+                if (registration.installing || registration.waiting) {
+                    console.log('⏳ Waiting for Service Worker to activate...');
+                    await new Promise(resolve => {
+                        const checkActive = () => {
+                            if (registration.active) {
+                                resolve();
+                            } else {
+                                setTimeout(checkActive, 100);
+                            }
+                        };
+                        checkActive();
+                    });
+                    console.log('✅ Service Worker is now ACTIVE');
+                }
+
+                // Double check with .ready
+                await navigator.serviceWorker.ready;
+
                 return registration;
             } else {
                 throw new Error('Service Worker not supported');
             }
         } catch (error) {
+            console.error('❌ registerServiceWorker FAILED:', error);
             throw error;
+        }
+    }
+
+    async getToken() {
+        console.log('🔔 getToken - START');
+        try {
+            const registration = await this.registerServiceWorker();
+            console.log('🔔 Requesting FCM token (using SW scope)...');
+
+            // Pass the registration to getToken so it uses the correct SW
+            const token = await this.firebaseModules.messaging.getToken(this.messaging, {
+                serviceWorkerRegistration: registration,
+                vapidKey: 'BBzIJz2Hrx6LDER7EApmNDqy2gHhKuV3R8oUG3nX7sCAR-VckGJ_rgydYldzXntwwL0NxaTqFKU-HYoomm2_YDI'
+            });
+
+            console.log('✅ getToken - SUCCESS. Token length:', token ? token.length : 0);
+            return token;
+        } catch (error) {
+            console.error('❌ getToken FAILED:', error);
+            return null;
         }
     }
 
     async registerTokenWithBackend(token, userId) {
         try {
-            const response = await new Promise((resolve, reject) => {
-                ajaxCall(
-                    'POST',
-                    `${window.API_BASE_URL || 'https://proj.ruppin.ac.il/cgroup17/test2/tar1/api'}/Users/notifications/register-token`,
-                    JSON.stringify({
-                        token,
-                        userId,
-                        deviceType: 'web',
-                        userAgent: navigator.userAgent
-                    }),
-                    resolve,
-                    reject
-                );
+            const baseUrl = window.API_BASE_URL || 'http://localhost:5121/api';
+            console.log(`🔔 Sending token to backend: ${baseUrl}/Notification/register-token`);
+
+            const response = await fetch(`${baseUrl}/Notification/register-token`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    Token: token,
+                    UserId: parseInt(userId),
+                    DeviceType: 'web',
+                    UserAgent: navigator.userAgent
+                })
             });
 
-            if (response && response.success) {
-                // console.log('✅ Token registered with backend');
-                return true;
-            } else {
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error(`❌ Backend registration failed: ${response.status} ${response.statusText}`, errorText);
                 return false;
             }
+
+            // console.log('✅ Token registered with backend');
+            return true;
         } catch (error) {
+            console.error('❌ Error sending token to backend:', error);
             return false;
         }
     }

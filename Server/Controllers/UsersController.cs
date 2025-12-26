@@ -109,19 +109,19 @@ namespace Server.Controllers
                     return NotFound(new { success = false, message = "User not found." });
                 }
 
-                // Verify current password for any changes
-                if (!currentUser.VerifyPassword(request.CurrentPassword))
-                {
-                    return BadRequest(new { success = false, message = "Current password is incorrect." });
-                }
-
-                // If trying to change password, verify old password
+                // Verify current password ONLY if trying to change password
                 if (!string.IsNullOrEmpty(request.NewPassword))
                 {
-                    if (!currentUser.VerifyPassword(request.CurrentPassword))
+                    if (string.IsNullOrEmpty(request.CurrentPassword) || !currentUser.VerifyPassword(request.CurrentPassword))
                     {
-                        return BadRequest(new { success = false, message = "Current password is incorrect for password change." });
+                        return BadRequest(new { success = false, message = "Current password is incorrect. Required for password changes." });
                     }
+                }
+
+                // Password verification handled above
+                if (!string.IsNullOrEmpty(request.NewPassword))
+                {
+                     // Logic for hashing new password will handle the update
                 }
 
                 // Validate email and username uniqueness if they're being changed
@@ -413,13 +413,28 @@ namespace Server.Controllers
         }
 
         [HttpPost("{targetUserId}/follow")]
-        public IActionResult FollowUser(int targetUserId, [FromQuery] int userId)
+        public async Task<IActionResult> FollowUser(int targetUserId, [FromQuery] int userId)
         {
             try
             {
                 bool success = UserFollow.FollowUser(userId, targetUserId);
                 if (success)
                 {
+                    // Trigger notification
+                    try 
+                    {
+                        Console.WriteLine($"[DEBUG] Attempting Follow Notification inside UsersController. Target: {targetUserId}, Follower: {userId}");
+                        var flower = Users.GetUserById(userId);
+                        if (flower != null)
+                        {
+                            await NotificationService.SendFollowNotification(targetUserId, userId, flower.Username);
+                        }
+                    }
+                    catch (Exception ex) 
+                    {
+                        Console.WriteLine($"Error triggering follow notification: {ex.Message}");
+                    }
+
                     return Ok(new { success = true, message = "User followed successfully" });
                 }
                 return BadRequest(new { success = false, message = "Failed to follow user" });
@@ -598,7 +613,7 @@ namespace Server.Controllers
 
     public class UserUpdateRequest
     {
-        public string CurrentPassword { get; set; } = string.Empty;
+        public string? CurrentPassword { get; set; }
         public string? Username { get; set; }
         public string? Email { get; set; }
         public string? FirstName { get; set; }

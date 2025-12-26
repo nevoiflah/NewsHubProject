@@ -17,7 +17,7 @@ namespace Server.DAL
             return con;
         }
 
-        public SqlCommand CreateCommandWithStoredProcedureGeneral(string spName, SqlConnection con, Dictionary<string, object> paramDic)
+        public SqlCommand CreateCommandWithStoredProcedureGeneral(string spName, SqlConnection con, Dictionary<string, object?>? paramDic)
         {
             SqlCommand cmd = new SqlCommand
             {
@@ -29,7 +29,7 @@ namespace Server.DAL
 
             if (paramDic != null)
             {
-                foreach (KeyValuePair<string, object> param in paramDic)
+                foreach (var param in paramDic)
                 {
                     cmd.Parameters.AddWithValue(param.Key, param.Value ?? DBNull.Value);
                 }
@@ -40,21 +40,19 @@ namespace Server.DAL
 
         public int InsertUser(Users user)
         {
-                SqlConnection con = null;
+                SqlConnection? con = null;
 
                 try
                 {
                     con = connect("myProjDB");
-                    Dictionary<string, object> paramDic = new Dictionary<string, object>
+                    Dictionary<string, object?> paramDic = new Dictionary<string, object?>
             {
                 { "@Username", user.Username },
                 { "@Email", user.Email },
                 { "@FirstName", user.FirstName },
                 { "@LastName", user.LastName },
                 { "@PasswordHash", user.PasswordHash },
-                { "@AvatarUrl", user.AvatarUrl },
-                { "@RegistrationDate", user.RegistrationDate },
-                { "@IsAdmin", user.IsAdmin }
+                { "@AvatarUrl", user.AvatarUrl }
             };
 
                 SqlCommand cmd = CreateCommandWithStoredProcedureGeneral("NLM_NewsHub_InsertUser", con, paramDic);
@@ -66,7 +64,7 @@ namespace Server.DAL
             }
             catch (Exception ex)
             {
-                throw ex;
+                throw;
             }
             finally
             {
@@ -77,13 +75,13 @@ namespace Server.DAL
 
         public int UpdateUser(int id, Users user)
         {
-            SqlConnection con = null;
+            SqlConnection? con = null;
 
             try
             {
                 con = connect("myProjDB");
 
-                Dictionary<string, object> paramDic = new Dictionary<string, object>
+                Dictionary<string, object?> paramDic = new Dictionary<string, object?>
                 {
                     { "@Id", id },
                     { "@Username", user.Username },
@@ -108,7 +106,7 @@ namespace Server.DAL
             {
                 // Console.WriteLine($"UpdateUser error: {ex.Message}");
                 // Console.WriteLine($"UpdateUser stack trace: {ex.StackTrace}");
-                throw ex;
+                throw;
             }
             finally
             {
@@ -118,13 +116,13 @@ namespace Server.DAL
 
         public int UpdateUserSimple(int id, string username, string email, string firstName, string lastName, string passwordHash = null)
         {
-            SqlConnection con = null;
+            SqlConnection? con = null;
 
             try
             {
                 con = connect("myProjDB");
 
-                Dictionary<string, object> paramDic = new Dictionary<string, object>
+                Dictionary<string, object?> paramDic = new Dictionary<string, object?>
                 {
                     { "@Id", id },
                     { "@Username", username },
@@ -143,7 +141,7 @@ namespace Server.DAL
             }
             catch (Exception ex)
             {
-                throw ex;
+                throw;
             }
             finally
             {
@@ -153,12 +151,12 @@ namespace Server.DAL
 
         public int DeleteUser(int id)
         {
-            SqlConnection con = null;
+            SqlConnection? con = null;
 
             try
             {
                 con = connect("myProjDB");
-                Dictionary<string, object> paramDic = new Dictionary<string, object>
+                Dictionary<string, object?> paramDic = new Dictionary<string, object?>
                 {
                     { "@Id", id }
                 };
@@ -168,7 +166,7 @@ namespace Server.DAL
             }
             catch (Exception ex)
             {
-                throw ex;
+                throw;
             }
             finally
             {
@@ -178,11 +176,11 @@ namespace Server.DAL
 
         public Users? GetUserById(int id)
         {
-            SqlConnection con = null;
+            SqlConnection? con = null;
             try
             {
                 con = connect("myProjDB");
-                Dictionary<string, object> paramDic = new Dictionary<string, object>
+                Dictionary<string, object?> paramDic = new Dictionary<string, object?>
                 {
                     { "@Id", id }
                 };
@@ -199,7 +197,7 @@ namespace Server.DAL
             }
             catch (Exception ex)
             {
-                throw ex;
+                throw;
             }
             finally
             {
@@ -209,12 +207,12 @@ namespace Server.DAL
 
         public Users? GetUserByUsername(string username)
         {
-            SqlConnection con = null;
+            SqlConnection? con = null;
 
             try
             {
                 con = connect("myProjDB");
-                Dictionary<string, object> paramDic = new Dictionary<string, object>
+                Dictionary<string, object?> paramDic = new Dictionary<string, object?>
                 {
                     { "@Username", username }
                 };
@@ -231,7 +229,7 @@ namespace Server.DAL
             }
             catch (Exception ex)
             {
-                throw ex;
+                throw;
             }
             finally
             {
@@ -241,12 +239,12 @@ namespace Server.DAL
 
         public Users? GetUserByEmail(string email)
         {
-            SqlConnection con = null;
+            SqlConnection? con = null;
 
             try
             {
                 con = connect("myProjDB");
-                Dictionary<string, object> paramDic = new Dictionary<string, object>
+                Dictionary<string, object?> paramDic = new Dictionary<string, object?>
                 {
                     { "@Email", email }
                 };
@@ -263,7 +261,7 @@ namespace Server.DAL
             }
             catch (Exception ex)
             {
-                throw ex;
+                throw;
             }
             finally
             {
@@ -273,7 +271,7 @@ namespace Server.DAL
 
         public List<Users> GetAllUsers()
         {
-            SqlConnection con = null;
+            SqlConnection? con = null;
             List<Users> users = new List<Users>();
 
             try
@@ -291,7 +289,7 @@ namespace Server.DAL
             }
             catch (Exception ex)
             {
-                throw ex;
+                throw;
             }
             finally
             {
@@ -303,11 +301,11 @@ namespace Server.DAL
 
         public int UpdateLastLogin(int id)
         {
-            SqlConnection con = null;
+            SqlConnection? con = null;
             try
             {
                 con = connect("myProjDB");
-                Dictionary<string, object> paramDic = new Dictionary<string, object>
+                Dictionary<string, object?> paramDic = new Dictionary<string, object?>
                 {
                     { "@UserId", id },
                     { "@LoginTime", DateTime.UtcNow }
@@ -318,7 +316,7 @@ namespace Server.DAL
             }
             catch (Exception ex)
             {
-                throw ex;
+                throw;
             }
             finally
             {
@@ -330,7 +328,7 @@ namespace Server.DAL
             try
             {
                 using SqlConnection con = connect("myProjDB");
-                Dictionary<string, object> paramDic = new() { { "@UserId", userId } };
+                Dictionary<string, object?> paramDic = new() { { "@UserId", userId } };
 
                 SqlCommand cmd = CreateCommandWithStoredProcedureGeneral("NLM_NewsHub_GetUserPreference", con, paramDic);
                 SqlDataReader reader = cmd.ExecuteReader();
@@ -361,7 +359,7 @@ namespace Server.DAL
                 using SqlConnection con = connect("myProjDB");
                 
                 // Clear existing preferences first
-                Dictionary<string, object> clearParamDic = new() { { "@UserId", userId } };
+                Dictionary<string, object?> clearParamDic = new() { { "@UserId", userId } };
                 SqlCommand clearCmd = CreateCommandWithStoredProcedureGeneral("NLM_NewsHub_SaveUserPreference", con, clearParamDic);
                 clearCmd.Parameters.AddWithValue("@Category", DBNull.Value);
                 clearCmd.ExecuteNonQuery();
@@ -369,7 +367,7 @@ namespace Server.DAL
                 // Save each category as a separate preference
                 foreach (string category in categories)
                 {
-                    Dictionary<string, object> paramDic = new()
+                    Dictionary<string, object?> paramDic = new()
                     {
                         { "@UserId", userId },
                         { "@Category", category }
@@ -393,7 +391,7 @@ namespace Server.DAL
             try
             {
                 using SqlConnection con = connect("myProjDB");
-                Dictionary<string, object> paramDic = new() { { "@UserId", userId } };
+                Dictionary<string, object?> paramDic = new() { { "@UserId", userId } };
 
                 SqlCommand cmd = CreateCommandWithStoredProcedureGeneral("NLM_NewsHub_SaveUserPreference", con, paramDic);
                 cmd.Parameters.AddWithValue("@Category", DBNull.Value);
@@ -413,7 +411,7 @@ namespace Server.DAL
             try
             {
                 using SqlConnection con = connect("myProjDB");
-                Dictionary<string, object> paramDic = new()
+                Dictionary<string, object?> paramDic = new()
                 {
                     { "@Id", userId },
                     { "@Username", DBNull.Value }, // Keep existing username
@@ -444,7 +442,7 @@ namespace Server.DAL
             try
             {
                 using SqlConnection con = connect("myProjDB");
-                Dictionary<string, object> paramDic = new()
+                Dictionary<string, object?> paramDic = new()
                 {
                     { "@UserId", userId },
                     { "@ActivityPoints", activityPoints }
@@ -488,7 +486,7 @@ namespace Server.DAL
     // Get total number of users
     public int GetTotalUsersCount()
     {
-        SqlConnection con = null;
+        SqlConnection? con = null;
         try
         {
             con = connect("myProjDB");
@@ -514,7 +512,7 @@ namespace Server.DAL
     // Get total number of saved articles
     public int GetTotalSavedNewsCount()
     {
-        SqlConnection con = null;
+        SqlConnection? con = null;
         try
         {
             con = connect("myProjDB");

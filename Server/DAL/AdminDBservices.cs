@@ -17,7 +17,7 @@ namespace Server.DAL
             return con;
         }
 
-        private SqlCommand CreateCommandWithStoredProcedureGeneral(string spName, SqlConnection con, Dictionary<string, object> paramDic)
+        private SqlCommand CreateCommandWithStoredProcedureGeneral(string spName, SqlConnection con, Dictionary<string, object?>? paramDic)
         {
             SqlCommand cmd = new SqlCommand
             {
@@ -29,7 +29,7 @@ namespace Server.DAL
 
             if (paramDic != null)
             {
-                foreach (KeyValuePair<string, object> param in paramDic)
+                foreach (var param in paramDic)
                 {
                     cmd.Parameters.AddWithValue(param.Key, param.Value ?? DBNull.Value);
                 }
@@ -176,7 +176,7 @@ namespace Server.DAL
                 // Console.WriteLine($"Error getting user activity stats: {ex.Message}");
             }
             
-            return (0, 0, 0, 0, 0);
+            return (0, 0, 0, 0);
         }
 
         public (int TotalSharedArticles, int TotalReports, int PendingReports, int SharedArticlesToday) GetContentStats()

@@ -155,6 +155,9 @@ const InterestsManager = {
         $('#saveInterests').on('click', InterestsManager.saveInterests);
         $('#resetInterests').on('click', InterestsManager.resetInterests);
         $('#cancelEdit').on('click', InterestsManager.cancelEdit);
+
+        // Instant Notification Toggles - REMOVED as per user request
+        // $('#notifyOnLikes, #notifyOnComments, #notifyOnFollows, #notifyOnShares').on('change', InterestsManager.handleNotificationToggle);
     },
 
     // Load user profile - Using direct $.ajax
@@ -515,13 +518,16 @@ const InterestsManager = {
 
             const isPasswordUpdate = profileData.newPassword && profileData.confirmPassword;
 
-            // Get current password for verification
-            const currentPassword = prompt('Please enter your current password to confirm the changes:');
-            if (!currentPassword || currentPassword.trim() === '') {
-                showAlert('warning', 'Password confirmation required to update your profile.');
-                button.prop('disabled', false);
-                button.html('<i class="fas fa-save me-2"></i>Save Changes');
-                return;
+            // Only prompt for current password if changing to a new password
+            let currentPassword = null;
+            if (isPasswordUpdate) {
+                currentPassword = prompt('Please enter your current password to confirm the password change:');
+                if (!currentPassword || currentPassword.trim() === '') {
+                    showAlert('warning', 'Password confirmation required to change your password.');
+                    button.prop('disabled', false);
+                    button.html('<i class="fas fa-save me-2"></i>Save Changes');
+                    return;
+                }
             }
 
             // Build the update request object according to the API specification

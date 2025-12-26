@@ -20,7 +20,7 @@ namespace Server.DAL
             return con;
         }
 
-        private SqlCommand CreateCommandWithStoredProcedureGeneral(string spName, SqlConnection con, Dictionary<string, object> paramDic)
+        private SqlCommand CreateCommandWithStoredProcedureGeneral(string spName, SqlConnection con, Dictionary<string, object?>? paramDic)
         {
             SqlCommand cmd = new SqlCommand
             {
@@ -45,7 +45,7 @@ namespace Server.DAL
         public int SaveNewsItem(News news, int userId)
         {
             using SqlConnection con = connect("myProjDB");
-            Dictionary<string, object> paramDic = new()
+            Dictionary<string, object?> paramDic = new()
             {
                 { "@Title", news.Title },
                 { "@Content", news.Content },
@@ -72,7 +72,7 @@ namespace Server.DAL
             using SqlConnection con = connect("myProjDB");
 
             SqlCommand cmd = CreateCommandWithStoredProcedureGeneral("NLM_NewsHub_GetSavedNews", con,
-                new Dictionary<string, object> { { "@UserId", userId } });
+                new Dictionary<string, object?> { { "@UserId", userId } });
 
             SqlDataReader reader = cmd.ExecuteReader();
             List<News> list = new();
@@ -90,7 +90,7 @@ namespace Server.DAL
             using SqlConnection con = connect("myProjDB");
 
             SqlCommand cmd = CreateCommandWithStoredProcedureGeneral("NLM_NewsHub_GetSavedNewsById", con,
-                new Dictionary<string, object>
+                new Dictionary<string, object?>
                 {
                     { "@Id", id },
                     { "@UserId", userId }
@@ -112,7 +112,7 @@ namespace Server.DAL
             using SqlConnection con = connect("myProjDB");
 
             SqlCommand cmd = CreateCommandWithStoredProcedureGeneral("NLM_NewsHub_UnsaveNewsForUser", con,
-                new Dictionary<string, object>
+                new Dictionary<string, object?>
                 {
                     { "@UserId", userId },
                     { "@NewsId", newsId }
@@ -124,7 +124,7 @@ namespace Server.DAL
         {
             using SqlConnection con = connect("myProjDB");
 
-            Dictionary<string, object> paramDic = new()
+            Dictionary<string, object?> paramDic = new()
     {
         { "@NewsId", newsId },
         { "@UserId", userId },
@@ -139,7 +139,7 @@ namespace Server.DAL
         {
             using SqlConnection con = connect("myProjDB");
 
-            Dictionary<string, object> paramDic = new()
+            Dictionary<string, object?> paramDic = new()
     {
         { "@UserId", userId },
         { "@NewsId", newsId }

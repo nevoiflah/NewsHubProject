@@ -17,7 +17,7 @@ namespace Server.DAL
             return con;
         }
 
-        private SqlCommand CreateCommandWithStoredProcedureGeneral(string spName, SqlConnection con, Dictionary<string, object> paramDic)
+        private SqlCommand CreateCommandWithStoredProcedureGeneral(string spName, SqlConnection con, Dictionary<string, object?>? paramDic)
         {
             SqlCommand cmd = new SqlCommand
             {
@@ -51,7 +51,7 @@ namespace Server.DAL
                     Convert.ToInt32(reader["Id"]),
                     Convert.ToInt32(reader["NewsId"]),
                     Convert.ToInt32(reader["UserId"]),
-                    reader["Reason"].ToString(),
+                    reader["Reason"]?.ToString() ?? string.Empty,
                     Convert.ToDateTime(reader["ReportedAt"]),
                     Convert.ToBoolean(reader["IsResolved"])
                 );
@@ -64,7 +64,7 @@ namespace Server.DAL
         public int MarkReportAsResolved(int reportId)
         {
             using SqlConnection con = connect("myProjDB");
-            Dictionary<string, object> paramDic = new()
+            Dictionary<string, object?> paramDic = new()
             {
                 { "@ReportId", reportId }
             };

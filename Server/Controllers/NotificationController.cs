@@ -20,7 +20,7 @@ namespace NewsHub_New_Server.Controllers
         {
             try
             {
-                // Console.WriteLine($"🔔 Registering FCM token for user {request.UserId}: {request.Token.Substring(0, Math.Min(20, request.Token.Length))}...");
+                Console.WriteLine($"🔔 Registering FCM token for user {request.UserId}: {request.Token.Substring(0, Math.Min(20, request.Token.Length))}...");
                 
                 using var connection = new SqlConnection(_configuration.GetConnectionString("myProjDB"));
                 connection.Open();
@@ -55,14 +55,14 @@ namespace NewsHub_New_Server.Controllers
                     command.ExecuteNonQuery();
                 }
                 
-                // Console.WriteLine($"✅ Token registered successfully for user {request.UserId}");
+                Console.WriteLine($"✅ Token registered successfully for user {request.UserId}");
                 // Console.WriteLine($"📱 Device: {request.DeviceType}, User Agent: {request.UserAgent}");
                 
                 return Ok(new { success = true, message = "Token registered successfully" });
             }
             catch (Exception ex)
             {
-                // Console.WriteLine($"❌ Error registering FCM token: {ex.Message}");
+                Console.WriteLine($"❌ Error registering FCM token: {ex.Message}");
                 return StatusCode(500, new { success = false, message = $"Error registering token: {ex.Message}" });
             }
         }

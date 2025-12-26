@@ -24,3 +24,8 @@ publish/
 # Ignore dependency folders
 node_modules/
 .DS_Store
+
+# User Exclusions (Secrets & Config)
+firebase-messaging-sw.js
+Server/firebase/firebase-admin-sdk.json
+Server/appsettings.json
