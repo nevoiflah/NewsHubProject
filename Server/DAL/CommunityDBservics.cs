@@ -104,7 +104,8 @@ namespace Server.DAL
             };
 
             SqlCommand cmd = CreateCommandWithStoredProcedureGeneral("NLM_NewsHub_DeleteComment", con, paramDic);
-            return cmd.ExecuteNonQuery() > 0;
+            object? result = cmd.ExecuteScalar();
+            return result != null && Convert.ToInt32(result) > 0;
         }
 
         // ==================== USER FOLLOWS ====================
@@ -236,7 +237,8 @@ namespace Server.DAL
             };
 
             SqlCommand cmd = CreateCommandWithStoredProcedureGeneral("NLM_NewsHub_BlockUser", con, paramDic);
-            return cmd.ExecuteNonQuery() > 0;
+            object? result = cmd.ExecuteScalar();
+            return result != null && Convert.ToInt32(result) == 1;
         }
 
         public bool UnblockUser(int blockerUserId, int blockedUserId)
@@ -249,7 +251,8 @@ namespace Server.DAL
             };
 
             SqlCommand cmd = CreateCommandWithStoredProcedureGeneral("NLM_NewsHub_UnblockUser", con, paramDic);
-            return cmd.ExecuteNonQuery() > 0;
+            object? result = cmd.ExecuteScalar();
+            return result != null && Convert.ToInt32(result) > 0;
         }
 
         public bool IsBlocked(int blockerUserId, int blockedUserId)
@@ -355,7 +358,8 @@ namespace Server.DAL
             };
 
             SqlCommand cmd = CreateCommandWithStoredProcedureGeneral("NLM_NewsHub_ResolveReport", con, paramDic);
-            return cmd.ExecuteNonQuery() > 0;
+            object? result = cmd.ExecuteScalar();
+            return result != null && Convert.ToInt32(result) > 0;
         }
     }
 }

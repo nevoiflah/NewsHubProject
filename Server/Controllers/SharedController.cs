@@ -115,7 +115,11 @@ namespace Server.Controllers
         {
             try
             {
-                bool deleted = SharedArticle.DeleteSharedArticle(id, userId);
+                // Check if user is admin to allow override
+                var user = Users.GetUserById(userId);
+                bool isAdmin = user != null && user.IsAdmin;
+
+                bool deleted = SharedArticle.DeleteSharedArticle(id, userId, isAdmin);
                 return deleted
                     ? Ok(new { success = true, message = "Shared article deleted successfully" })
                     : BadRequest(new { success = false, message = "Failed to delete shared article" });

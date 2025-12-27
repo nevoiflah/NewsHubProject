@@ -83,10 +83,17 @@ namespace Server.DAL
             return reader.Read() ? MapShared(reader) : null;
         }
 
-        public bool DeleteShared(int id)
+public bool DeleteShared(int id, int userId, bool isAdmin = false)
         {
             using SqlConnection con = connect("myProjDB");
-            SqlCommand cmd = CreateCommandWithStoredProcedureGeneral("NLM_NewsHub_DeleteShared", con, new() { { "@Id", id } });
+            Dictionary<string, object?> paramDic = new()
+            {
+                { "@Id", id },
+                { "@UserId", userId },
+                { "@IsAdmin", isAdmin }
+            };
+
+            SqlCommand cmd = CreateCommandWithStoredProcedureGeneral("NLM_NewsHub_DeleteSharedArticle", con, paramDic);
             return cmd.ExecuteNonQuery() > 0;
         }
 

@@ -103,13 +103,14 @@ namespace Server.DAL
         }
 
         // Delete shared article
-        public bool DeleteSharedArticle(int id, int userId)
+        public bool DeleteSharedArticle(int id, int userId, bool isAdmin = false)
         {
             using SqlConnection con = connect("myProjDB");
             Dictionary<string, object?> paramDic = new()
             {
                 { "@Id", id },
-                { "@UserId", userId }
+                { "@UserId", userId },
+                { "@IsAdmin", isAdmin }
             };
 
             SqlCommand cmd = CreateCommandWithStoredProcedureGeneral("NLM_NewsHub_DeleteSharedArticle", con, paramDic);

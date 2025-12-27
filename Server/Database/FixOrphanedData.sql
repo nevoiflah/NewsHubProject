@@ -3,7 +3,8 @@
 
 CREATE OR ALTER PROCEDURE [dbo].[NLM_NewsHub_DeleteSharedArticle]
     @Id INT,
-    @UserId INT
+    @UserId INT,
+    @IsAdmin BIT = 0
 AS
 BEGIN
     SET NOCOUNT OFF;
@@ -11,12 +12,10 @@ BEGIN
     BEGIN TRY
         BEGIN TRANSACTION;
 
-        -- 1. Verify Ownership (or allow if you want admin override, but current logic enforces owner)
-        --    The original SP enforced: WHERE Id = @Id AND UserId = @UserId
-        --    We need to check existence first to safely run multiple deletes
-        IF NOT EXISTS (SELECT 1 FROM [dbo].[NLM_NewsHub_SharedArticles] WHERE Id = @Id AND UserId = @UserId)
+        -- 1. Verify Ownership OR Admin Status
+        IF @IsAdmin = 0 AND NOT EXISTS (SELECT 1 FROM [dbo].[NLM_NewsHub_SharedArticles] WHERE Id = @Id AND UserId = @UserId)
         BEGIN
-            -- Not found or not owner, do nothing (or could raise error)
+            -- Not found or not owner, and not admin -> Fail
             COMMIT TRANSACTION;
             SELECT 0 AS RowsAffected;
             RETURN;
@@ -29,19 +28,24 @@ BEGIN
         DELETE FROM [dbo].[NLM_NewsHub_SharedArticleLikes] WHERE SharedArticleId = @Id;
 
         -- 4. Delete Reports on this article
-        --    Recall Reports distinguish shared articles via Reason prefix or referencing NewsId
-        --    Using logic from our DeleteUserFix:
         DELETE FROM [dbo].[NLM_NewsHub_Reports] 
         WHERE Reason LIKE 'SharedArticle:%' 
           AND NewsId = @Id;
 
         -- 5. Delete the Shared Article itself
-        DELETE FROM [dbo].[NLM_NewsHub_SharedArticles] 
-        WHERE Id = @Id AND UserId = @UserId;
+        -- If Admin, delete by ID only. If User, delete by ID + UserId.
+        IF @IsAdmin = 1
+        BEGIN
+            DELETE FROM [dbo].[NLM_NewsHub_SharedArticles] WHERE Id = @Id;
+        END
+        else
+        BEGIN
+            DELETE FROM [dbo].[NLM_NewsHub_SharedArticles] WHERE Id = @Id AND UserId = @UserId;
+        END
 
         COMMIT TRANSACTION;
         
-        -- Return 1 to indicate success (since verification passed)
+        -- Return 1 to indicate success
         SELECT 1 AS RowsAffected;
     END TRY
     BEGIN CATCH

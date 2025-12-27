@@ -81,10 +81,10 @@ namespace Server.BL
             return db.GetSharedArticleById(id, currentUserId);
         }
 
-        public static bool DeleteSharedArticle(int id, int userId)
+        public static bool DeleteSharedArticle(int id, int userId, bool isAdmin = false)
         {
             SharedArticleDBservices db = new SharedArticleDBservices();
-            return db.DeleteSharedArticle(id, userId);
+            return db.DeleteSharedArticle(id, userId, isAdmin);
         }
 
         public static bool LikeSharedArticle(int articleId, int userId)

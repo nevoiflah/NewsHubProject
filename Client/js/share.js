@@ -47,6 +47,7 @@ const ShareManager = {
         $(document).on('click', '.follow-user-btn', this.handleFollowUser.bind(this));
         $(document).on('click', '.unfollow-user-btn', this.handleUnfollowUser.bind(this));
         $(document).on('click', '.block-user-btn', this.handleBlockUser.bind(this));
+        $(document).on('click', '.unblock-user-btn', this.handleUnblockUser.bind(this));
         $(document).on('click', '.delete-shared-btn', this.handleDeleteShared.bind(this));
 
         // Comment interactions - INLINE VERSION
@@ -544,11 +545,14 @@ const ShareManager = {
         ajaxCall(
             'POST',
             `${this.baseUrl}/users/${targetUserId}/follow?userId=${userId}`,
-            null
+            null,
+            function () {
+                location.reload();
+            },
+            function (err) {
+                console.error("Failed to follow user", err);
+            }
         );
-
-        // Immediately refresh the page
-        location.reload();
     },
 
     // Handle unfollow user
@@ -569,11 +573,14 @@ const ShareManager = {
         ajaxCall(
             'DELETE',
             `${this.baseUrl}/users/${targetUserId}/follow?userId=${userId}`,
-            null
+            null,
+            function () {
+                location.reload();
+            },
+            function (err) {
+                console.error("Failed to unfollow user", err);
+            }
         );
-
-        // Immediately refresh the page
-        location.reload();
     },
 
     // Handle block user
@@ -597,14 +604,13 @@ const ShareManager = {
             'POST',
             `${this.baseUrl}/users/${targetUserId}/block?userId=${userId}`,
             JSON.stringify({ reason: 'User blocked via shared articles page' }),
-            null,
+            function () { // success callback
+                location.reload();
+            },
             function (xhr, status, error) {
                 console.warn('Failed to block user:', error);
             }
         );
-
-        // Immediately refresh the page
-        location.reload();
     },
 
     // Handle report content
@@ -1055,8 +1061,8 @@ const ShareManager = {
                     <br>
                     <small class="text-muted">Blocked ${this.formatDate(user.blockedAt)}</small>
                 </div>
-                <button class="btn btn-outline-success btn-sm" 
-                        onclick="ShareManager.unblockUser(${user.blockedUserId}, '${user.blockedUsername}')">
+                <button class="btn btn-outline-success btn-sm unblock-user-btn" 
+                        data-user-id="${user.blockedUserId}" data-username="${this.sanitizeHtml(user.blockedUsername || 'Unknown')}">
                     <i class="fas fa-unlock me-1"></i>Unblock
                 </button>
             </div>
@@ -1095,8 +1101,11 @@ const ShareManager = {
         }
     },
 
-    // Unblock user
-    unblockUser: function (targetUserId, username) {
+    // Unblock user - Handled via event delegation
+    handleUnblockUser: function (e) {
+        const $btn = $(e.currentTarget);
+        const targetUserId = $btn.data('user-id');
+        const username = $btn.data('username');
         const userId = localStorage.getItem('userId');
 
         if (!confirm(`Are you sure you want to unblock ${username}?`)) return;
@@ -1105,11 +1114,15 @@ const ShareManager = {
         ajaxCall(
             'DELETE',
             `${this.baseUrl}/users/${targetUserId}/block?userId=${userId}`,
-            null
+            null, // data
+            function () { // success callback
+                location.reload();
+            },
+            function (err) { // error callback
+                console.error("Failed to unblock user", err);
+                alert("Failed to unblock user");
+            }
         );
-
-        // Immediately refresh the page
-        location.reload();
     },
 
     // Update filter indicators
